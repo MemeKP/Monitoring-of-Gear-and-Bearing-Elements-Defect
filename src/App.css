@@ -1,0 +1,10 @@
+body {
+	width: 100%;
+	height: 1024px;
+	position: relative;
+	background: linear-gradient(180deg, #e9f3ff, #b5d1f3);
+	overflow: hidden;
+	text-align: left;
+	color: #546a81;
+	font-family: 'Montserrat';
+}
