@@ -45,9 +45,9 @@ const Landing = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr] gap-6">
                     <div className="hidden sm:flex flex-col justify-center items-center p-4">
                         <ThaiMap
-                            hoveredProvince={hoveredSite}
+                            hoveredSite={hoveredSite}      // must match what ThaiMap reads
                             onHover={setHoveredSite}
-                            onClick={handleView}
+                            onSiteClick={handleView}       // must match what ThaiMap reads
                         />
                     </div>
 
@@ -59,7 +59,7 @@ const Landing = () => {
                             {SITES.map(site => (<div className='mb-4'>
                                 <SiteCard
                                     key={site.id}
-                                    site={site.name}
+                                    site={site}
                                     grades={site.grades}
                                     isHovered={hoveredSite === site.id}
                                     onHover={setHoveredSite}

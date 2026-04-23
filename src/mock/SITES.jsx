@@ -7,7 +7,7 @@ export const SITES = [
       { label: "F Grade", color: "#FF3B3B", count: 881, pct: 85 },
       { label: "E Grade", color: "#FFEE00", count: 51,  pct: 15 },
     ],
-    dot: { cx: 230, cy: 460, color: "#ED1A3B", glow: "rgba(237,26,59,0.3)" },
+    dot: { cx: 163, cy: 127, color: "#ED1A3B", glow: "rgba(237,26,59,0.3)" },
   },
   {
     id: "maemoh-plant",
@@ -17,7 +17,7 @@ export const SITES = [
       { label: "F Grade", color: "#FF3B3B", count: 23,  pct: 6  },
       { label: "E Grade", color: "#FFEE00", count: 977, pct: 93 },
     ],
-    dot: { cx: 218, cy: 475, color: "#FFE605", glow: "rgba(255,230,5,0.35)" },
+    dot: { cx: 169, cy: 136, color: "#FFE605", glow: "rgba(255,230,5,0.35)" },
   },
   {
     id: "bhumibol",
@@ -26,7 +26,7 @@ export const SITES = [
     grades: [
       { label: "E Grade", color: "#FFEE00", count: 900, pct: 92 },
     ],
-    dot: { cx: 150, cy: 430, color: "#FFE605", glow: "rgba(255,230,5,0.35)" },
+    dot: { cx: 111, cy: 236, color: "#FFE605", glow: "rgba(255,230,5,0.35)" },
   },
   {
     id: "wangnoi",
@@ -35,7 +35,7 @@ export const SITES = [
     grades: [
       { label: "E Grade", color: "#FFEE00", count: 400, pct: 45 },
     ],
-    dot: { cx: 210, cy: 550, color: "#FFE605", glow: "rgba(255,230,5,0.35)" },
+    dot: { cx: 217, cy: 430, color: "#FFE605", glow: "rgba(255,230,5,0.35)" },
   },
   {
     id: "north-bkk",
@@ -43,7 +43,7 @@ export const SITES = [
     provinces: ["nonthaburi"],
     status: "Normal",
     grades: [],
-    dot: { cx: 220, cy: 570, color: "#9CFF2E", glow: "rgba(156,255,46,0.35)" },
+    dot: { cx: 209, cy: 461, color: "#9CFF2E", glow: "rgba(156,255,46,0.35)" },
   },
 ];
 
