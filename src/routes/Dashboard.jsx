@@ -1,9 +1,11 @@
 import React from 'react'
+import Navbar from '../components/Navbar.jsx'
 
 const Dashboard = () => {
   return (
     <>
-    {/* SIDE BAR */}
+    {/* NAVBAR BAR */}
+    <Navbar/>
 
     {/* HERO DECTION */}
 

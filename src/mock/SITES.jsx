@@ -40,7 +40,7 @@ export const SITES = [
   {
     id: "north-bkk",
     name: "North Bangkok Power Plant",
-    provinces: ["nonthaburi", "pathumthani"],
+    provinces: ["nonthaburi"],
     status: "Normal",
     grades: [],
     dot: { cx: 220, cy: 570, color: "#9CFF2E", glow: "rgba(156,255,46,0.35)" },

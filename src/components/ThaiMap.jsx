@@ -18,7 +18,7 @@ function ThaiMap({ hoveredSite, onHover, onSiteClick }) {
           <path
             key={i}
             d={d}
-            fill={isHovered ? "#7FA8C9" : "#FFFFFF"}
+            fill={isHovered ? "#546A81" : "#FFFFFF"}
             stroke="#E9F3FF"
             strokeWidth="0.5"
             style={{

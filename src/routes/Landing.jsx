@@ -1,21 +1,25 @@
 import React from 'react'
-// import SiteSelector from '../components/SiteSelector'
 import { useState } from 'react';
 import { SITES } from '../mock/SITES';
 import ThaiMap from '../components/ThaiMap';
 import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
-import { SiteCard } from '../components/SiteSelector';
+import { LiquidGlassButton, SiteCard, TransparentCard } from '../components/SiteSelector';
+import Dashboard from './Dashboard';
 
 const Landing = () => {
     const [hoveredSite, setHoveredSite] = useState(null);
     const [activePage, setActivePage] = useState("map");
     const navigate = useNavigate();
     const [activeSite, setActiveSite] = useState(null);
-    const handleView = (siteId) => {
-        setActiveSite(SITES.find((s) => s.id === siteId));
+    const handleView = siteId => {
+        setActiveSite(SITES.find(s => s.id === siteId));
         setActivePage("detail");
     };
+
+    // if (activePage === "detail" && activeSite) {
+    //     return <Dashboard/>;
+    // }
 
     return (
         <>
@@ -41,7 +45,7 @@ const Landing = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr] gap-6">
                     <div className="hidden sm:flex flex-col justify-center items-center p-4">
                         <ThaiMap
-                            hoveredProvince={hoveredSite}   // pass your hovered site id
+                            hoveredProvince={hoveredSite}
                             onHover={setHoveredSite}
                             onClick={handleView}
                         />
@@ -52,56 +56,33 @@ const Landing = () => {
                             All Sites
                         </h1>
                         <div className="flex-1 overflow-y-auto">
-                            {/* <SiteSelector /> */}
-                            <div className='mb-4'>
+                            {SITES.map(site => (<div className='mb-4'>
                                 <SiteCard
-                                name="Mae Moh Mine"
-                                grades={[
-                                    { label: "F Grade", color: "#FF3B3B", count: 23, pct: 6 },
-                                    { label: "E Grade", color: "#FFEE00", count: 977, pct: 93 },
-                                ]}
-                                isHovered={hoveredSite === "maemoh-plant"}
-                                onHover={active => setHoveredSite(active ? "maemoh-plant" : null)}
-                                onView={() => navigate("/maemoh-plant")}
-                            />
+                                    key={site.id}
+                                    site={site.name}
+                                    grades={site.grades}
+                                    isHovered={hoveredSite === site.id}
+                                    onHover={setHoveredSite}
+                                    //onHover={active => setHoveredSite(active ? site.id : null)}
+                                    // onView={() => navigate(`/${site.id}`)} // still wait for API
+                                    onView={() => navigate(`/dashboard`)}
+                                />
+                            </div>))}
+
+                            <div className=''>
+                                <TransparentCard
+                                    name="Mae Moh Mine"
+                                    grades={[
+                                        { label: "F Grade", color: "#FF3B3B", count: 23, pct: 6 },
+                                        { label: "E Grade", color: "#FFEE00", count: 977, pct: 93 },
+                                    ]}
+                                    isHovered={hoveredSite === "maemoh-plant"}
+                                    onHover={active => setHoveredSite(active ? "maemoh-plant" : null)}
+                                    onView={() => navigate("/dashboard")} />
+
                             </div>
-                            <div className='mb-4'>
-                                <SiteCard
-                                name="Mae Moh Mine"
-                                grades={[
-                                    { label: "F Grade", color: "#FF3B3B", count: 23, pct: 6 },
-                                    { label: "E Grade", color: "#FFEE00", count: 977, pct: 93 },
-                                ]}
-                                isHovered={hoveredSite === "maemoh-plant"}
-                                onHover={active => setHoveredSite(active ? "maemoh-plant" : null)}
-                                onView={() => navigate("/maemoh-plant")}
-                            />
-                            </div>
-                            <div className='mb-4'>
-                                <SiteCard
-                                name="Mae Moh Mine"
-                                grades={[
-                                    { label: "F Grade", color: "#FF3B3B", count: 23, pct: 6 },
-                                    { label: "E Grade", color: "#FFEE00", count: 977, pct: 93 },
-                                ]}
-                                isHovered={hoveredSite === "maemoh-plant"}
-                                onHover={active => setHoveredSite(active ? "maemoh-plant" : null)}
-                                onView={() => navigate("/maemoh-plant")}
-                            />
-                            </div>
-                            <div className='mb-4'>
-                                <SiteCard
-                                name="Mae Moh Mine"
-                                grades={[
-                                    { label: "F Grade", color: "#FF3B3B", count: 23, pct: 6 },
-                                    { label: "E Grade", color: "#FFEE00", count: 977, pct: 93 },
-                                ]}
-                                isHovered={hoveredSite === "maemoh-plant"}
-                                onHover={active => setHoveredSite(active ? "maemoh-plant" : null)}
-                                onView={() => navigate("/maemoh-plant")}
-                            />
-                            </div>
-                            <p className="text-sm text-slate-400">Loading sites...</p>
+                            {/* <p className="text-sm text-slate-400">Loading sites...</p> */}
+
                         </div>
                     </div>
                 </div>

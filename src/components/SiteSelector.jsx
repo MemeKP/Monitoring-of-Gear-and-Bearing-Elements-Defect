@@ -15,12 +15,12 @@
  *   onHover     {fn}       (bool) => void
  *   onView      {fn}       () => void  — called when "view" is clicked
  */
-export function SiteCard({ name, grades = [], status, isHovered, onHover, onView }) {
+export function SiteCard({ site,grades = [], status, isHovered, onHover, onView }) {
   return (
     /* ── Outer card: gradient + glassmorphism ── */
     <div
-      // onMouseEnter={() => onHover?.(true)}
-      // onMouseLeave={() => onHover?.(false)}
+      onMouseEnter={() => onHover?.(site.id)}
+      onMouseLeave={() => onHover?.(null)}
       className={[
         "relative w-full rounded-[15px] border border-white/30",
         "bg-gradient-to-r from-[#5EA7FF] to-[#DFEBF7]",
@@ -54,34 +54,13 @@ export function SiteCard({ name, grades = [], status, isHovered, onHover, onView
               paddingRight: 12,
             }}
           >
-            {name}
+            {site}
           </span>
 
-          {/* "view" button — dark pill */}
+          {/* "view" button*/}
           <button
             onClick={e => { e.stopPropagation(); onView?.(); }}
-            style={{
-              background: "#ffff",
-              // border: "1px solid #A6A6A6 ",
-              borderRadius: 100,
-              padding: "6px 18px",
-              color: "#546A81",
-              fontSize: 12,
-              fontFamily: "Montserrat, sans-serif",
-              fontWeight: 600,
-              lineHeight: "20px",
-              cursor: "pointer",
-              backdropFilter: "blur(6px)",
-              boxShadow: [
-                "0px 1px 8px rgba(0,0,0,0.10)",
-                "0px 0px 2px rgba(0,0,0,0.10)",
-                "0px 0px 8px #F2F2F2 inset",
-                "0px 0px 0px 1px #A6A6A6 inset",
-              ].join(", "),
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              transition: "opacity 0.2s",
-            }}
+            className="button-on-light"
             onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
             onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
           >
@@ -116,18 +95,103 @@ export function SiteCard({ name, grades = [], status, isHovered, onHover, onView
           </div>
         ) : (
           /* Grade bars */
-          <div className="w-full flex flex-col gap-[6px] mt-1">
-            {grades.map(grade => (
-              <GradeBar key={grade.label} grade={grade} />
-            ))}
-          </div>
+          grades && grades.length > 0 ?
+            (
+              <div className="w-full flex flex-col gap-[6px] mt-1">
+                {grades.map(grade => (
+                  <GradeBar key={grade.label} grade={grade} />
+                ))}
+              </div>
+            ) : (
+              // No 'F' nor 'E' grades
+              <div className="flex items-center gap-2 mt-2 ml-1">
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{
+                    background: "#9CFF2E",
+                    boxShadow: "0 0 10px rgba(156, 255, 46, 0.6)"
+                  }}
+                />
+                <span
+                  className="tracking-wide"
+                  style={{
+                    color: "#9CFF2E",
+                    fontFamily: "Montserrat, sans-serif",
+                    fontSize: 10,
+                    fontWeight: 600,
+                  }}
+                >
+                  Normal
+                </span>
+              </div>
+            )
         )}
       </div>
     </div>
   );
 }
 
-/* ── Internal GradeBar ── */
+/* ── Transparent Card ── */
+export function TransparentCard({ name, grades = [], status, isHovered, onHover, site }) {
+  return (
+    <div
+      className="rectangle-div p-4"
+      onMouseEnter={() => onHover(site.id)}
+      onMouseLeave={() => onHover(null)}
+    >
+      <span className="flex gap-5 items-center justify-between">
+        <p className="text-white font-bold text-[18px]">{name}</p>
+        <LiquidGlassButton />
+      </span>
+      {/* Content: grades or status */}
+      {status ? (
+        /* Status dot + label */
+        <div className="flex items-center gap-2 mt-1">
+          <div
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: "#9CFF2E",
+              boxShadow: "0 0 6px rgba(156,255,46,0.6)",
+              flexShrink: 0,
+            }}
+          />
+          <span
+            style={{
+              color: "#9CFF2E",
+              fontSize: 10,
+              fontFamily: "Montserrat, sans-serif",
+              fontWeight: 600,
+            }}
+          >
+            {status}
+          </span>
+        </div>
+      ) : (
+        /* Grade bars */
+        <div className="w-full flex flex-col gap-[6px] mt-1">
+          {grades.map(grade => (
+            <GradeBar key={grade.label} grade={grade} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── LiquidGlass Button ── */
+export function LiquidGlassButton() {
+  return (
+    <div>
+      <button className="button-on-light text-sm">
+        view
+      </button>
+    </div>
+  )
+}
+
+/* ── INTERNAL GRADEBAR ── */
 function GradeBar({ grade }) {
   return (
     <div className="w-full">
@@ -182,4 +246,3 @@ function GradeBar({ grade }) {
   );
 }
 
-  
