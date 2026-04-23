@@ -1,78 +1,185 @@
-import React from 'react'
-
-const SiteSelector = () => {
-  // ข้อมูลจำลองสำหรับแถบความคืบหน้า (Progress Bars)
-  const stats = {
-    fGrade: { value: 23, total: 1000 },
-    eGrade: { value: 977, total: 1000 }
-  };
-
-  // ฟังก์ชันคำนวณความกว้างของหลอด
-  const getProgressWidth = (value, total) => {
-    return `${(value / total) * 100}%`;
-  };
-
+/**
+ * SiteCard — reusable site selector card component
+ *
+ * Matches the Figma design:
+ * - Outer layer: gradient bg + glassmorphism shadow + backdrop-blur
+ * - Inner layer: transparent white overlay with padding
+ * - Site name + "view" button on top row
+ * - Grade bars (F Grade / E Grade) or status dot below
+ *
+ * Props:
+ *   name        {string}   Site display name
+ *   grades      {Array}    [{ label, color, count, pct }]  — omit or [] for status mode
+ *   status      {string}   e.g. "Normal" — shown instead of grades when provided
+ *   isHovered   {boolean}  Controlled hover state (from parent, e.g. map sync)
+ *   onHover     {fn}       (bool) => void
+ *   onView      {fn}       () => void  — called when "view" is clicked
+ */
+export function SiteCard({ name, grades = [], status, isHovered, onHover, onView }) {
   return (
-    // Wrapper หลัก (ผมใส่สีพื้นหลังเพื่อให้เห็นเอฟเฟกต์ Glassmorphism ชัดเจนขึ้น)
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-      
-      {/* Container ของ Card */}
-      <div className="relative w-full max-w-[420px]">
-        
-        {/* เลเยอร์เงา/แผ่นทึบด้านหลัง (เพื่อให้เกิดมิติการซ้อนทับตามรูปต้นฉบับ) */}
-        <div className="absolute inset-0 bg-[#e2eafc] rounded-3xl translate-y-3 translate-x-3 opacity-90 shadow-sm"></div>
-        
-        {/* เลเยอร์หลัก: Glassmorphism Card */}
-        <div className="relative p-7 border border-white/60 shadow-xl rounded-3xl bg-gradient-to-br from-[#8db3fa]/60 via-[#a7c5fb]/40 to-[#e4ccff]/50 backdrop-blur-xl">
-          
-          {/* Header Section */}
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-[22px] font-bold text-white tracking-wide drop-shadow-md">
-              Mae Moh Power Plant
-            </h2>
-            
-            {/* ปุ่ม View */}
-            <button className="px-5 py-1.5 text-sm font-medium text-slate-600 transition-all border border-white/80 rounded-full shadow-sm bg-gradient-to-b from-white/80 to-white/40 hover:bg-white/70 active:scale-95">
-              view
-            </button>
-          </div>
+    /* ── Outer card: gradient + glassmorphism ── */
+    <div
+      // onMouseEnter={() => onHover?.(true)}
+      // onMouseLeave={() => onHover?.(false)}
+      className={[
+        "relative w-full rounded-[15px] border border-white/30",
+        "bg-gradient-to-r from-[#5EA7FF] to-[#DFEBF7]",
+        "shadow-[10px_10px_20px_#fff,inset_0px_-2px_4px_rgba(0,0,0,0.2),inset_0px_2px_4px_rgba(255,255,255,0.4)]",
+        "backdrop-blur-[10px]",
+        "transition-all duration-300 ease-out cursor-pointer"
+      ].join(" ")}
+      style={{ minHeight: 107 }}
+    >
+      {/* ── Inner overlay: transparent white container ── */}
+      <div
+        className="relative w-full h-full rounded-[15px] flex flex-col items-start justify-center"
+        style={{
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          padding: "16px 20px",
+          boxSizing: "border-box",
+          minHeight: 107,
+        }}
+      >
+        {/* Top row: site name + view button */}
+        <div className="flex w-full items-center justify-between mb-2">
+          <span
+            className="text-white font-bold tracking-wide leading-tight"
+            style={{
+              fontSize: 17,
+              fontFamily: "Montserrat, sans-serif",
+              fontWeight: 700,
+              letterSpacing: "0.02em",
+              textShadow: "0 1px 4px rgba(0,0,0,0.18)",
+              flex: 1,
+              paddingRight: 12,
+            }}
+          >
+            {name}
+          </span>
 
-          {/* F Grade Section */}
-          <div className="mb-5">
-            <div className="flex justify-between mb-1.5 text-sm font-bold tracking-wide">
-              <span className="text-[#ff3b30] drop-shadow-sm">F Grade</span>
-              <span className="text-[#ff3b30] drop-shadow-sm">{stats.fGrade.value}</span>
-            </div>
-            {/* หลอดพื้นหลัง (Track) */}
-            <div className="w-full h-1.5 rounded-full bg-white/50 overflow-hidden shadow-inner">
-              {/* หลอดสีแสดงค่า (Fill) */}
-              <div 
-                className="h-full rounded-full bg-[#ff3b30] shadow-[0_0_8px_rgba(255,59,48,0.6)]" 
-                style={{ width: getProgressWidth(stats.fGrade.value, stats.fGrade.total) }}
-              ></div>
-            </div>
-          </div>
-
-          {/* E Grade Section */}
-          <div className="mb-2">
-            <div className="flex justify-between mb-1.5 text-sm font-bold tracking-wide">
-              <span className="text-[#ffcc00] drop-shadow-sm">E Grade</span>
-              <span className="text-[#ffcc00] drop-shadow-sm">{stats.eGrade.value}</span>
-            </div>
-            {/* หลอดพื้นหลัง (Track) */}
-            <div className="w-full h-1.5 rounded-full bg-white/50 overflow-hidden shadow-inner">
-              {/* หลอดสีแสดงค่า (Fill) */}
-              <div 
-                className="h-full rounded-full bg-[#ffcc00] shadow-[0_0_8px_rgba(255,204,0,0.6)]" 
-                style={{ width: getProgressWidth(stats.eGrade.value, stats.eGrade.total) }}
-              ></div>
-            </div>
-          </div>
-
+          {/* "view" button — dark pill */}
+          <button
+            onClick={e => { e.stopPropagation(); onView?.(); }}
+            style={{
+              background: "#ffff",
+              // border: "1px solid #A6A6A6 ",
+              borderRadius: 100,
+              padding: "6px 18px",
+              color: "#546A81",
+              fontSize: 12,
+              fontFamily: "Montserrat, sans-serif",
+              fontWeight: 600,
+              lineHeight: "20px",
+              cursor: "pointer",
+              backdropFilter: "blur(6px)",
+              boxShadow: [
+                "0px 1px 8px rgba(0,0,0,0.10)",
+                "0px 0px 2px rgba(0,0,0,0.10)",
+                "0px 0px 8px #F2F2F2 inset",
+                "0px 0px 0px 1px #A6A6A6 inset",
+              ].join(", "),
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+              transition: "opacity 0.2s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+          >
+            view
+          </button>
         </div>
+
+        {/* Content: grades or status */}
+        {status ? (
+          /* Status dot + label */
+          <div className="flex items-center gap-2 mt-1">
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: "#9CFF2E",
+                boxShadow: "0 0 6px rgba(156,255,46,0.6)",
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                color: "#9CFF2E",
+                fontSize: 10,
+                fontFamily: "Montserrat, sans-serif",
+                fontWeight: 600,
+              }}
+            >
+              {status}
+            </span>
+          </div>
+        ) : (
+          /* Grade bars */
+          <div className="w-full flex flex-col gap-[6px] mt-1">
+            {grades.map(grade => (
+              <GradeBar key={grade.label} grade={grade} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export default SiteSelector
+/* ── Internal GradeBar ── */
+function GradeBar({ grade }) {
+  return (
+    <div className="w-full">
+      {/* Label row */}
+      <div className="flex justify-between items-center mb-[3px]">
+        <span
+          style={{
+            color: grade.color,
+            fontSize: 10,
+            fontFamily: "Montserrat, sans-serif",
+            fontWeight: 600,
+            lineHeight: "20px",
+          }}
+        >
+          {grade.label}
+        </span>
+        <span
+          style={{
+            color: grade.color,
+            fontSize: 10,
+            fontFamily: "Montserrat, sans-serif",
+            fontWeight: 600,
+            lineHeight: "20px",
+          }}
+        >
+          {grade.count}
+        </span>
+      </div>
+
+      {/* Bar track */}
+      <div
+        style={{
+          width: "100%",
+          height: 3,
+          background: "rgba(230,243,255,0.35)",
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
+        {/* Bar fill */}
+        <div
+          style={{
+            height: "100%",
+            width: `${grade.pct}%`,
+            background: grade.color,
+            borderRadius: 2,
+            transition: "width 0.6s ease",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+  

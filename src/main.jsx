@@ -9,6 +9,8 @@ import {
   RouterProvider
 } from 'react-router-dom'
 import Landing from './routes/Landing.jsx'
+import Dashboard from './routes/Dashboard.jsx'
+import GraphPage from './routes/GraphPage.jsx'
 
 const router = createBrowserRouter([
 
@@ -18,15 +20,19 @@ const router = createBrowserRouter([
     },
     {
       path: '/:id',
+      element: <Dashboard/>,
+    },
+    {
+      path: '/:id/equipment',
       element: <h1>dashboard</h1>,
     },
     {
       path: '/:id/equipment',
       element: <h1>dashboard</h1>,
     },
-     {
-      path: '/:id/equipment',
-      element: <h1>dashboard</h1>,
+    {
+      path: '/graph',
+      element: <GraphPage/>,
     },
  
 ])

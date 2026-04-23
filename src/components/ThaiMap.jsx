@@ -18,7 +18,7 @@ function ThaiMap({ hoveredSite, onHover, onSiteClick }) {
           <path
             key={i}
             d={d}
-            fill={isHovered ? "#7FA8C9" : "#546A81"}
+            fill={isHovered ? "#7FA8C9" : "#FFFFFF"}
             stroke="#E9F3FF"
             strokeWidth="0.5"
             style={{
@@ -45,13 +45,13 @@ function ThaiMap({ hoveredSite, onHover, onSiteClick }) {
             onMouseLeave={() => onHover(null)}
             onClick={() => onSiteClick(site.id)}
           >
-            <circle cx={cx} cy={cy} r={isHovered ? 22 : 13} fill={glow}
+            {/* <circle cx={cx} cy={cy} r={isHovered ? 22 : 13} fill={glow}
               style={{ transition: "r 0.25s ease" }} />
             <circle cx={cx} cy={cy} r={isHovered ? 11 : 6} fill="none"
               stroke={color} strokeWidth="1"
               style={{ transition: "r 0.25s ease" }} />
             <circle cx={cx} cy={cy} r={isHovered ? 6.5 : 4} fill={color}
-              style={{ transition: "r 0.25s ease" }} />
+              style={{ transition: "r 0.25s ease" }} /> */}
           </g>
         );
       })}
