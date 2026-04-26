@@ -2,39 +2,48 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import { 
+import {
   createBrowserRouter,
-  Route, 
+  Route,
   Link,
   RouterProvider
 } from 'react-router-dom'
 import Landing from './routes/Landing.jsx'
 import Dashboard from './routes/Dashboard.jsx'
 import GraphPage from './routes/GraphPage.jsx'
+import DashboardPageWrapper from './layout/DashboardPageWrapper.jsx'
 
 const router = createBrowserRouter([
 
-    {
-      path: '/',
-      element: <Landing/>,
-    },
-    {
-      path: '/dashboard',
-      element: <Dashboard/>,
-    },
-    {
-      path: '/:id/equipment',
-      element: <h1>dashboard</h1>,
-    },
-    {
-      path: '/:id/equipment',
-      element: <h1>dashboard</h1>,
-    },
-    {
-      path: '/graph',
-      element: <GraphPage/>,
-    },
- 
+  {
+    path: '/',
+    element: <Landing />,
+  },
+  // {
+  //   path: '/dashboard/:siteId',
+  //   element: <DashboardPageWrapper />,
+  // },
+  {
+    path: '/dashboard/:siteId',
+    element: <Dashboard />,
+  },
+  // {
+  //   path: '/dashboard',
+  //   element: <DashboardPageWrapper />,
+  // },
+  {
+    path: '/:id/equipment',
+    element: <h1>dashboard</h1>,
+  },
+  {
+    path: '/:id/equipment',
+    element: <h1>dashboard</h1>,
+  },
+  {
+    path: '/graph',
+    element: <GraphPage />,
+  },
+
 ])
 
 createRoot(document.getElementById('root')).render(

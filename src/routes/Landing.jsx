@@ -6,6 +6,7 @@ import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { LiquidGlassButton, SiteCard, TransparentCard } from '../components/SiteSelector';
 import Dashboard from './Dashboard';
+// import { DashboardPage } from './Dashboard';
 
 const Landing = () => {
     const [hoveredSite, setHoveredSite] = useState(null);
@@ -64,8 +65,8 @@ const Landing = () => {
                                     isHovered={hoveredSite === site.id}
                                     onHover={setHoveredSite}
                                     //onHover={active => setHoveredSite(active ? site.id : null)}
-                                    // onView={() => navigate(`/${site.id}`)} // still wait for API
-                                    onView={() => navigate(`/dashboard`)}
+                                    onView={() => navigate(`/dashboard/${site.id}`)} // still wait for API
+                                    // onView={() => navigate(`/dashboard`)}
                                 />
                             </div>))}
 
