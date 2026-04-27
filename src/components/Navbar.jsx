@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, SidebarOpen, X } from "lucide-react";
 
 import logo from "../assets/logo.png";
 import allsites from "../assets/allsites.png";
@@ -40,17 +40,17 @@ export default function Navbar({
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* DESKTOP SIDEBAR */}
       <aside
         className={`fixed left-0 top-0 h-full z-40 hidden md:block bg-white/60
         transition-all duration-300 shadow-lg
-        ${sidebarOpen ? "w-64" : "w-20"}`}
+        ${sidebarOpen ? "w-64" : "w-15"}`}
       >
         {/* Logo */}
         <div className="flex items-center p-4 h-20">
           {sidebarOpen && (
             <div className="flex items-center gap-2">
-              <img src={logo} alt="logo" className="w-10" />
+              <img src={logo} alt="logo" className="w-8" />
               <span className="text-slate-600 font-bold text-lg">
                 EGAT<span className="font-normal">for</span>ALL
               </span>
@@ -59,20 +59,19 @@ export default function Navbar({
         </div>
 
         {/* Menu */}
-        <nav className="px-2 space-y-2">
+        <nav className="px-2 mt-10 space-y-10">
           {menuItems.map((item, i) => (
             <button
               key={i}
-              className={`group relative overflow-hidden w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300
-              ${
-                item.active
-                  ? "bg-[#708DA8] text-white"
-                  : "text-[#546A81]"
-              }`}
+              className={`group relative overflow-hidden w-full flex items-center gap-3 px-3  py-2 rounded-xl transition-all duration-300
+              ${item.active
+                  ? "bg-[#708DA8] text-white "
+                  : "text-[#546A81] "
+                }`}
             >
               {!item.active && (
                 <span
-                  className="absolute inset-0 bg-white scale-x-0 origin-left
+                  className="absolute inset-0 bg-[#708DA8]/10 scale-x-0 origin-left
                   group-hover:scale-x-100 transition-transform duration-500 z-0"
                 />
               )}
@@ -84,7 +83,10 @@ export default function Navbar({
               />
 
               {sidebarOpen && (
-                <span className="relative z-10 text-sm font-medium">
+                <span
+                  className={`relative z-10 text-sm ${item.active ? "font-medium" : "font-normal"
+                    }`}
+                >
                   {item.label}
                 </span>
               )}
@@ -93,13 +95,14 @@ export default function Navbar({
         </nav>
 
         {/* Logout */}
-        <div className="absolute  px-2">
+        <div className="absolute px-2 w-full mt-5">
           <button
-            className="group relative overflow-hidden w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-500"
+            className="group relative overflow-hidden w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 text-red-500"
           >
+
             <span
               className="absolute inset-0 bg-red-50 scale-x-0 origin-left
-              group-hover:scale-x-100 transition-transform duration-500"
+                  group-hover:scale-x-100 transition-transform duration-500 z-0"
             />
 
             <img
@@ -109,7 +112,7 @@ export default function Navbar({
             />
 
             {sidebarOpen && (
-              <span className="relative z-10 text-sm font-medium">
+              <span className="relative z-10 text-sm font-normal">
                 Logout
               </span>
             )}
@@ -124,14 +127,13 @@ export default function Navbar({
           <img
             src={leftArrow}
             alt="toggle"
-            className={`w-5 transition-transform ${
-              sidebarOpen ? "" : "rotate-180"
-            }`}
+            className={`w-5 transition-transform ${sidebarOpen ? "" : "rotate-180"
+              }`}
           />
         </button>
       </aside>
 
-      {/* Mobile Top Navbar */}
+      {/* MOBILE TOP NAVBAR */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
@@ -142,27 +144,47 @@ export default function Navbar({
           </div>
 
           <button
-            onClick={() =>
-              setMobileMenuOpen(!mobileMenuOpen)
-            }
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="relative w-6 h-6 flex items-center justify-center text-[#546A81] "
           >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            <Menu
+              size={24}
+              className={`absolute transition-all duration-300 ease-in-out ${mobileMenuOpen
+                ? "opacity-0 rotate-90 scale-50"
+                : "opacity-100 rotate-0 scale-100"
+                }`}
+            />
+
+            <X
+              size={24}
+              className={`absolute transition-all duration-300 ease-in-out ${mobileMenuOpen
+                ? "opacity-100 rotate-0 scale-100"
+                : "opacity-0 -rotate-90 scale-50"
+                }`}
+            />
           </button>
         </div>
 
         {/* Mobile Dropdown */}
         {mobileMenuOpen && (
-          <nav className="px-4 pb-4 space-y-2 border-t">
+          <nav className="px-4 pb-4 space-y-4 border-t">
             {menuItems.map((item, i) => (
               <button
                 key={i}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl
-                ${
-                  item.active
+                className={`group relative overflow-hidden w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all mt-4 duration-300
+                ${item.active
                     ? "bg-[#708DA8] text-white"
                     : "text-[#546A81] bg-white"
-                }`}
+                  }`}
               >
+
+                {!item.active && (
+                  <span
+                    className="absolute inset-0 bg-[#708DA8]/10 scale-x-0 origin-left
+                    group-hover:scale-x-100 transition-transform duration-500 z-0"
+                  />
+                )}
+
                 <img
                   src={
                     item.active
@@ -170,14 +192,15 @@ export default function Navbar({
                       : item.icon
                   }
                   alt={item.label}
-                  className="w-5 h-5"
+                  className="relative z-10 w-5 h-5 transition-all duration-300 group-hover:scale-110"
                 />
-                <span className="text-sm font-medium">
+                <span className={`relative z-10 text-sm transition-colors duration-300 ${item.active ? 'font-medium' : 'font-normal group-hover:text-[#3B4D5F]'}`}>
                   {item.label}
                 </span>
               </button>
             ))}
           </nav>
+
         )}
       </header>
     </>
