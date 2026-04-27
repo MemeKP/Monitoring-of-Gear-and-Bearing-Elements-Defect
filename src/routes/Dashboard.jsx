@@ -5,6 +5,7 @@ import mmm from '../img/mmm.jpg'
 import mmm2 from '../img/mmm2.jpg'
 import mmm3 from '../img/view4.webp'
 import clock from '../assets/clock.png'
+import { useNavigate, useParams } from 'react-router-dom';
 
 const stats = {
   totalMachines: 1000,
@@ -20,13 +21,23 @@ const gradeBreakdown = [
   { grade: "Grade B", percent: 2.3, color: "bg-[#5EA7FF]" },
   { grade: "Grade A", percent: 2.3, color: "bg-[#5EA7FF]" },
 ];
-const machinesRequiringAttention = [
+
+
+const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const {id} = useParams();
+
+  const machinesRequiringAttention = [
   {
     id: 1,
     name: "[Test_BPKMH2] Crusher 2: Single Roll Crush",
     code: "MMP_1V - 2017-04-08",
     status: "F",
     daysAgo: "3302 days ago",
+    // path: `/equipment/${id}`
+    path: `/equipment/test123`
   },
   {
     id: 2,
@@ -34,6 +45,7 @@ const machinesRequiringAttention = [
     code: "MMP_1V - 2017-04-06",
     status: "F",
     daysAgo: "3302 days ago",
+    path: `/equipment/${id}`
   },
   {
     id: 3,
@@ -41,6 +53,7 @@ const machinesRequiringAttention = [
     code: "MMP_1V - 2022-11-14",
     status: "F",
     daysAgo: "72 days ago",
+    path: `/equipment/${id}`
   },
   {
     id: 4,
@@ -48,6 +61,7 @@ const machinesRequiringAttention = [
     code: "MMP_1V - 2022-11-14",
     status: "F",
     daysAgo: "72 days ago",
+    path: `/equipment/${id}`
   },
   {
     id: 5,
@@ -55,6 +69,7 @@ const machinesRequiringAttention = [
     code: "MMP_1V - 2022-11-14",
     status: "F",
     daysAgo: "72 days ago",
+    path: `/equipment/${id}`
   },
 ];
 
@@ -74,10 +89,6 @@ const recentItems = [
   { name: "Case_OAB, 12-3 G", days: "72 days" },
 ];
 
-
-const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <>
       {/* NAVBAR BAR */}
@@ -114,7 +125,7 @@ const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
           {/* Row 1: Stats + Stage Breakdown + Images */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Statistic Overview Card */}
-            <div className="md:col-span-1 lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition h-full">
+            <div className="md:col-span-1 lg:col-span-1 bg-white rounded-2xl p-6 shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)] hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)] transition h-full">
               <h3 className="text-[#546A81] font-semibold text-xl mb-2">
                 Statistic overview
               </h3>
@@ -204,7 +215,7 @@ const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
             </div>
 
             {/* Stage Breakdown Card */}
-            <div className="md:col-span-1 lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+            <div className="md:col-span-1 lg:col-span-1 bg-white rounded-2xl p-6 shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)] hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)] transition">
               <h3 className="text-gray-600 font-semibold text-xl mb-2">
                 Stage Breakdown
               </h3>
@@ -237,7 +248,7 @@ const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
                 <div
                   key={i}
                   className={`${i === 2 ? "md:col-span-2" : "md:col-span-1"
-                    } rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition h-40`}
+                    } rounded-2xl overflow-hidden shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)] hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)] transition h-40`}
                 >
                   <img
                     src={img}
@@ -274,31 +285,32 @@ const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
               </div>
 
               {/* Machine list */}
-              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+              {/* if u want inner scroll use 'max-h-[500px]' */}
+              <div className="space-y-4 min-h-full overflow-y-auto pr-2">
                 {machinesRequiringAttention.map((item, i) => (
                   <div
                     key={i}
-                    className={`p-4 rounded-xl transition ${i === 0
-                        ? "bg-[#ffcccc] shadow-sm" 
-                        : "bg-white shadow-sm border border-gray-100" 
-                      }`}
+                    onClick={()=>navigate('/equipment/test123')}
+                    className={`group p-4 rounded-xl transition-all duration-300 bg-white shadow-sm border border-gray-100 hover:bg-[#ffcccc] hover:border-[#ffcccc] cursor-pointer`}
                   >
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h4 className={`text-sm font-bold ${i === 0 ? "text-white" : "text-gray-700"}`}>
+                        <h4 className="text-sm font-bold text-[#546A81] transition-colors duration-300 group-hover:text-white">
                           {item.name}
                         </h4>
-                        <p className={`text-xs mt-1 ${i === 0 ? "text-white/80" : "text-gray-400"}`}>
+
+                        <p className="text-xs font-semibold mt-1 text-[#A2ADB6] transition-colors duration-300 group-hover:text-white/80">
                           {item.code}
                         </p>
-                        <p className={`text-[10px] mt-2 ${i === 0 ? "text-white/70" : "text-gray-500 font-medium"}`}>
+
+                        <p className="text-[10px] mt-2 font-semibold text-[#546A81] transition-colors duration-300 group-hover:text-white/70">
                           Point Value
                         </p>
                       </div>
 
                       {/* Badge */}
                       <div className="ml-2 flex-shrink-0">
-                        <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border-2 ${i === 0 ? "bg-white text-red-500 border-white" : "bg-[#ffe5e5] text-red-500 border-transparent"
+                        <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold group-hover:bg-white group-hover:text-red-500  bg-[#ffe5e5] text-red-500 "
                           }`}
                         >
                           {item.status}
@@ -308,7 +320,7 @@ const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
 
                     {/* Progress Bar & Value */}
                     <div className="flex items-center justify-between mb-2">
-                      <div className={`flex-1 h-1 rounded-full mr-4 ${i === 0 ? "bg-red-500" : "bg-gray-100"}`}>
+                      <div className={`flex-1 h-1 rounded-full mr-4 bg-gray-100 group-hover:bg-white`}>
                         <div className="h-full bg-red-500 rounded-full w-[40%]"></div>
                       </div>
                       <span className="text-xs text-red-500 font-bold">
@@ -316,7 +328,7 @@ const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
                       </span>
                     </div>
 
-                    <p className={`text-[10px] ${i === 0 ? "text-red-500" : "text-red-400"}`}>
+                    <p className={`text-[10px] group-hover:text-red-500 text-red-400 `}>
                       Last check <span className="ml-2">3302 days ago</span>
                     </p>
                   </div>
@@ -324,14 +336,12 @@ const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
               </div>
             </div>
 
-
             {/* Health Checkup Overdue */}
             <div className="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="bg-[#ffe5e5] p-2 rounded-xl border border-red-500 text-red-500 flex items-center justify-center">
-                 <img src={clock} alt="clock icon" className='w-6' />
+                  <img src={clock} alt="clock icon" className='w-6' />
                 </div>
                 <div>
                   <h3 className="text-[#546A81] font-bold text-lg leading-tight">

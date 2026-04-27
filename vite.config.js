@@ -7,6 +7,8 @@ export default defineConfig({
     react(),
   ],
   server: {
+    host: "0.0.0.0",
+    port: 5173,
     // https://stackoverflow.com/a/74430384
     proxy: {
       "/api": {
