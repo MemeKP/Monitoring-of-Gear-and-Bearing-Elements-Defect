@@ -1,1 +1,0 @@
-# Monitoring-of-Gear-and-Bearing-Elements-Defect
