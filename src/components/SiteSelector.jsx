@@ -1,78 +1,350 @@
-import React from 'react'
+/**
+ * SiteCard — reusable site selector card component
+ *
+ * Matches the Figma design:
+ * - Outer layer: gradient bg + glassmorphism shadow + backdrop-blur
+ * - Inner layer: transparent white overlay with padding
+ * - Site name + "view" button on top row
+ * - Grade bars (F Grade / E Grade) or status dot below
+ *
+ * Props:
+ *   name        {string}   Site display name
+ *   grades      {Array}    [{ label, color, count, pct }]  — omit or [] for status mode
+ *   status      {string}   e.g. "Normal" — shown instead of grades when provided
+ *   isHovered   {boolean}  Controlled hover state (from parent, e.g. map sync)
+ *   onHover     {fn}       (bool) => void
+ *   onView      {fn}       () => void  — called when "view" is clicked
+ */
+// export function SiteCard({ site,grades = [], status, isHovered, onHover, onView }) {
+//   return (
+//     /* Outer card: gradient + glassmorphism */
+//     <div
+//       onMouseEnter={() => onHover?.(site.id)}
+//       onMouseLeave={() => onHover?.(null)}
+//       className={[
+//         "relative w-full rounded-[15px] border border-white/30",
+//         "bg-gradient-to-r from-[#5EA7FF] to-[#DFEBF7]",
+//         "shadow-[10px_10px_20px_#fff,inset_0px_-2px_4px_rgba(0,0,0,0.2),inset_0px_2px_4px_rgba(255,255,255,0.4)]",
+//         "backdrop-blur-[10px]",
+//         "transition-all duration-300 ease-out cursor-pointer"
+//       ].join(" ")}
+//       style={{ minHeight: 107 }}
+//     >
+//       {/* Inner overlay: transparent white container */}
+//       <div
+//         className="relative w-full h-full rounded-[15px] flex flex-col items-start justify-center"
+//         style={{
+//           backgroundColor: "rgba(255, 255, 255, 0.1)",
+//           padding: "16px 20px",
+//           boxSizing: "border-box",
+//           minHeight: 107,
+//         }}
+//       >
+//         {/* Top row: site name + view button */}
+//         <div className="flex w-full items-center justify-between mb-2">
+//           <span
+//             className="text-white font-bold tracking-wide leading-tight"
+//             style={{
+//               fontSize: 17,
+//               fontFamily: "Montserrat, sans-serif",
+//               fontWeight: 700,
+//               letterSpacing: "0.02em",
+//               textShadow: "0 1px 4px rgba(0,0,0,0.18)",
+//               flex: 1,
+//               paddingRight: 12,
+//             }}
+//           >
+//             {site.name}
+//           </span>
 
-const SiteSelector = () => {
-  // ข้อมูลจำลองสำหรับแถบความคืบหน้า (Progress Bars)
-  const stats = {
-    fGrade: { value: 23, total: 1000 },
-    eGrade: { value: 977, total: 1000 }
-  };
+//           {/* "view" button*/}
+//           <button
+//             onClick={e => { e.stopPropagation(); onView?.(); }}
+//             className="button-on-light"
+//             onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
+//             onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+//           >
+//             view
+//           </button>
+//         </div>
 
-  // ฟังก์ชันคำนวณความกว้างของหลอด
-  const getProgressWidth = (value, total) => {
-    return `${(value / total) * 100}%`;
-  };
+//         {/* Content: grades or status */}
+//         {status ? (
+//           /* Status dot + label */
+//           <div className="flex items-center gap-2 mt-1">
+//             <div
+//               style={{
+//                 width: 8,
+//                 height: 8,
+//                 borderRadius: "50%",
+//                 background: "#9CFF2E",
+//                 boxShadow: "0 0 6px rgba(156,255,46,0.6)",
+//                 flexShrink: 0,
+//               }}
+//             />
+//             <span
+//               style={{
+//                 color: "#9CFF2E",
+//                 fontSize: 10,
+//                 fontFamily: "Montserrat, sans-serif",
+//                 fontWeight: 600,
+//               }}
+//             >
+//               {status}
+//             </span>
+//           </div>
+//         ) : (
+//           /* Grade bars */
+//           grades && grades.length > 0 ?
+//             (
+//               <div className="w-full flex flex-col gap-[6px] mt-1">
+//                 {grades.map(grade => (
+//                   <GradeBar key={grade.label} grade={grade} />
+//                 ))}
+//               </div>
+//             ) : (
+//               // No 'F' nor 'E' grades
+//               <div className="flex items-center gap-2 mt-2 ml-1">
+//                 <div
+//                   className="w-2 h-2 rounded-full flex-shrink-0"
+//                   style={{
+//                     background: "#9CFF2E",
+//                     boxShadow: "0 0 10px rgba(156, 255, 46, 0.6)"
+//                   }}
+//                 />
+//                 <span
+//                   className="tracking-wide"
+//                   style={{
+//                     color: "#9CFF2E",
+//                     fontFamily: "Montserrat, sans-serif",
+//                     fontSize: 10,
+//                     fontWeight: 600,
+//                   }}
+//                 >
+//                   Normal
+//                 </span>
+//               </div>
+//             )
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
 
+export function SiteCard({ site, grades = [], status, isHovered, onHover, onView }) {
   return (
-    // Wrapper หลัก (ผมใส่สีพื้นหลังเพื่อให้เห็นเอฟเฟกต์ Glassmorphism ชัดเจนขึ้น)
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-      
-      {/* Container ของ Card */}
-      <div className="relative w-full max-w-[420px]">
-        
-        {/* เลเยอร์เงา/แผ่นทึบด้านหลัง (เพื่อให้เกิดมิติการซ้อนทับตามรูปต้นฉบับ) */}
-        <div className="absolute inset-0 bg-[#e2eafc] rounded-3xl translate-y-3 translate-x-3 opacity-90 shadow-sm"></div>
-        
-        {/* เลเยอร์หลัก: Glassmorphism Card */}
-        <div className="relative p-7 border border-white/60 shadow-xl rounded-3xl bg-gradient-to-br from-[#8db3fa]/60 via-[#a7c5fb]/40 to-[#e4ccff]/50 backdrop-blur-xl">
-          
-          {/* Header Section */}
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-[22px] font-bold text-white tracking-wide drop-shadow-md">
-              Mae Moh Power Plant
-            </h2>
-            
-            {/* ปุ่ม View */}
-            <button className="px-5 py-1.5 text-sm font-medium text-slate-600 transition-all border border-white/80 rounded-full shadow-sm bg-gradient-to-b from-white/80 to-white/40 hover:bg-white/70 active:scale-95">
+    <div
+      className="relative w-full group mt-2 ml-2"
+      onMouseEnter={() => onHover?.(site.id)}
+      onMouseLeave={() => onHover?.(null)}
+    >
+      {/* Layer 1: Background Glass */}
+      <div
+        className="absolute -top-[8px] -left-[8px] w-full h-full rounded-[15px] bg-gradient-to-r  from-[#5EA7FF] to-[#DFEBF7] backdrop-blur-md border border-white/20 z-0 "
+        style={{ minHeight: 107 }}
+      />
+
+      {/* Layer 2: Main Card */}
+      <div
+        className={[
+          "relative z-10 w-full rounded-[15px] border border-white/30",
+          "bg-gradient-to-r from-[#5EA7FF] to-[#DFEBF7]",
+          "shadow-[10px_10px_20px_#fff,inset_0px_-2px_4px_rgba(0,0,0,0.2),inset_0px_2px_4px_rgba(255,255,255,0.4)]",
+          "backdrop-blur-[10px]",
+          "cursor-pointer"
+        ].join(" ")}
+        style={{ minHeight: 107 }}
+      >
+        <div
+          className="relative w-full h-full rounded-[15px] flex flex-col items-start justify-center"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.1)",
+            padding: "16px 20px",
+            boxSizing: "border-box",
+            minHeight: 107,
+          }}
+        >
+          {/* Top row */}
+          <div className="flex w-full items-center justify-between mb-2">
+            <span
+              className="text-white font-bold tracking-wide leading-tight line-clamp-1"
+              style={{
+                fontSize: 17,
+                fontFamily: "Montserrat, sans-serif",
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+                textShadow: "0 1px 4px rgba(0,0,0,0.18)",
+                flex: 1,
+                paddingRight: 12,
+              }}
+            >
+              {site.name}
+            </span>
+
+            <button
+              onClick={e => { e.stopPropagation(); onView?.(); }}
+              className="button-on-light"
+              style={{ transition: "opacity 0.2s" }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+            >
               view
             </button>
           </div>
 
-          {/* F Grade Section */}
-          <div className="mb-5">
-            <div className="flex justify-between mb-1.5 text-sm font-bold tracking-wide">
-              <span className="text-[#ff3b30] drop-shadow-sm">F Grade</span>
-              <span className="text-[#ff3b30] drop-shadow-sm">{stats.fGrade.value}</span>
+          {/* Content */}
+          {status ? (
+            <div className="flex items-center gap-2 mt-1">
+              <div
+                style={{
+                  width: 8, height: 8, borderRadius: "50%",
+                  background: "#9CFF2E",
+                  boxShadow: "0 0 6px rgba(156,255,46,0.6)",
+                  flexShrink: 0,
+                }}
+              />
+              <span style={{ color: "#9CFF2E", fontSize: 10, fontFamily: "Montserrat, sans-serif", fontWeight: 600 }}>
+                {status}
+              </span>
             </div>
-            {/* หลอดพื้นหลัง (Track) */}
-            <div className="w-full h-1.5 rounded-full bg-white/50 overflow-hidden shadow-inner">
-              {/* หลอดสีแสดงค่า (Fill) */}
-              <div 
-                className="h-full rounded-full bg-[#ff3b30] shadow-[0_0_8px_rgba(255,59,48,0.6)]" 
-                style={{ width: getProgressWidth(stats.fGrade.value, stats.fGrade.total) }}
-              ></div>
-            </div>
-          </div>
-
-          {/* E Grade Section */}
-          <div className="mb-2">
-            <div className="flex justify-between mb-1.5 text-sm font-bold tracking-wide">
-              <span className="text-[#ffcc00] drop-shadow-sm">E Grade</span>
-              <span className="text-[#ffcc00] drop-shadow-sm">{stats.eGrade.value}</span>
-            </div>
-            {/* หลอดพื้นหลัง (Track) */}
-            <div className="w-full h-1.5 rounded-full bg-white/50 overflow-hidden shadow-inner">
-              {/* หลอดสีแสดงค่า (Fill) */}
-              <div 
-                className="h-full rounded-full bg-[#ffcc00] shadow-[0_0_8px_rgba(255,204,0,0.6)]" 
-                style={{ width: getProgressWidth(stats.eGrade.value, stats.eGrade.total) }}
-              ></div>
-            </div>
-          </div>
-
+          ) : (
+            grades && grades.length > 0 ? (
+              <div className="w-full flex flex-col gap-[6px] mt-1">
+                {grades.map(grade => (
+                  <GradeBar key={grade.label} grade={grade} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mt-2 ml-1">
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ background: "#9CFF2E", boxShadow: "0 0 10px rgba(156, 255, 46, 0.6)" }}
+                />
+                <span className="tracking-wide" style={{ color: "#9CFF2E", fontFamily: "Montserrat, sans-serif", fontSize: 10, fontWeight: 600 }}>
+                  Normal
+                </span>
+              </div>
+            )
+          )}
         </div>
+      </div>
+    </div>
+  ); 
+} 
+
+
+/* ── Transparent Card ── */
+export function TransparentCard({ name, grades = [], status, isHovered, onHover, site }) {
+  return (
+    <div
+      className="rectangle-div p-4"
+      onMouseEnter={() => onHover(site.id)}
+      onMouseLeave={() => onHover(null)}
+    >
+      <span className="flex gap-5 items-center justify-between">
+        <p className="text-white font-bold text-[18px]">{name}</p>
+        <LiquidGlassButton />
+      </span>
+      {/* Content: grades or status */}
+      {status ? (
+        /* Status dot + label */
+        <div className="flex items-center gap-2 mt-1">
+          <div
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: "#9CFF2E",
+              boxShadow: "0 0 6px rgba(156,255,46,0.6)",
+              flexShrink: 0,
+            }}
+          />
+          <span
+            style={{
+              color: "#9CFF2E",
+              fontSize: 10,
+              fontFamily: "Montserrat, sans-serif",
+              fontWeight: 600,
+            }}
+          >
+            {status}
+          </span>
+        </div>
+      ) : (
+        /* Grade bars */
+        <div className="w-full flex flex-col gap-[6px] mt-1">
+          {grades.map(grade => (
+            <GradeBar key={grade.label} grade={grade} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── LiquidGlass Button ── */
+export function LiquidGlassButton() {
+  return (
+    <div>
+      <button className="button-on-light text-sm">
+        view
+      </button>
+    </div>
+  )
+}
+
+/* ── INTERNAL GRADEBAR ── */
+function GradeBar({ grade }) {
+  return (
+    <div className="w-full">
+      {/* Label row */}
+      <div className="flex justify-between items-center mb-[3px]">
+        <span
+          style={{
+            color: grade.color,
+            fontSize: 10,
+            fontFamily: "Montserrat, sans-serif",
+            fontWeight: 600,
+            lineHeight: "20px",
+          }}
+        >
+          {grade.label}
+        </span>
+        <span
+          style={{
+            color: grade.color,
+            fontSize: 10,
+            fontFamily: "Montserrat, sans-serif",
+            fontWeight: 600,
+            lineHeight: "20px",
+          }}
+        >
+          {grade.count}
+        </span>
+      </div>
+
+      {/* Bar track */}
+      <div
+        style={{
+          width: "100%",
+          height: 3,
+          background: "rgba(230,243,255,0.35)",
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
+        {/* Bar fill */}
+        <div
+          style={{
+            height: "100%",
+            width: `${grade.pct}%`,
+            background: grade.color,
+            borderRadius: 2,
+            transition: "width 0.6s ease",
+          }}
+        />
       </div>
     </div>
   );
 }
 
-export default SiteSelector

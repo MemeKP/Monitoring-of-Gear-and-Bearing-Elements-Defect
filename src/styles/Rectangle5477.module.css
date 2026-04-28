@@ -1,0 +1,12 @@
+.rectangleDiv {
+  	width: 100%;
+  	height: 107px;
+  	position: relative;
+  	box-shadow: 10px 10px 20px #fff, 0px -2px 4px rgba(0, 0, 0, 0.2) inset, 0px 2px 4px rgba(255, 255, 255, 0.4) inset;
+  	backdrop-filter: blur(10px);
+  	border-radius: 15px;
+  	background: linear-gradient(90deg, #5ea7ff, #dfebf7) padding-box, linear-gradient(235.81deg, rgba(255, 255, 255, 0.05) 1.44%, #fff 50%, rgba(255, 255, 255, 0.05)) border-box;
+  	border: 1px solid transparent;
+  	box-sizing: border-box;
+}
+
