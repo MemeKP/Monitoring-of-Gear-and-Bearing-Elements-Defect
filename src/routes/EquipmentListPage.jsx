@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Navbar from '../components/Navbar'
 import { ChevronRight, Funnel, Plus, X } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const equipmentData = [
   { id: 29786, name: "Study Case_OAB. 12-3 G", site: "MMP", state: 5, date: "2022-11-4", time: "14:20:00", measPoint: "24-005_CR-H05", bpfo: 100, f0: 1135, ibeta: 1.4, grade: "F", whenActioned: "2024-02-01 10:53:54" },
@@ -36,6 +37,8 @@ const FrequencyChart = () => (
 )
 
 const SidePanel = ({ equipment, onClose }) => {
+  const navigate = useNavigate()
+
   if (!equipment) return null
   return (
     <>
@@ -45,12 +48,12 @@ const SidePanel = ({ equipment, onClose }) => {
         onClick={onClose}
       />
       <div className={`
-  fixed top-0 right-0 h-full z-40 
-  w-[340px] bg-white border-l border-gray-200
-  flex flex-col overflow-y-auto
-  transition-transform duration-300
-  shadow-xl
-`}>
+          fixed top-0 right-0 h-full z-40 
+          w-[340px] bg-white border-l border-gray-200
+          flex flex-col overflow-y-auto
+          transition-transform duration-300
+          shadow-xl
+        `}>
         <div className="p-5 flex flex-col gap-5 flex-1">
           {/* Header */}
           <div className="flex justify-between items-start gap-3">
@@ -117,7 +120,9 @@ const SidePanel = ({ equipment, onClose }) => {
           </div>
 
           {/* View Full Details */}
-          <button className="mt-auto bg-[#708DA8] hover:bg-[#ffff] hover:text-[#708DA8] hover:border-solid hover:border-2 hover:border-[#708DA8] text-white font-semibold text-[14px] py-3 rounded-lg transition-colors">
+          <button className="mt-auto bg-[#708DA8] hover:bg-[#ffff] hover:text-[#708DA8] hover:border-solid hover:border-2 hover:border-[#708DA8] text-white font-semibold text-[14px] py-3 rounded-lg transition-colors"
+            onClick={() => {navigate('/graph')}}
+          >
             View full details
           </button>
         </div>
@@ -160,7 +165,7 @@ const EquipmentListPage = () => {
       />
 
       <div className={`transition-all duration-300 pt-14 md:pt-0 ${sidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
-        {/* Header */}
+        {/* HEADER */}
         <div className='p-4 md:p-6 pb-0'>
           <div className='text-[#546A81] text-4xl font-bold leading-[66px]'>Equipment Health</div>
           <div className="flex font-medium items-center gap-2 text-base text-[#546A81]">
@@ -169,7 +174,7 @@ const EquipmentListPage = () => {
             <span>Equipment Health</span>
           </div>
 
-          {/* Filter bar */}
+          {/* FILTER BAR */}
           <div className='flex items-center mt-2 gap-2 flex-wrap'>
             <Funnel className='w-4 hover:cursor-pointer text-[#546A81]' />
             <div className='bg-[#E8F0FC] flex items-center text-[#242533] font-semibold text-sm py-1 px-3 gap-2 rounded-full cursor-pointer'>
@@ -186,7 +191,7 @@ const EquipmentListPage = () => {
           <div className='mt-3 text-sm text-[#546A81]'>Showing 198 from 893 results</div>
         </div>
 
-        {/* Table + Side Panel */}
+        {/* TTABLE + SIDE PANEL */}
         <div className="flex overflow-hidden">
           {/* Scrollable table */}
           <div className="flex-1 overflow-x-auto min-w-0">
@@ -232,10 +237,10 @@ const EquipmentListPage = () => {
             </table>
           </div>
 
-          {/* Side panel */}
-          <div className={`transition-all duration-300 flex-shrink-0 ${selectedEquipment ? 'w-[340px]' : 'w-0'} overflow-hidden`}>
+          {/* SIDE PANEL */}
+          {selectedEquipment && (
             <SidePanel equipment={selectedEquipment} onClose={() => setSelectedEquipment(null)} />
-          </div>
+          )}
         </div>
       </div>
     </div>
