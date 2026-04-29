@@ -7,7 +7,7 @@ function DashboardPageWrapper() {
   const navigate = useNavigate();
 
   // Find the site from SITES array
-//   const SITES = 'maemoh-mine'
+  //   const SITES = 'maemoh-mine'
   const site = SITES.find(s => s.id === siteId);
 
   if (!site) {
