@@ -229,8 +229,8 @@ export function SiteCard({ site, grades = [], status, isHovered, onHover, onView
         </div>
       </div>
     </div>
-  ); 
-} 
+  );
+}
 
 
 /* ── Transparent Card ── */
@@ -249,7 +249,7 @@ export function TransparentCard({ name, grades = [], status, isHovered, onHover,
       {status ? (
         /* Status dot + label */
         <div className="flex items-center gap-2 mt-1">
-          <div
+          {/* <div
             style={{
               width: 8,
               height: 8,
@@ -258,17 +258,20 @@ export function TransparentCard({ name, grades = [], status, isHovered, onHover,
               boxShadow: "0 0 6px rgba(156,255,46,0.6)",
               flexShrink: 0,
             }}
-          />
-          <span
-            style={{
-              color: "#9CFF2E",
-              fontSize: 10,
-              fontFamily: "Montserrat, sans-serif",
-              fontWeight: 600,
-            }}
-          >
-            {status}
-          </span>
+          /> */}
+          <div className="transparent-card">
+            <span
+              style={{
+                color: "#9CFF2E",
+                fontSize: 10,
+                fontFamily: "Montserrat",
+                fontWeight: 600,
+              }}
+            >
+              {status}
+            </span>
+          </div>
+
         </div>
       ) : (
         /* Grade bars */

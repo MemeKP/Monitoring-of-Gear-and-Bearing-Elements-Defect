@@ -89,28 +89,36 @@ body {
 }
 
 .button-on-light {
-    height: 20px;
-    position: relative;
-    box-shadow: 
-        3px 3px 0.5px -3.5px #ffffff inset, 
-        2px 2px 0.5px -2px #ffffff inset, 
-        -2px -2px 0.5px -2px #ffffff inset, 
-        0px 0px 0px 1px rgba(255, 255, 255, 0.5) inset, 
-        0px 0px 8px rgba(255, 255, 255, 0.8) inset, 
-        0px 0px 2px rgba(255, 255, 255, 0.1), 
-        0px 2px 8px rgba(0, 0, 0, 0.05); 
-        
-    backdrop-filter: blur(12px);
-    border-radius: 100px;
-    background: rgba(255, 255, 255, 0.15); 
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    padding: 6px 10px;
-    box-sizing: border-box;
-    font-size: 12px;
-    font-weight: 550;
-    color: #546a81;
-    transition: opacity 0.2s, background 0.2s;
+  height: 20px;
+  position: relative;
+  box-shadow:
+    3px 3px 0.5px -3.5px #ffffff inset,
+    2px 2px 0.5px -2px #ffffff inset,
+    -2px -2px 0.5px -2px #ffffff inset,
+    0px 0px 0px 1px rgba(255, 255, 255, 0.5) inset,
+    0px 0px 8px rgba(255, 255, 255, 0.8) inset,
+    0px 0px 2px rgba(255, 255, 255, 0.1),
+    0px 2px 8px rgba(0, 0, 0, 0.05);
+
+  backdrop-filter: blur(12px);
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  font-size: 12px;
+  font-weight: 550;
+  color: #546a81;
+  transition: opacity 0.2s, background 0.2s;
 }
 
+.transparent-card {
+  width: 8;
+  height: 8;
+  border-radius: "50%";
+  background: "#9CFF2E";
+  box-shadow: "0 0 6px rgba(156,255,46,0.6)";
+  flex-shrink: 0;
+}

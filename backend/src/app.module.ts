@@ -5,13 +5,12 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { MeasurementsModule } from './measurements/measurements.module';
 
 @Module({
   imports: [
-    // Load .env globally
     ConfigModule.forRoot({ isGlobal: true }),
 
-    // MySQL via TypeORM
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,6 +25,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
         synchronize: false, // never true in production
       }),
     }),
+
+    MeasurementsModule,
 
     // GraphQLModule.forRoot<ApolloDriverConfig>({
     //   driver: ApolloDriver,

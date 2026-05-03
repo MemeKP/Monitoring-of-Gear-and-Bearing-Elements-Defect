@@ -6,7 +6,6 @@ import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { LiquidGlassButton, SiteCard, TransparentCard } from '../components/SiteSelector';
 import Dashboard from './Dashboard';
-// import { DashboardPage } from './Dashboard';
 
 const Landing = () => {
     const [hoveredSite, setHoveredSite] = useState(null);
