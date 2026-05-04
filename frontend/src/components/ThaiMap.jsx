@@ -1,4 +1,5 @@
-import { PROVINCE_MAP, PROVINCE_PATHS, PROVINCE_TO_SITE, SITES } from "../mock/SITES";
+import { PROVINCE_TO_SITE } from "../constant/siteConfig";
+import {PROVINCE_PATHS, PROVINCE_MAP} from '../mock/SITES';
 
 // (Temp.) finding the coordinates of the dot
 const getSvgCoordinates = (event) => {
@@ -7,30 +8,25 @@ const getSvgCoordinates = (event) => {
   pt.x = event.clientX;
   pt.y = event.clientY;
   const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
-  console.log(`📍 พิกัด -> cx: ${Math.round(svgP.x)}, cy: ${Math.round(svgP.y)}`);
+  console.log(`coordinate -> cx: ${Math.round(svgP.x)}, cy: ${Math.round(svgP.y)}`);
 };
 
-// ฟังก์ชันคำนวณสีของจังหวัดตามความรุนแรงของ Defect
 const getSeverityStyle = (site) => {
-  if (!site) return { fill: "#FFFFFF", hoverFill: "#F0F5FA" }; // ไม่มี Site (สีขาว)
+  if (!site) return { fill: "#FFFFFF", hoverFill: "#F0F5FA" }; // if there're no site show white
 
   const fCount = site.grades?.find(g => g.label?.startsWith("F"))?.count || 0;
   const eCount = site.grades?.find(g => g.label?.startsWith("E"))?.count || 0;
 
-  // เกณฑ์การตัดสินใจ (ปรับตัวเลขตาม Business Logic ของคุณได้เลย)
   if (fCount >= 50) {
-    // วิกฤต (แดง)
-    return { fill: "#FFEAEA", hoverFill: "#FFD6D6" }; 
+    return { fill: "#FFEAEA", hoverFill: "#FFD6D6" };
   } else if (fCount > 0 || eCount >= 100) {
-    // เฝ้าระวัง (เหลือง/ส้ม)
-    return { fill: "#FFF7D6", hoverFill: "#FFEAA8" }; 
+    return { fill: "#FFF7D6", hoverFill: "#FFEAA8" };
   } else {
-    // ปกติ (เขียว)
-    return { fill: "#E8F8EE", hoverFill: "#C6EFD4" }; 
+    return { fill: "#E8F8EE", hoverFill: "#C6EFD4" };
   }
 };
 
-function ThaiMap({ hoveredSite, onHover, onSiteClick }) {
+function ThaiMap({ sites, provinceToSite, hoveredSite, onHover, onSiteClick }) {
   return (
     <svg
       viewBox="0 0 559.571 1024.763"
@@ -46,13 +42,10 @@ function ThaiMap({ hoveredSite, onHover, onSiteClick }) {
 
         const provinceName = PROVINCE_MAP[i];
         const siteId = provinceName ? PROVINCE_TO_SITE[provinceName] : null;
-        
-        // หาข้อมูล Site ของจังหวัดนี้ เพื่อเอาไปคำนวณสี
-        const siteData = siteId ? SITES.find(site => site.id === siteId) : null;
+        const siteData = siteId ? sites.find(site => site.id === siteId) : null;
         const severityColors = getSeverityStyle(siteData);
 
-        // เช็คว่าจังหวัดนี้กำลังถูก Hover อยู่หรือไม่
-        const activeSiteData = SITES.find(site => site.id === hoveredSite);
+        const activeSiteData = sites.find(site => site.id === hoveredSite);
         const isHovered = activeSiteData?.provinces.includes(provinceName);
 
         return (
@@ -74,7 +67,7 @@ function ThaiMap({ hoveredSite, onHover, onSiteClick }) {
       })}
 
       {/* 2. SITES DOT (RADAR) */}
-      {SITES.map((site, index) => {
+      {sites.map((site, index) => {
         const { cx, cy, color } = site.dot;
         const isHovered = hoveredSite === site.id;
         const totalDefects = site.grades?.reduce((sum, grade) => sum + grade.count, 0) || 0;
@@ -85,7 +78,7 @@ function ThaiMap({ hoveredSite, onHover, onSiteClick }) {
         else if (totalDefects > 0) baseRadius = 6;
 
         const dur = "2.8s";
-        const delay = `${(index * 0.4) % 2.8}s`; 
+        const delay = `${(index * 0.4) % 2.8}s`;
 
         return (
           <g

@@ -1,137 +1,6 @@
-/**
- * SiteCard — reusable site selector card component
- *
- * Matches the Figma design:
- * - Outer layer: gradient bg + glassmorphism shadow + backdrop-blur
- * - Inner layer: transparent white overlay with padding
- * - Site name + "view" button on top row
- * - Grade bars (F Grade / E Grade) or status dot below
- *
- * Props:
- *   name        {string}   Site display name
- *   grades      {Array}    [{ label, color, count, pct }]  — omit or [] for status mode
- *   status      {string}   e.g. "Normal" — shown instead of grades when provided
- *   isHovered   {boolean}  Controlled hover state (from parent, e.g. map sync)
- *   onHover     {fn}       (bool) => void
- *   onView      {fn}       () => void  — called when "view" is clicked
- */
-// export function SiteCard({ site,grades = [], status, isHovered, onHover, onView }) {
-//   return (
-//     /* Outer card: gradient + glassmorphism */
-//     <div
-//       onMouseEnter={() => onHover?.(site.id)}
-//       onMouseLeave={() => onHover?.(null)}
-//       className={[
-//         "relative w-full rounded-[15px] border border-white/30",
-//         "bg-gradient-to-r from-[#5EA7FF] to-[#DFEBF7]",
-//         "shadow-[10px_10px_20px_#fff,inset_0px_-2px_4px_rgba(0,0,0,0.2),inset_0px_2px_4px_rgba(255,255,255,0.4)]",
-//         "backdrop-blur-[10px]",
-//         "transition-all duration-300 ease-out cursor-pointer"
-//       ].join(" ")}
-//       style={{ minHeight: 107 }}
-//     >
-//       {/* Inner overlay: transparent white container */}
-//       <div
-//         className="relative w-full h-full rounded-[15px] flex flex-col items-start justify-center"
-//         style={{
-//           backgroundColor: "rgba(255, 255, 255, 0.1)",
-//           padding: "16px 20px",
-//           boxSizing: "border-box",
-//           minHeight: 107,
-//         }}
-//       >
-//         {/* Top row: site name + view button */}
-//         <div className="flex w-full items-center justify-between mb-2">
-//           <span
-//             className="text-white font-bold tracking-wide leading-tight"
-//             style={{
-//               fontSize: 17,
-//               fontFamily: "Montserrat, sans-serif",
-//               fontWeight: 700,
-//               letterSpacing: "0.02em",
-//               textShadow: "0 1px 4px rgba(0,0,0,0.18)",
-//               flex: 1,
-//               paddingRight: 12,
-//             }}
-//           >
-//             {site.name}
-//           </span>
-
-//           {/* "view" button*/}
-//           <button
-//             onClick={e => { e.stopPropagation(); onView?.(); }}
-//             className="button-on-light"
-//             onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
-//             onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
-//           >
-//             view
-//           </button>
-//         </div>
-
-//         {/* Content: grades or status */}
-//         {status ? (
-//           /* Status dot + label */
-//           <div className="flex items-center gap-2 mt-1">
-//             <div
-//               style={{
-//                 width: 8,
-//                 height: 8,
-//                 borderRadius: "50%",
-//                 background: "#9CFF2E",
-//                 boxShadow: "0 0 6px rgba(156,255,46,0.6)",
-//                 flexShrink: 0,
-//               }}
-//             />
-//             <span
-//               style={{
-//                 color: "#9CFF2E",
-//                 fontSize: 10,
-//                 fontFamily: "Montserrat, sans-serif",
-//                 fontWeight: 600,
-//               }}
-//             >
-//               {status}
-//             </span>
-//           </div>
-//         ) : (
-//           /* Grade bars */
-//           grades && grades.length > 0 ?
-//             (
-//               <div className="w-full flex flex-col gap-[6px] mt-1">
-//                 {grades.map(grade => (
-//                   <GradeBar key={grade.label} grade={grade} />
-//                 ))}
-//               </div>
-//             ) : (
-//               // No 'F' nor 'E' grades
-//               <div className="flex items-center gap-2 mt-2 ml-1">
-//                 <div
-//                   className="w-2 h-2 rounded-full flex-shrink-0"
-//                   style={{
-//                     background: "#9CFF2E",
-//                     boxShadow: "0 0 10px rgba(156, 255, 46, 0.6)"
-//                   }}
-//                 />
-//                 <span
-//                   className="tracking-wide"
-//                   style={{
-//                     color: "#9CFF2E",
-//                     fontFamily: "Montserrat, sans-serif",
-//                     fontSize: 10,
-//                     fontWeight: 600,
-//                   }}
-//                 >
-//                   Normal
-//                 </span>
-//               </div>
-//             )
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
 
 export function SiteCard({ site, grades = [], status, isHovered, onHover, onView }) {
+  const badGrades = grades?.filter(g => g.label === 'E Grade' || g.label === 'F Grade') || [];
   return (
     <div
       className="relative w-full group mt-2 ml-2"
@@ -208,11 +77,11 @@ export function SiteCard({ site, grades = [], status, isHovered, onHover, onView
               </span>
             </div>
           ) : (
-            grades && grades.length > 0 ? (
+            badGrades.length > 0 ? (
               <div className="w-full flex flex-col gap-[6px] mt-1">
-                {grades.map(grade => (
-                  <GradeBar key={grade.label} grade={grade} />
-                ))}
+                {badGrades.map(grade => (
+                    <GradeBar key={grade.label} grade={grade} />
+                  ))}
               </div>
             ) : (
               <div className="flex items-center gap-2 mt-2 ml-1">
@@ -233,7 +102,7 @@ export function SiteCard({ site, grades = [], status, isHovered, onHover, onView
 }
 
 
-/* ── Transparent Card ── */
+/* Transparent Card */
 export function TransparentCard({ name, grades = [], status, isHovered, onHover, site }) {
   return (
     <div
@@ -276,9 +145,11 @@ export function TransparentCard({ name, grades = [], status, isHovered, onHover,
       ) : (
         /* Grade bars */
         <div className="w-full flex flex-col gap-[6px] mt-1">
-          {grades.map(grade => (
-            <GradeBar key={grade.label} grade={grade} />
-          ))}
+          {grades
+            .filter(grade => grade.label === 'E Grade' || grade.label === 'F Grade')
+            .map(grade => (
+              <GradeBar key={grade.label} grade={grade} />
+            ))}
         </div>
       )}
     </div>

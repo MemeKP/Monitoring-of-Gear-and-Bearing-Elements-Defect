@@ -36,29 +36,60 @@ export class DashboardService {
     const gradeCounts: Record<string, number> = {
       A: 0, B: 0, C: 0, D: 0, E: 0, F: 0,
     };
-
     for (const m of allLatest) {
-      const grade = computeGrade(m.adjOptPointValue);
-      gradeCounts[grade]++;
+      gradeCounts[computeGrade(m.adjOptPointValue)]++;
+    }
+    const pct = (n: number) =>
+      total > 0 ? Math.round((n / total) * 1000) / 10 : 0;
+
+    // per-site breakdown 
+    const allForSiteBreakdown = await this.repo
+      .createQueryBuilder('m')
+      .where(`m.id IN (${this.latestPerEquipmentSubQuery().getQuery()})`)
+      .getMany();
+
+    const bySiteMap = new Map<string, Measurement[]>();
+    for (const m of allForSiteBreakdown) {
+      if (!bySiteMap.has(m.site)) bySiteMap.set(m.site, []);
+      bySiteMap.get(m.site)!.push(m);
     }
 
-    const pct = (n: number) =>
-      total > 0 ? Math.round((n / total) * 1000) / 10 : 0;  // 1 decimal
+    const bySite = Array.from(bySiteMap.entries()).map(([siteName, machines]) => {
+      const siteGradeCounts: Record<string, number> = {
+        A: 0, B: 0, C: 0, D: 0, E: 0, F: 0,
+      };
+      for (const m of machines) {
+        siteGradeCounts[computeGrade(m.adjOptPointValue)]++;
+      }
+      const siteTotal = machines.length;
+      const sitePct = (n: number) =>
+        siteTotal > 0 ? Math.round((n / siteTotal) * 1000) / 10 : 0;
+
+      return {
+        site: siteName,
+        total_machines: siteTotal,
+        stage_breakdown: ['F', 'E', 'D', 'C', 'B', 'A'].map(g => ({
+          grade: g,
+          count: siteGradeCounts[g],
+          percentage: sitePct(siteGradeCounts[g]),
+        })),
+      };
+    });
 
     return {
       success: true,
       data: {
         total_machines: total,
-        // 3 donut segments
-        defective_pct: pct(gradeCounts['F']),          // red
-        careful_pct: pct(gradeCounts['E']),           // yellow
-        normal_pct: pct(gradeCounts['A'] + gradeCounts['B'] + gradeCounts['C'] + gradeCounts['D']),
-        // Stage breakdown bars
-        stage_breakdown: ['F', 'E', 'D', 'C', 'B', 'A'].map(grade => ({
-          grade,
-          count: gradeCounts[grade],
-          percentage: pct(gradeCounts[grade]),
+        defective_pct: pct(gradeCounts['F']),
+        careful_pct: pct(gradeCounts['E']),
+        normal_pct: pct(gradeCounts['A'] + gradeCounts['B'] +
+          gradeCounts['C'] + gradeCounts['D']),
+        stage_breakdown: ['F', 'E', 'D', 'C', 'B', 'A'].map(g => ({
+          grade: g,
+          count: gradeCounts[g],
+          percentage: pct(gradeCounts[g]),
         })),
+        by_site: bySite,  
       },
     };
   }
