@@ -6,6 +6,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MeasurementsModule } from './measurements/measurements.module';
+import { EquipmentsModule } from './equipments/equipments.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -27,6 +29,10 @@ import { MeasurementsModule } from './measurements/measurements.module';
     }),
 
     MeasurementsModule,
+
+    EquipmentsModule,
+
+    DashboardModule,
 
     // GraphQLModule.forRoot<ApolloDriverConfig>({
     //   driver: ApolloDriver,
