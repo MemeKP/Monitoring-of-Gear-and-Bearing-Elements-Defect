@@ -1,93 +1,101 @@
 import React, { useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import { ChevronLeft, Menu, X } from "lucide-react";
-import mmm from '../img/mmm.jpg'
-import mmm2 from '../img/mmm2.jpg'
-import mmm3 from '../img/view4.webp'
+import mmm from '../assets/img/mmm.jpg'
+import mmm2 from '../assets/img/mmm2.jpg'
+import mmm3 from '../assets/img/view4.webp'
 import clock from '../assets/clock.png'
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSites } from '../hooks/useSites.js';
+import { useDashboardAttention, useDashboardOverdue, useDashboardStats } from '../hooks/useDashboardStats.js';
+import { StatisticOverview } from '../components/StatisticOverview.jsx';
+import { GRADE_COLORS } from '../constant/gradeConfig.js';
+import { AttentionRow } from '../components/AttentionRow.jsx';
 
-const stats = {
-  totalMachines: 1000,
-  defectivePercent: 88.1,
-  carefulPercent: 5.1,
-  normalPercent: 6.8,
-};
-
-const gradeBreakdown = [
-  { grade: "Grade F", percent: 88.1, color: "bg-[#5EA7FF]" },
-  { grade: "Grade E", percent: 5.1, color: "bg-[#5EA7FF]" },
-  { grade: "Grade C", percent: 2.3, color: "bg-[#5EA7FF]" },
-  { grade: "Grade B", percent: 2.3, color: "bg-[#5EA7FF]" },
-  { grade: "Grade A", percent: 2.3, color: "bg-[#5EA7FF]" },
-];
-
-
-const Dashboard = ({ siteName = "Mae Moh Mine", onBack }) => {
+const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const {id} = useParams();
+  const { siteId } = useParams();
+  const site = siteId ?? 'all';
+  const [attentionFilter, setAttentionFilter] = useState('all');
 
-  const machinesRequiringAttention = [
-  {
-    id: 1,
-    name: "[Test_BPKMH2] Crusher 2: Single Roll Crush",
-    code: "MMP_1V - 2017-04-08",
-    status: "F",
-    daysAgo: "3302 days ago",
-    // path: `/equipment/${id}`
-    path: `/equipment/test123`
-  },
-  {
-    id: 2,
-    name: "[MH2] Crusher 2: Single Roll Crush",
-    code: "MMP_1V - 2017-04-06",
-    status: "F",
-    daysAgo: "3302 days ago",
-    path: `/equipment/${id}`
-  },
-  {
-    id: 3,
-    name: "Case_OAB, 12-3 G",
-    code: "MMP_1V - 2022-11-14",
-    status: "F",
-    daysAgo: "72 days ago",
-    path: `/equipment/${id}`
-  },
-  {
-    id: 4,
-    name: "Case_OAB, 12-3 G",
-    code: "MMP_1V - 2022-11-14",
-    status: "F",
-    daysAgo: "72 days ago",
-    path: `/equipment/${id}`
-  },
-  {
-    id: 5,
-    name: "Case_OAB, 12-3 G",
-    code: "MMP_1V - 2022-11-14",
-    status: "F",
-    daysAgo: "72 days ago",
-    path: `/equipment/${id}`
-  },
-];
+  const stats = useDashboardStats(site);
+  const attention = useDashboardAttention({ site, filter: attentionFilter });
+  const overdue = useDashboardOverdue(site);
 
-const healthCheckItems = [
-  { label: "Critical", count: 2, color: "bg-red-500" },
-  { label: "Warning", count: 5, color: "bg-yellow-400" },
-  { label: "Max delay", count: "+9yr", color: "bg-gray-300" },
-];
+  const stageBreakdown = stats.data?.stage_breakdown ?? [];
 
-const recentItems = [
-  { name: "Rear Drive Unit_LH", days: "3302 days" },
-  { name: "(MH2) Crusher 2: Single Roll Crush", days: "3302 days" },
-  { name: "(MH2) L2.3: Rear Drive Unit_LH", days: "3302 days" },
-  { name: "[Test_BPKMH3] L3.2: Rear Drive Unit_LH", days: "3302 days" },
-  { name: "[Test_BPKMH4] L4.3: Rear Drive Unit_LH", days: "3302 days" },
-  { name: "Case_OAB, 12-3 G", days: "72 days" },
-  { name: "Case_OAB, 12-3 G", days: "72 days" },
-];
+  const attentionItems = attention.data || [];
+  const attentionTotal = attention.data?.meta?.total ?? 0;
+
+  const overdueData = overdue.data;
+  const overdueItems = overdueData?.items ?? [];
+  const criticalCount = overdueData?.critical_count ?? 0;
+  const warningCount = overdueData?.warning_count ?? 0;
+  const maxDelayLabel = overdueData?.max_delay_label ?? '--';
+
+  const siteName = siteId ?? 'All sites';
+
+  // const machinesRequiringAttention = [
+  //   {
+  //     id: 1,
+  //     name: "[Test_BPKMH2] Crusher 2: Single Roll Crush",
+  //     code: "MMP_1V - 2017-04-08",
+  //     status: "F",
+  //     daysAgo: "3302 days ago",
+  //     // path: `/equipment/${id}`
+  //     path: `/equipment/test123`
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "[MH2] Crusher 2: Single Roll Crush",
+  //     code: "MMP_1V - 2017-04-06",
+  //     status: "F",
+  //     daysAgo: "3302 days ago",
+  //     path: `/equipment/${id}`
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Case_OAB, 12-3 G",
+  //     code: "MMP_1V - 2022-11-14",
+  //     status: "F",
+  //     daysAgo: "72 days ago",
+  //     path: `/equipment/${id}`
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Case_OAB, 12-3 G",
+  //     code: "MMP_1V - 2022-11-14",
+  //     status: "F",
+  //     daysAgo: "72 days ago",
+  //     path: `/equipment/${id}`
+  //   },
+  //   {
+  //     id: 5,
+  //     name: "Case_OAB, 12-3 G",
+  //     code: "MMP_1V - 2022-11-14",
+  //     status: "F",
+  //     daysAgo: "72 days ago",
+  //     path: `/equipment/${id}`
+  //   },
+  // ];
+
+  // const healthCheckItems = [
+  //   { label: "Critical", count: 2, color: "bg-red-500" },
+  //   { label: "Warning", count: 5, color: "bg-yellow-400" },
+  //   { label: "Max delay", count: "+9yr", color: "bg-gray-300" },
+  // ];
+
+  // const recentItems = [
+  //   { name: "Rear Drive Unit_LH", days: "3302 days" },
+  //   { name: "(MH2) Crusher 2: Single Roll Crush", days: "3302 days" },
+  //   { name: "(MH2) L2.3: Rear Drive Unit_LH", days: "3302 days" },
+  //   { name: "[Test_BPKMH3] L3.2: Rear Drive Unit_LH", days: "3302 days" },
+  //   { name: "[Test_BPKMH4] L4.3: Rear Drive Unit_LH", days: "3302 days" },
+  //   { name: "Case_OAB, 12-3 G", days: "72 days" },
+  //   { name: "Case_OAB, 12-3 G", days: "72 days" },
+  // ];
 
   return (
     <>
@@ -101,7 +109,7 @@ const recentItems = [
 
       {/* MAIN CONTENT */}
       <div
-        className={`transition-all duration-300 pt-14 md:pt-0 ${sidebarOpen ? "md:ml-64" : "md:ml-20"
+        className={`transition-all duration-300 pt-14 md:pt-0 ${sidebarOpen ? "md:ml-60" : "md:ml-20"
           }`}
       >
         {/* Header */}
@@ -109,10 +117,8 @@ const recentItems = [
           <div className='text-[#546A81] text-4xl font-bold leading-[66px]'>
             Dashboard
           </div>
-
-          {/* Breadcrumb */}
           <div className="flex font-medium items-center gap-2 text-base text-[#546A81]">
-            <span>All sites</span>
+            <span className='hover:cursor-pointer' onClick={() => navigate(`/`)}>All sites</span>
             <span>›</span>
             <span className="text-[#546A81]">{siteName}</span>
             <span>›</span>
@@ -125,94 +131,11 @@ const recentItems = [
           {/* Row 1: Stats + Stage Breakdown + Images */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Statistic Overview Card */}
-            <div className="md:col-span-1 lg:col-span-1 bg-white rounded-2xl p-6 shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)] hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)] transition h-full">
-              <h3 className="text-[#546A81] font-semibold text-xl mb-2">
-                Statistic overview
-              </h3>
-              <p className="text-gray-400 text-2xs mb-6">% of fleet needing attention</p>
-
-              <div className="flex flex-row items-center justify-between gap-4">
-                {/* Donut chart mockup */}
-                <div className="relative w-40 h-40 mx-auto mb-4 shrink-0">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#990000"
-                      strokeWidth="20"
-                      strokeDasharray="220 360"
-                      transform="rotate(-90 50 50)"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#fbbf24"
-                      strokeWidth="20"
-                      strokeDasharray="18 360"
-                      strokeDashoffset="-220"
-                      transform="rotate(-90 50 50)"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#C1D343"
-                      strokeWidth="20"
-                      strokeDasharray="238 360"
-                      strokeDashoffset="-238"
-                      transform="rotate(-90 50 50)"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="25"
-                      fill="white"
-                    />
-                    <text
-                      x="50"
-                      y="52"
-                      textAnchor="middle"
-                      className="text-s font-bold fill-[#425D78]"
-                    >
-                      1,000
-                    </text>
-                    <text
-                      x="50"
-                      y="62"
-                      textAnchor="middle"
-                      className="text-[8px] font-bold fill-gray-500"
-                    >
-                      Machines
-                    </text>
-                  </svg>
-                </div>
-
-                {/* Legend */}
-                <div className="space-y-4 text-xs">
-                  {[
-                    { label: "Defective", value: "88.1 %", color: "border-[#990000]", text: "text-[#990000]" },
-                    { label: "Careful", value: "5.1 %", color: "border-[#FFCB05]", text: "text-[#FFCB05]" },
-                    { label: "Normal", value: "6.8 %", color: "border-[#C1D343]", text: "text-[#C1D343]" },
-                  ].map(item => (
-                    <div
-                      key={item.label}
-                      className={`border-l-4 ${item.color} pl-3`}
-                    >
-                      <p className="text-gray-500 text-sm font-normal mb-0.5">
-                        {item.label}
-                      </p>
-                      <p className={`${item.text} text-2xl font-bold leading-tight`}>
-                        {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div></div>
-            </div>
+            <StatisticOverview
+              data={stats.data}
+              isLoading={stats.isLoading}
+              isError={stats.isError}
+              error={stats.error} />
 
             {/* Stage Breakdown Card */}
             <div className="md:col-span-1 lg:col-span-1 bg-white rounded-2xl p-6 shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)] hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)] transition">
@@ -221,26 +144,33 @@ const recentItems = [
               </h3>
               <p className="text-gray-400 text-sm mb-6">Distribution across all stages</p>
 
-              <div className="space-y-3">
-                {gradeBreakdown.map(item => (
-                  <div key={item.grade}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs font-medium text-gray-700">
-                        {item.grade}
-                      </span>
-                      <span className="text-xs font-semibold text-gray-700">
-                        {item.percent.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`${item.color} h-2 rounded-full`}
-                        style={{ width: `${item.percent}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {stats.isLoading ? (
+                <StageSkeleton />
+              ) : stats.isError ? (
+                <ErrorBox message={stats.error.message} />
+              ) : (
+                <div className="space-y-3">
+                  {stageBreakdown.map(item => {
+                    const colors = GRADE_COLORS[item.grade] ?? { bar: 'bg-gray-400', text: 'text-gray-400' };
+                    return (
+                      <div key={item.grade}>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-xs font-medium text-gray-700">Grade {item.grade}</span>
+                          <span className="text-xs font-semibold text-gray-700">
+                            {item.percentage.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className={`${colors.bar} h-2 rounded-full transition-all duration-500`}
+                            style={{ width: `${item.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             {/* Images (2 on top, 1 full width on bottom) */}
             <div className="grid grid-cols-2 gap-3 h-full">
@@ -270,69 +200,49 @@ const recentItems = [
                   <h3 className="text-[#546A81] font-bold text-xl">
                     Machines requiring attention
                   </h3>
-                  <p className="text-xs text-gray-400 mt-1">Showing 881 machines</p>
+                  <p className="text-xs text-gray-400 mt-1">{attention.isLoading
+                    ? 'Loading...'
+                    : `Showing ${attentionTotal.toLocaleString()} machines`}</p>
                 </div>
 
                 {/* Toggle*/}
                 <div className="flex items-center gap-3">
-                  <button className="px-5 py-1.5 bg-[#ff7a7a] text-white font-medium rounded-full text-sm shadow-sm transition hover:bg-red-500">
+                  <button onClick={() => setAttentionFilter(attentionFilter === 'critical' ? 'all' : 'critical')}
+                    className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'critical'
+                      ? 'bg-[#ff7a7a] text-white'
+                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
+                      }`}>
                     Critical
                   </button>
-                  <button className="px-5 py-1.5 bg-gray-100 text-gray-400 font-medium rounded-full text-sm flex items-center gap-2 border border-gray-200 transition hover:bg-gray-200">
+                  <button onClick={() => setAttentionFilter(attentionFilter === 'warning' ? 'all' : 'warning')}
+
+                    className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'warning'
+                        ? 'bg-yellow-400 text-white'
+                        : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
+                      }`}>
                     <span className="text-yellow-400 text-lg leading-none">⚠️</span> Warning
                   </button>
                 </div>
               </div>
 
-              {/* Machine list */}
-              {/* if u want inner scroll use 'max-h-[500px]' */}
-              <div className="space-y-4 min-h-full overflow-y-auto pr-2">
-                {machinesRequiringAttention.map((item, i) => (
-                  <div
-                    key={i}
-                    onClick={()=>navigate('/equipment/test123')}
-                    className={`group p-4 rounded-xl transition-all duration-300 bg-white shadow-sm border border-gray-100 hover:bg-[#ffcccc] hover:border-[#ffcccc] cursor-pointer`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-[#546A81] transition-colors duration-300 group-hover:text-white">
-                          {item.name}
-                        </h4>
-
-                        <p className="text-xs font-semibold mt-1 text-[#A2ADB6] transition-colors duration-300 group-hover:text-white/80">
-                          {item.code}
-                        </p>
-
-                        <p className="text-[10px] mt-2 font-semibold text-[#546A81] transition-colors duration-300 group-hover:text-white/70">
-                          Point Value
-                        </p>
-                      </div>
-
-                      {/* Badge */}
-                      <div className="ml-2 flex-shrink-0">
-                        <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold group-hover:bg-white group-hover:text-red-500  bg-[#ffe5e5] text-red-500 "
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar & Value */}
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`flex-1 h-1 rounded-full mr-4 bg-gray-100 group-hover:bg-white`}>
-                        <div className="h-full bg-red-500 rounded-full w-[40%]"></div>
-                      </div>
-                      <span className="text-xs text-red-500 font-bold">
-                        40.0
-                      </span>
-                    </div>
-
-                    <p className={`text-[10px] group-hover:text-red-500 text-red-400 `}>
-                      Last check <span className="ml-2">3302 days ago</span>
-                    </p>
-                  </div>
-                ))}
+              {/* List */}
+              <div className="space-y-4 overflow-y-auto pr-2">
+                {attention.isLoading ? (
+                  // Skeleton rows while loading
+                  [1, 2, 3, 4].map(i => <AttentionRowSkeleton key={i} />)
+                ) : attention.isError ? (
+                  <ErrorBox message={attention.error.message} />
+                ) : attentionItems.length === 0 ? (
+                  <p className="text-center text-gray-400 py-8">No machines requiring attention</p>
+                ) : (
+                  attentionItems.map(item => (
+                    <AttentionRow
+                      key={item.id}
+                      item={item}
+                      onClick={() => navigate(`/equipment/${item.id}`)}
+                    />
+                  ))
+                )}
               </div>
             </div>
 
@@ -369,7 +279,6 @@ const recentItems = [
 
               {/* List Items */}
               <div className="space-y-4">
-                {/* iterate through array healthCheckItems */}
                 {[1, 2, 3, 4].map((item, i) => (
                   <div key={i} className="flex items-start justify-between border-b border-gray-100 pb-3 last:border-0">
                     <div>
@@ -393,3 +302,57 @@ const recentItems = [
 }
 
 export default Dashboard
+
+// SKELETON LOADER
+function StatsSkeleton() {
+  return (
+    <div className="flex gap-4 animate-pulse">
+      <div className="w-40 h-40 rounded-full bg-gray-200 shrink-0" />
+      <div className="flex-1 space-y-4 pt-4">
+        {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-200 rounded" />)}
+      </div>
+    </div>
+  );
+}
+
+function StageSkeleton() {
+  return (
+    <div className="space-y-3 animate-pulse">
+      {[1, 2, 3, 4, 5, 6].map(i => (
+        <div key={i}>
+          <div className="h-3 bg-gray-200 rounded mb-2 w-1/3" />
+          <div className="h-2 bg-gray-200 rounded-full w-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AttentionRowSkeleton() {
+  return (
+    <div className="animate-pulse bg-white rounded-xl p-4 h-[101px]">
+      <div className="h-3 bg-gray-200 rounded w-2/3 mb-2" />
+      <div className="h-2 bg-gray-200 rounded w-1/3 mb-4" />
+      <div className="h-1 bg-gray-200 rounded-full w-full" />
+    </div>
+  );
+}
+
+function OverdueSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className="grid grid-cols-3 gap-2 mb-6">
+        {[1, 2, 3].map(i => <div key={i} className="h-16 bg-gray-200 rounded-xl" />)}
+      </div>
+      {[1, 2, 3, 4].map(i => <div key={i} className="h-10 bg-gray-200 rounded" />)}
+    </div>
+  );
+}
+
+function ErrorBox({ message }) {
+  return (
+    <div className="rounded-xl p-4 bg-red-50 border border-red-200">
+      <p className="text-xs text-red-500 font-medium">Failed to load: {message}</p>
+    </div>
+  );
+}

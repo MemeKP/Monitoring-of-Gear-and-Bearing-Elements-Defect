@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.100.9",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
     "lucide-react": "^1.11.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.1"
+    "react-router-dom": "^7.14.1",
+    "xior": "^0.8.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

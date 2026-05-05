@@ -1,38 +1,28 @@
-import { useState, useEffect } from "react";
+import { useQuery } from '@tanstack/react-query';
+import { dashboardApi } from '../api/dashboard';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api/v1";
+export function useDashboardStats(site = 'all') {
+  return useQuery({
+    queryKey: ['dashboard', 'stats', site],
+    queryFn:  () => dashboardApi.getStats(site),
+  });
+}
 
-export function useDashboardStats() {
-  const [data, setData]       = useState(null); 
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+export function useDashboardAttention({ site = 'all', filter = 'all', page = 1 } = {}) {
+  return useQuery({
+    queryKey: ['dashboard', 'attention', { site, filter, page }],
+    queryFn:  async () => {
+       const res = await dashboardApi.getAttention({ site, filter, page });
+       console.log(" API:", res);
+       return res; 
+    },
+    placeholderData: (prev) => prev,
+  });
+}
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function fetch_() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch(`${API_BASE}/dashboard/stats`, {
-          signal: controller.signal,
-        });
-
-        if (!res.ok) throw new Error(`API error: ${res.status}`);
-
-        const json = await res.json();
-        setData(json.data);
-
-        setLoading(false);
-      } catch (err) {
-        if (err.name !== "AbortError") setError(err.message);
-      } 
-    }
-
-    fetch_();
-    return () => controller.abort();   
-  }, []);
-
-  return { data, loading, error };
+export function useDashboardOverdue(site = 'all') {
+  return useQuery({
+    queryKey: ['dashboard', 'overdue', site],
+    queryFn:  () => dashboardApi.getOverdue({ site }),
+  });
 }

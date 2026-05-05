@@ -82,7 +82,7 @@ body {
     0px 10px 10px rgba(255, 255, 255, 0.15) inset,
     0px -10px 10px rgba(205, 147, 255, 0.25) inset;
   backdrop-filter: blur(10px);
-  border-radius: 25px;
+  border-radius: 15px;
   background: rgba(255, 255, 255, 0.02) padding-box, linear-gradient(235.81deg, rgba(255, 255, 255, 0.05) 1.44%, #fff 50%, rgba(255, 255, 255, 0.05)) border-box;
   border: 1px solid transparent;
   box-sizing: border-box;

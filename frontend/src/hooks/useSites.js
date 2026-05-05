@@ -13,17 +13,15 @@ import { useDashboardStats } from "./useDashboardStats";
  * }
  */
 export function useSites() {
-  const { data: statsData, loading, error } = useDashboardStats();
+  const { data: statsData, isLoading: loading, error } = useDashboardStats();
 
   const sites = useMemo(() => {
     return SITE_CONFIG.map(config => {
-      // Find this site's stats from the API response
-      // API returns breakdown per site inside stage_breakdown
       const siteStats = statsData?.by_site?.find(s => s.site === config.id);
 
       const GRADE_COLORS = {
         F: "#FF3B3B",
-        E: "#FFCB05",
+        E: "#FFFF00",
         D: "#FF9800",
         C: "#C1D343",
         B: "#4CAF50",

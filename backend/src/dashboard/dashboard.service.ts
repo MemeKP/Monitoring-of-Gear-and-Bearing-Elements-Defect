@@ -20,11 +20,14 @@ export class DashboardService {
   }
 
   async getStats(site?: string) {
-    const subQuery = this.latestPerEquipmentSubQuery();
+    // Way 1: Duplicate data
+    // const subQuery = this.latestPerEquipmentSubQuery();
+    // const qb = this.repo
+    //   .createQueryBuilder('m')
+    //   .where(`m.id IN (${subQuery.getQuery()})`);
 
-    const qb = this.repo
-      .createQueryBuilder('m')
-      .where(`m.id IN (${subQuery.getQuery()})`);
+    // Way 2: 
+    const qb = this.repo.createQueryBuilder('m')
 
     if (site && site !== 'all') {
       qb.andWhere('m.site = :site', { site });
@@ -37,7 +40,7 @@ export class DashboardService {
       A: 0, B: 0, C: 0, D: 0, E: 0, F: 0,
     };
     for (const m of allLatest) {
-      gradeCounts[computeGrade(m.adjOptPointValue)]++;
+      gradeCounts[computeGrade(m.state)]++;
     }
     const pct = (n: number) =>
       total > 0 ? Math.round((n / total) * 1000) / 10 : 0;
@@ -89,42 +92,45 @@ export class DashboardService {
           count: gradeCounts[g],
           percentage: pct(gradeCounts[g]),
         })),
-        by_site: bySite,  
+        by_site: bySite,
       },
     };
   }
 
   async getAttention(
     site?: string,
-    filter?: string,   // "critical" | "warning" | "all"
+    filter?: string,   // "F" | "E" 
     page = 1,
     limit = 20,
   ) {
     const skip = (page - 1) * limit;
-    const subQuery = this.latestPerEquipmentSubQuery();
+    // const subQuery = this.latestPerEquipmentSubQuery();
+    // const qb = this.repo
+    //   .createQueryBuilder('m')
+    //   .where(`m.id IN (${subQuery.getQuery()})`);
 
-    const qb = this.repo
-      .createQueryBuilder('m')
-      .where(`m.id IN (${subQuery.getQuery()})`);
+    const qb = this.repo.createQueryBuilder('m');
 
     if (site && site !== 'all') {
       qb.andWhere('m.site = :site', { site });
+    } else {
+      // just a dummy where
+      qb.where('1=1');
     }
 
-    // "Critical" = Grade F (adj > 30), "Warning" = Grade E (adj 20–30)
+    // "Critical" = Grade F, "Warning" = Grade E
     if (filter === 'critical') {
-      qb.andWhere('m.adjOptPointValue > :threshold', { threshold: 30 });
+      qb.andWhere('m.state > :state', { state: 6 });
     } else if (filter === 'warning') {
-      qb.andWhere('m.adjOptPointValue > :low AND m.adjOptPointValue <= :high', {
-        low: 20, high: 30,
-      });
+      qb.andWhere('m.state > :state', { state: 5 });
     } else {
       // "all" = only show machines that need attention (grade E or F)
-      qb.andWhere('m.adjOptPointValue > :threshold', { threshold: 20 });
+      qb.andWhere('m.state IN (:...states)', { states: [5, 6] });
     }
 
     // Sort by worst first
-    qb.orderBy('m.adjOptPointValue', 'DESC')
+    qb.orderBy('m.state', 'DESC')
+      .addOrderBy('m.adjOptPointValue', 'DESC')
       .skip(skip)
       .take(limit);
 
@@ -133,7 +139,7 @@ export class DashboardService {
     return {
       success: true,
       data: items.map(m => {
-        const grade = computeGrade(m.adjOptPointValue);
+        const grade = computeGrade(m.state);
         return {
           id: m.id,
           equipment: m.equipment,

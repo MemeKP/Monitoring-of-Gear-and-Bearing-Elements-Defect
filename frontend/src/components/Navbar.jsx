@@ -24,7 +24,7 @@ export default function Navbar({
   // Helper: is this path currently active? 
   const isActive = (path) => location.pathname === path;
 
-  // Auth: call your logout API here 
+  // Auth 
   const handleLogout = async () => {
     try {
       // TODO: replace with your actual logout API call
@@ -97,7 +97,7 @@ export default function Navbar({
       <aside
         className={`fixed left-0 top-0 h-full z-40 hidden md:block bg-white/60
           transition-all duration-300 shadow-lg
-          ${sidebarOpen ? "w-64" : "w-15"}`}
+          ${sidebarOpen ? "w-60" : "w-15"}`}
       >
         {/* Logo */}
         <div className="flex items-center p-4 h-20">

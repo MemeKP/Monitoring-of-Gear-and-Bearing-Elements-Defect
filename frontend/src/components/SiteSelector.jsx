@@ -7,22 +7,23 @@ export function SiteCard({ site, grades = [], status, isHovered, onHover, onView
       onMouseEnter={() => onHover?.(site.id)}
       onMouseLeave={() => onHover?.(null)}
     >
-      {/* Layer 1: Background Glass */}
+      {/* Layer 1: Background */}
       <div
         className="absolute -top-[8px] -left-[8px] w-full h-full rounded-[15px] bg-gradient-to-r  from-[#5EA7FF] to-[#DFEBF7] backdrop-blur-md border border-white/20 z-0 "
-        style={{ minHeight: 107 }}
+        // style={{ minHeight: 107 }}
       />
 
       {/* Layer 2: Main Card */}
       <div
-        className={[
-          "relative z-10 w-full rounded-[15px] border border-white/30",
-          "bg-gradient-to-r from-[#5EA7FF] to-[#DFEBF7]",
-          "shadow-[10px_10px_20px_#fff,inset_0px_-2px_4px_rgba(0,0,0,0.2),inset_0px_2px_4px_rgba(255,255,255,0.4)]",
-          "backdrop-blur-[10px]",
-          "cursor-pointer"
-        ].join(" ")}
-        style={{ minHeight: 107 }}
+      className="rectangle-div"
+        // className={[
+        //   "relative z-10 w-full rounded-[15px] border border-white/30",
+        //   "bg-gradient-to-r from-[#5EA7FF] to-[#DFEBF7]",
+        //   "shadow-[10px_10px_20px_#fff,inset_0px_-2px_4px_rgba(0,0,0,0.2),inset_0px_2px_4px_rgba(255,255,255,0.4)]",
+        //   "backdrop-blur-[10px]",
+        //   "cursor-pointer"
+        // ].join(" ")}
+        // style={{ minHeight: 107 }}
       >
         <div
           className="relative w-full h-full rounded-[15px] flex flex-col items-start justify-center"
@@ -103,7 +104,7 @@ export function SiteCard({ site, grades = [], status, isHovered, onHover, onView
 
 
 /* Transparent Card */
-export function TransparentCard({ name, grades = [], status, isHovered, onHover, site }) {
+export function TransparentCard({ site, grades = [], status, isHovered, onHover }) {
   return (
     <div
       className="rectangle-div p-4"
@@ -156,7 +157,7 @@ export function TransparentCard({ name, grades = [], status, isHovered, onHover,
   )
 }
 
-/* ── LiquidGlass Button ── */
+/* LIQUIDGLASS BUTTON  */
 export function LiquidGlassButton() {
   return (
     <div>
@@ -167,7 +168,7 @@ export function LiquidGlassButton() {
   )
 }
 
-/* ── INTERNAL GRADEBAR ── */
+/* INTERNAL GRADEBAR */
 function GradeBar({ grade }) {
   return (
     <div className="w-full">

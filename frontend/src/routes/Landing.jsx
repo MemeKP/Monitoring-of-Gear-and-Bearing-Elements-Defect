@@ -29,11 +29,9 @@ const SiteCardSkeleton = () => (
 const Landing = () => {
     const [hoveredSite, setHoveredSite] = useState(null);
     const [activePage, setActivePage] = useState("map");
-    const { sites, loading, error } = useSites(); 
+    const { sites, loading, error } = useSites();
     const navigate = useNavigate();
     const [activeSite, setActiveSite] = useState(null);
-    
-
     const handleView = siteId => {
         setActiveSite(SITES.find(s => s.id === siteId));
         setActivePage("detail");
@@ -41,7 +39,7 @@ const Landing = () => {
 
     return (
         <>
-            {/* HEADER (คงไว้เหมือนเดิม ไม่ต้องซ่อนตอนโหลด) */}
+            {/* HEADER */}
             <div className='flex flex-row items-center sm:p-4 mt-2 w-full'>
                 <img src={logo} className='w-12 ml-4 sm:w-12 pr-2 sm:pr-3 flex-shrink-0' alt="logo" />
                 <div className="flex flex-col min-w-0">
@@ -57,11 +55,11 @@ const Landing = () => {
             {/* LEFT & RIGHT SIDE PANEL */}
             <div className='col-span-2'>
                 <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr] gap-6">
-                    
-                    {/* ฝั่งซ้าย: แผนที่ */}
+
+                    {/* left: MAP */}
                     <div className="hidden sm:flex flex-col justify-center items-center p-4">
                         {loading ? (
-                            // Skeleton สำหรับแผนที่ (กรอบเทาๆ กระพริบ)
+                            // skeleton loading
                             <div className="w-full max-w-md h-[400px] bg-slate-200/50 rounded-xl animate-pulse flex items-center justify-center">
                                 <span className="text-slate-400 font-medium">Loading Map...</span>
                             </div>
@@ -70,22 +68,22 @@ const Landing = () => {
                         ) : (
                             <ThaiMap
                                 sites={sites}
-                                hoveredSite={hoveredSite}     
+                                hoveredSite={hoveredSite}
                                 onHover={setHoveredSite}
-                                onSiteClick={(id) => navigate(`/dashboard?site=${id}`)}      
+                            // onSiteClick={(id) => navigate(`/dashboard?site=${id}`)}      
                             />
                         )}
                     </div>
 
-                    {/* ฝั่งขวา: ลิสต์การ์ด */}
+                    {/* right: SITE LISTCARD */}
                     <div className="flex flex-col h-full p-4">
                         <h1 className="text-[18px] font-semibold text-slate-700 mb-4 pb-2">
                             All Sites
                         </h1>
                         <div className="flex-1 overflow-y-auto pr-2">
-                            
+
                             {loading ? (
-                                // hardcode count site
+                                // hardcode count site -> can change to count from database
                                 <>
                                     <div className="mb-4"><SiteCardSkeleton /></div>
                                     <div className="mb-4"><SiteCardSkeleton /></div>
@@ -102,23 +100,22 @@ const Landing = () => {
                                                 grades={site.grades}
                                                 isHovered={hoveredSite === site.id}
                                                 onHover={setHoveredSite}
-                                                onView={() => navigate(`/dashboard/${site.id}`)} 
+                                                onView={() => navigate(`/dashboard/${site.id}`)}
                                             />
                                         </div>
                                     ))}
 
-                                    <div className='mb-4'>
-                                        <TransparentCard
-                                            name="Mae Moh Mine"
-                                            grades={[
-                                                { label: "F Grade", color: "#FF3B3B", count: 23, pct: 6 },
-                                                { label: "E Grade", color: "#FFEE00", count: 977, pct: 93 },
-                                            ]}
-                                            isHovered={hoveredSite === "maemoh-plant"}
-                                            onHover={active => setHoveredSite(active ? "maemoh-plant" : null)}
-                                            onView={() => navigate("/dashboard")} 
-                                        />
-                                    </div>
+                                    {/* {sites.map(site => (
+                                        <div className='mb-4' key={site.id}>
+                                            <TransparentCard
+                                                site={site}
+                                                grades={site.grades}
+                                                isHovered={hoveredSite === site.id}
+                                                onHover={setHoveredSite}
+                                                onView={() => navigate("/dashboard")}
+                                            />
+                                        </div>
+                                    ))} */}
                                 </>
                             )}
                         </div>

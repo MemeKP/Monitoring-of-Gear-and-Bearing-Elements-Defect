@@ -13,6 +13,14 @@ import Dashboard from './routes/Dashboard.jsx'
 import GraphPage from './routes/GraphPage.jsx'
 import DashboardPageWrapper from './layout/DashboardPageWrapper.jsx'
 import EquipmentListPage from './routes/EquipmentListPage.jsx'
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
+
 const router = createBrowserRouter([
 
   {
@@ -51,8 +59,9 @@ const router = createBrowserRouter([
 ])
 
 createRoot(document.getElementById('root')).render(
+  <QueryClientProvider client={queryClient}>
   <StrictMode>
     {/* <App /> */}
     <RouterProvider router={router} />
-  </StrictMode>,
+  </StrictMode></QueryClientProvider>,
 )
