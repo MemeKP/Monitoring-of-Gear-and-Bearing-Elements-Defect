@@ -17,7 +17,10 @@ export function useDashboardAttention({ site = 'all', filter = 'all', page = 1 }
     queryFn:  async () => {
        const res = await dashboardApi.getAttention({ site, filter, page });
        console.log(" API:", res);
-       return res; 
+        return {
+        items: res,                 // data list
+        total: res?.length ?? 0,    // fallback
+      };
     },
     placeholderData: (prev) => prev,
   });

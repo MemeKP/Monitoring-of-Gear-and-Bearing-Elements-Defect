@@ -28,7 +28,7 @@ const Dashboard = () => {
 
   const stageBreakdown = stats.data?.stage_breakdown ?? [];
 
-  const attentionItems = attention.data || [];
+  const attentionItems = attention.data?.items ?? [];
   const attentionTotal = attention.data?.length ?? 0;
 
   const overdueData = overdue.data;
@@ -41,20 +41,21 @@ const Dashboard = () => {
   const siteName = siteId ?? 'All sites';
 
   const filteredCount = useMemo(() => {
-    if (!attention.data) return 0;
+    const items = attention.data?.items || [];
 
-    if (attentionFilter === 'Critical') {
-      return attention?.data.filter(m => m.grade === 'F').length;
+    if (attentionFilter === 'critical') {
+      return items.filter(m => m.grade === 'F').length;
     }
 
-    if (attentionFilter === 'Warning') {
-      return attention?.data.filter(m => m.grade === 'E').length;
+    if (attentionFilter === 'warning') {
+      return items.filter(m => m.grade === 'E').length;
     }
 
-    return attention?.data.length;
+    return items.length;
   }, [attention.data, attentionFilter]);
 
   console.log("FILTER:", attentionFilter);
+  console.log('5555', filteredCount.toLocaleString())
 
   // const machinesRequiringAttention = [
   //   {
