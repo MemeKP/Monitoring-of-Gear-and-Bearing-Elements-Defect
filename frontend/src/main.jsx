@@ -27,32 +27,20 @@ const router = createBrowserRouter([
     path: '/',
     element: <Landing />,
   },
-  // {
-  //   path: '/dashboard/:siteId',
-  //   element: <DashboardPageWrapper />,
-  // },
   {
     path: '/dashboard/:siteId',
     element: <Dashboard />,
   },
-  // {
-  //   path: '/dashboard',
-  //   element: <DashboardPageWrapper />,
-  // },
   {
     path: '/equipment/test123',
     element: <GraphPage/>,
   },
-  // {
-  //   path: '/equipment/:id',
-  //   element: <h1>dashboard</h1>,
-  // },
   {
-    path: '/equipment',
+    path: '/dashboard/:siteId/equipment',
     element: <EquipmentListPage />,
   },
   {
-    path: '/graph',
+    path: '/dashboard/:siteId/equipment/:equipmentId',
     element: <GraphPage />,
   },
 

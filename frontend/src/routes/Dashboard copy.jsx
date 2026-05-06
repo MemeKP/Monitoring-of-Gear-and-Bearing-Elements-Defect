@@ -449,7 +449,7 @@ export function DashboardPage({ siteName = "Mae Moh Mine", onBack }) {
                   <div className="flex items-center justify-between">
                     <div className="flex-1 h-1 bg-red-400 rounded-full mr-2"></div>
                     <span className="text-xs text-red-600 font-medium whitespace-nowrap">
-                      40.0
+                      {item.point_value}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">Last check: {item.daysAgo}</p>
@@ -460,6 +460,7 @@ export function DashboardPage({ siteName = "Mae Moh Mine", onBack }) {
 
           {/* Row 3: Health Check + Recent items (2 col on md+) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
             {/* Health Checkup Overdue */}
             <div className="md:col-span-1 bg-white rounded-2xl p-6 shadow-sm">
               <h3 className="text-gray-600 font-semibold text-sm mb-1">

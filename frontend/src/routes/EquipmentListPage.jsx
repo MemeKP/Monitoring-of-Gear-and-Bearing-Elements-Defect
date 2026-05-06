@@ -88,7 +88,7 @@ const EquipmentListPage = () => {
           <div className='mt-3 text-sm text-[#546A81]'>Showing 198 from 893 results</div>
         </div>
 
-        {/* TTABLE + SIDE PANEL */}
+        {/* TABLE + SIDE PANEL */}
         <div className="flex overflow-hidden">
           {/* Scrollable table */}
           <div className="flex-1 overflow-x-auto min-w-0">

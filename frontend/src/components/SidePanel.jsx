@@ -1,5 +1,5 @@
 import { X } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 
 // Mini frequency chart using SVG
 const FrequencyChart = () => (
@@ -25,6 +25,8 @@ const FrequencyChart = () => (
 
 const SidePanel = ({ equipment, onClose }) => {
   const navigate = useNavigate()
+
+  const {siteId, equipmentId} = useParams()
 
   if (!equipment) return null
   return (
@@ -108,7 +110,7 @@ const SidePanel = ({ equipment, onClose }) => {
 
           {/* View Full Details */}
           <button className="mt-auto bg-[#708DA8] hover:bg-[#ffff] hover:text-[#708DA8] hover:border-solid hover:border-2 hover:border-[#708DA8] text-white font-semibold text-[14px] py-3 rounded-lg transition-colors"
-            onClick={() => {navigate('/graph')}}
+            onClick={() => {navigate(`/dashboard/${siteId}/equipment/${equipmentId}/graph`)}}
           >
             View full details
           </button>

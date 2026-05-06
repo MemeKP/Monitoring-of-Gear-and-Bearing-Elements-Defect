@@ -18,22 +18,27 @@ apiClient.interceptors.response.use(
 
 )
 export const dashboardApi = {
-    getStats: (site = 'all') => 
+    getStats: (site = 'all') =>
         apiClient.get('dashboard/stats', {
             params: { site }
         }),
 
-    getAttention: ({ site = 'all', filter = 'all', page = 1, limit = 20 } = {}) => 
+    getAttention: ({ site = 'all', filter = 'all', page = 1, limit = 20 } = {}) =>
         apiClient.get('/dashboard/attention', {
             params: { site, filter, page, limit },
         }),
 
     getOverdue: ({ site = 'all', thresholdDays = 90, limit = 8 } = {}) =>
-    apiClient.get('/dashboard/overdue', {
-      params: { 
-        site, 
-        threshold_days: thresholdDays, 
-        limit 
-      },
-    }),
+        apiClient.get('/dashboard/overdue', {
+            params: {
+                site,
+                threshold_days: thresholdDays,
+                limit
+            },
+        }),
 }
+
+export const measurementApi = {
+  getOne: (id) =>
+    apiClient.get(`/measurements/${id}`)
+};

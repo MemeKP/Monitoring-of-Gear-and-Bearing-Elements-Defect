@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import { ChevronLeft, Menu, X } from "lucide-react";
 import mmm from '../assets/img/mmm.jpg'
@@ -13,29 +13,48 @@ import { GRADE_COLORS } from '../constant/gradeConfig.js';
 import { AttentionRow } from '../components/AttentionRow.jsx';
 
 const Dashboard = () => {
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { siteId } = useParams();
   const site = siteId ?? 'all';
-  const [attentionFilter, setAttentionFilter] = useState('all');
+  const [attentionFilter, setAttentionFilter] = useState('Critical');
 
   const stats = useDashboardStats(site);
+
   const attention = useDashboardAttention({ site, filter: attentionFilter });
   const overdue = useDashboardOverdue(site);
 
   const stageBreakdown = stats.data?.stage_breakdown ?? [];
 
   const attentionItems = attention.data || [];
-  const attentionTotal = attention.data?.meta?.total ?? 0;
+  const attentionTotal = attention.data?.length ?? 0;
 
   const overdueData = overdue.data;
   const overdueItems = overdueData?.items ?? [];
   const criticalCount = overdueData?.critical_count ?? 0;
   const warningCount = overdueData?.warning_count ?? 0;
   const maxDelayLabel = overdueData?.max_delay_label ?? '--';
-
+  // console.log("OVERDUE COUNT", overdueData)
+  console.log('ATTENTION', attention?.data)
   const siteName = siteId ?? 'All sites';
+
+  const filteredCount = useMemo(() => {
+    if (!attention.data) return 0;
+
+    if (attentionFilter === 'Critical') {
+      return attention?.data.filter(m => m.grade === 'F').length;
+    }
+
+    if (attentionFilter === 'Warning') {
+      return attention?.data.filter(m => m.grade === 'E').length;
+    }
+
+    return attention?.data.length;
+  }, [attention.data, attentionFilter]);
+
+  console.log("FILTER:", attentionFilter);
 
   // const machinesRequiringAttention = [
   //   {
@@ -200,25 +219,28 @@ const Dashboard = () => {
                   <h3 className="text-[#546A81] font-bold text-xl">
                     Machines requiring attention
                   </h3>
-                  <p className="text-xs text-gray-400 mt-1">{attention.isLoading
-                    ? 'Loading...'
-                    : `Showing ${attentionTotal.toLocaleString()} machines`}</p>
+                  {/* const total = attention.data?.meta?.total ?? 0; */}
+                  <p className="text-xs text-gray-400 mt-1">
+                    {attention.isLoading
+                      ? 'Loading...'
+                      : `Showing ${filteredCount.toLocaleString()} machines`}
+                  </p>
                 </div>
 
                 {/* Toggle*/}
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setAttentionFilter(attentionFilter === 'critical' ? 'all' : 'critical')}
-                    className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'critical'
+                  <button onClick={() => setAttentionFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
+                    className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'Critical'
                       ? 'bg-[#ff7a7a] text-white'
                       : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
                       }`}>
                     Critical
                   </button>
-                  <button onClick={() => setAttentionFilter(attentionFilter === 'warning' ? 'all' : 'warning')}
+                  <button onClick={() => setAttentionFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
 
-                    className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'warning'
-                        ? 'bg-yellow-400 text-white'
-                        : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
+                    className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'Warning'
+                      ? 'bg-yellow-400 text-white'
+                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
                       }`}>
                     <span className="text-yellow-400 text-lg leading-none">⚠️</span> Warning
                   </button>
@@ -239,7 +261,7 @@ const Dashboard = () => {
                     <AttentionRow
                       key={item.id}
                       item={item}
-                      onClick={() => navigate(`/equipment/${item.id}`)}
+                      onClick={() => navigate(`/dashboard/${siteId}/equipment/${item.id}`)}
                     />
                   ))
                 )}
@@ -257,41 +279,65 @@ const Dashboard = () => {
                   <h3 className="text-[#546A81] font-bold text-lg leading-tight">
                     Health Checkup Overdue
                   </h3>
-                  <p className="text-[11px] text-gray-400 mt-0.5">Showing 8 machines overdue.</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    {overdue.isLoading
+                      ? 'Loading...'
+                      : `Showing ${overdueData?.overdue_count ?? 0} machines overdue.`}
+                  </p>
                 </div>
               </div>
 
               {/* 3 Summary Boxes */}
-              <div className="grid grid-cols-3 gap-2 mb-6">
-                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center justify-center">
-                  <span className="text-[#990000] font-bold text-2xl">2</span>
-                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical</span>
-                </div>
-                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center justify-center">
-                  <span className="text-[#FFCB05] font-bold text-2xl">5</span>
-                  <span className="text-[10px] font-semibold text-gray-400 mt-1">Warning</span>
-                </div>
-                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center justify-center">
-                  <span className="text-[#546A81] font-bold text-2xl">+9yr</span>
-                  <span className="text-[10px] font-semibold text-gray-400 mt-1">Max delay</span>
-                </div>
-              </div>
-
-              {/* List Items */}
-              <div className="space-y-4">
-                {[1, 2, 3, 4].map((item, i) => (
-                  <div key={i} className="flex items-start justify-between border-b border-gray-100 pb-3 last:border-0">
-                    <div>
-                      <h4 className="text-sm font-bold text-[#546A81]">Rear Drive Unit_LH</h4>
-                      <p className="text-[10px] text-yellow-500 font-medium mt-1">MMP . 1V . <span className="font-bold">E</span></p>
+              {overdue.isLoading ? (
+                <OverdueSkeleton />
+              ) : overdue.isError ? (
+                <ErrorBox message={overdue.error.message} />
+              ) : (
+                <>
+                  {/* 3 summary boxes */}
+                  <div className="grid grid-cols-3 gap-2 mb-6">
+                    <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                      <span className="text-[#990000] font-bold text-2xl">{criticalCount}</span>
+                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical</span>
                     </div>
-                    <div className="text-right">
-                      <span className="text-sm font-bold text-[#546A81]">3302</span>
-                      <span className="text-[10px] text-gray-400 ml-1">days</span>
+                    <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                      <span className="text-[#FFCB05] font-bold text-2xl">{warningCount}</span>
+                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Warning</span>
+                    </div>
+                    <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                      <span className="text-[#546A81] font-bold text-2xl">{maxDelayLabel}</span>
+                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Max delay</span>
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  {/* Overdue list */}
+                  <div className="space-y-4">
+                    {overdueItems.map((item, i) => {
+                      const gradeColor = item.grade === 'F' ? 'text-[#FF3B3B]' : 'text-[#C1D343]';
+                      return (
+                        <div key={item.id ?? i}
+                          className="flex items-start justify-between border-b border-gray-100 pb-3 last:border-0">
+                          <div>
+                            <h4 className="text-sm font-bold text-[#546A81]">{item.equipment}</h4>
+                            <p className="text-[10px] text-[#A2ADB6] font-medium mt-1">
+                              {item.site} · {item.meas_point} ·{' '}
+                              <span className={`font-bold ${gradeColor}`}>{item.grade}</span>
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-bold text-[#546A81]">
+                              {item.days_since_check}
+                            </span>
+                            <span className="text-[10px] text-gray-400 ml-1">days</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+
             </div>
           </div>
         </div>
@@ -303,7 +349,7 @@ const Dashboard = () => {
 
 export default Dashboard
 
-// SKELETON LOADER
+// DASHBOARD - SKELETON LOADER 
 function StatsSkeleton() {
   return (
     <div className="flex gap-4 animate-pulse">

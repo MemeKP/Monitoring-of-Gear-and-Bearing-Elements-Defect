@@ -20,7 +20,7 @@ export class MeasurementsService {
 
   // Shared: attach computed fields to a raw entity
   private enrich(m: Measurement) {
-    const grade = computeGrade(m.adjOptPointValue);
+    const grade = computeGrade(m.state);
     return {
       ...m,
       grade,

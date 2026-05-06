@@ -17,8 +17,12 @@ export function useSites() {
 
   const sites = useMemo(() => {
     return SITE_CONFIG.map(config => {
-      const siteStats = statsData?.by_site?.find(s => s.site === config.id);
 
+      const bySite = statsData?.data?.by_site ?? statsData?.by_site ?? [];
+
+      const siteStats = bySite.find(
+        s => String(s.site).toLowerCase() === String(config.id).toLowerCase()
+      );
       const GRADE_COLORS = {
         F: "#FF3B3B",
         E: "#FFFF00",
@@ -30,11 +34,11 @@ export function useSites() {
 
       const grades = siteStats
         ? siteStats.stage_breakdown.map(g => ({
-            label: `${g.grade} Grade`,
-            color: GRADE_COLORS[g.grade] ?? "#A2ADB6",
-            count: g.count,
-            pct:   g.percentage,
-          }))
+          label: `${g.grade} Grade`,
+          color: GRADE_COLORS[g.grade] ?? "#A2ADB6",
+          count: g.count,
+          pct: g.percentage,
+        }))
         : [];
 
       // Dot color = driven by worst grade present

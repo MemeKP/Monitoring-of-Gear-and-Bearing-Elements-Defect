@@ -20,40 +20,38 @@ export class DashboardService {
   }
 
   async getStats(site?: string) {
-    // Way 1: Duplicate data
-    // const subQuery = this.latestPerEquipmentSubQuery();
-    // const qb = this.repo
-    //   .createQueryBuilder('m')
-    //   .where(`m.id IN (${subQuery.getQuery()})`);
-
-    // Way 2: 
-    const qb = this.repo.createQueryBuilder('m')
+    const qb = this.repo.createQueryBuilder('m');
 
     if (site && site !== 'all') {
       qb.andWhere('m.site = :site', { site });
     }
 
     const allLatest = await qb.getMany();
-    const total = allLatest.length;
+
+    // exclude null states 
+    const filtered = allLatest.filter(m => m.state !== null);
+
+    const total = filtered.length;
 
     const gradeCounts: Record<string, number> = {
       A: 0, B: 0, C: 0, D: 0, E: 0, F: 0,
     };
-    for (const m of allLatest) {
-      gradeCounts[computeGrade(m.state)]++;
+
+    for (const m of filtered) {
+      const grade = computeGrade(m.state);
+      gradeCounts[grade]++;
     }
+
     const pct = (n: number) =>
       total > 0 ? Math.round((n / total) * 1000) / 10 : 0;
 
-    // per-site breakdown 
-    const allForSiteBreakdown = await this.repo
-      .createQueryBuilder('m')
-      .where(`m.id IN (${this.latestPerEquipmentSubQuery().getQuery()})`)
-      .getMany();
+    // by-site uses SAME dataset
+    const bySiteMap = new Map<string, typeof filtered>();
 
-    const bySiteMap = new Map<string, Measurement[]>();
-    for (const m of allForSiteBreakdown) {
-      if (!bySiteMap.has(m.site)) bySiteMap.set(m.site, []);
+    for (const m of filtered) {
+      if (!bySiteMap.has(m.site)) {
+        bySiteMap.set(m.site, []);
+      }
       bySiteMap.get(m.site)!.push(m);
     }
 
@@ -61,10 +59,14 @@ export class DashboardService {
       const siteGradeCounts: Record<string, number> = {
         A: 0, B: 0, C: 0, D: 0, E: 0, F: 0,
       };
+
       for (const m of machines) {
-        siteGradeCounts[computeGrade(m.adjOptPointValue)]++;
+        const grade = computeGrade(m.state);
+        siteGradeCounts[grade]++;
       }
+
       const siteTotal = machines.length;
+
       const sitePct = (n: number) =>
         siteTotal > 0 ? Math.round((n / siteTotal) * 1000) / 10 : 0;
 
@@ -85,8 +87,12 @@ export class DashboardService {
         total_machines: total,
         defective_pct: pct(gradeCounts['F']),
         careful_pct: pct(gradeCounts['E']),
-        normal_pct: pct(gradeCounts['A'] + gradeCounts['B'] +
-          gradeCounts['C'] + gradeCounts['D']),
+        normal_pct: pct(
+          gradeCounts['A'] +
+          gradeCounts['B'] +
+          gradeCounts['C'] +
+          gradeCounts['D']
+        ),
         stage_breakdown: ['F', 'E', 'D', 'C', 'B', 'A'].map(g => ({
           grade: g,
           count: gradeCounts[g],
@@ -118,13 +124,14 @@ export class DashboardService {
       qb.where('1=1');
     }
 
+    const normalizedFilter = filter?.toLowerCase();
+
     // "Critical" = Grade F, "Warning" = Grade E
-    if (filter === 'critical') {
-      qb.andWhere('m.state > :state', { state: 6 });
-    } else if (filter === 'warning') {
-      qb.andWhere('m.state > :state', { state: 5 });
+    if (normalizedFilter === 'critical') {
+      qb.andWhere('m.state = :state', { state: 6 });
+    } else if (normalizedFilter === 'warning') {
+      qb.andWhere('m.state = :state', { state: 5 });
     } else {
-      // "all" = only show machines that need attention (grade E or F)
       qb.andWhere('m.state IN (:...states)', { states: [5, 6] });
     }
 
@@ -162,7 +169,7 @@ export class DashboardService {
   async getOverdue(
     site?: string,
     thresholdDays = 90, // overdue 3 months
-    limit = 8,
+    limit = 10,
   ) {
     const subQuery = this.latestPerEquipmentSubQuery();
 
@@ -191,7 +198,7 @@ export class DashboardService {
     let maxDays = 0;
 
     for (const m of allOverdue) {
-      const grade = computeGrade(m.adjOptPointValue);
+      const grade = computeGrade(m.state);
       if (grade === 'F') criticalCount++;
       if (grade === 'E') warningCount++;
       const days = daysSinceCheck(m.measDate);

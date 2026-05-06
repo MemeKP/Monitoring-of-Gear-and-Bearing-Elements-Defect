@@ -20,6 +20,7 @@ export default function Navbar({
   const navigate = useNavigate();
   const location = useLocation();
   const { siteId } = useParams();
+  const currentSite = siteId || 'all';
 
   // Helper: is this path currently active? 
   const isActive = (path) => location.pathname === path;
@@ -31,9 +32,9 @@ export default function Navbar({
       // await api.post("/auth/logout");
       // await signOut();
 
-      localStorage.removeItem("token");   
-      sessionStorage.clear();             
-      navigate("/login");           
+      localStorage.removeItem("token");
+      sessionStorage.clear();
+      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -50,13 +51,13 @@ export default function Navbar({
       icon: dashboard,
       iconActive: dashboardActive,
       label: "Dashboard",
-      path: `/dashboard/${siteId}`,
+      path: `/dashboard/${currentSite}`,
     },
     {
       icon: equipment,
       iconActive: equipmentActive,
       label: "Equipment Folder",
-      path: "/equipment",
+      path: `/dashboard/${currentSite}/equipment`,
     },
   ];
 
@@ -125,7 +126,7 @@ export default function Navbar({
         {/* Logout */}
         <div className="absolute px-2 w-full mt-5">
           <button
-            onClick={handleLogout}
+            // onClick={handleLogout}
             className="group relative overflow-hidden w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 text-red-500"
           >
             <span className="absolute inset-0 bg-red-50 scale-x-0 origin-left
@@ -169,15 +170,13 @@ export default function Navbar({
           >
             <Menu
               size={24}
-              className={`absolute transition-all duration-300 ease-in-out ${
-                mobileMenuOpen ? "opacity-0 rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"
-              }`}
+              className={`absolute transition-all duration-300 ease-in-out ${mobileMenuOpen ? "opacity-0 rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"
+                }`}
             />
             <X
               size={24}
-              className={`absolute transition-all duration-300 ease-in-out ${
-                mobileMenuOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-50"
-              }`}
+              className={`absolute transition-all duration-300 ease-in-out ${mobileMenuOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-50"
+                }`}
             />
           </button>
         </div>
@@ -192,7 +191,7 @@ export default function Navbar({
                   key={i}
                   onClick={() => {
                     navigate(item.path);
-                    setMobileMenuOpen(false); 
+                    setMobileMenuOpen(false);
                   }}
                   className={`group relative overflow-hidden w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all mt-4 duration-300
                     ${active ? "bg-[#708DA8] text-white" : "text-[#546A81] bg-white"}`}

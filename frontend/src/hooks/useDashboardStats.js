@@ -4,7 +4,10 @@ import { dashboardApi } from '../api/dashboard';
 export function useDashboardStats(site = 'all') {
   return useQuery({
     queryKey: ['dashboard', 'stats', site],
-    queryFn:  () => dashboardApi.getStats(site),
+    queryFn:  async () => {
+      const res = await dashboardApi.getStats(site)
+      return res
+    },
   });
 }
 
