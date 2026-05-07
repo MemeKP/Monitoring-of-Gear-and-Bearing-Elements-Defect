@@ -11,17 +11,17 @@ export const SITE_CONFIG = [
     id: "TPI",                          // must match site name in DB exactly -> so, its has to add provinces once you know them
     name: "TPI",
     provinces: ["saraburi"],             // which Thai provinces to highlight
-    dot: { cx: 250, cy: 411 }, 
-    lat:14.53,
-    lng: 100.52       // coordinates on the map -> have to update with real coordinates
+    dot: { cx: 600, cy: 500 }, 
+    lat: 14.53,
+    lng: 100.91       // coordinates on the map -> have to update with real coordinates
   },
   {
     id: "HPC",
     name: "HPC",
     provinces: [],                      
     dot: { cx: 122, cy: 245 },
-    lat: 13.75,
-    lng: 100.52        
+    // lat: 13.75,
+    // lng: 100.52        
   },
   {
     id: "DEM",
