@@ -48,7 +48,7 @@ const SidePanel = ({ equipment, onClose }) => {
           <div className="flex justify-between items-start gap-3">
             <div>
               <h2 className="text-[17px] font-bold text-[#546A81] leading-snug">
-                {equipment.name}
+                {equipment.equipment}
               </h2>
               <p className="text-[12px] text-[#546A81] mt-1">
                 {equipment.pointLabel ?? 'MMP Point 1V'}

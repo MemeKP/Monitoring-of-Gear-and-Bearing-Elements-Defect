@@ -13,7 +13,7 @@ export class EquipmentsService {
   ) { }
 
   private enrich(m: Measurement) {
-    const grade = computeGrade(m.adjOptPointValue);
+    const grade = computeGrade(m.state);
     return {
       id: m.id,
       site: m.site,
@@ -21,6 +21,9 @@ export class EquipmentsService {
       meas_point: m.measPoint,
       meas_date: m.measDate,
       meas_time: m.measTime,
+      bpfo: m.bpfo,
+      f0: m.f0,
+      ibeta: m.ibeta,
       grade,
       status_label: gradeToStatus(grade),
       point_value: m.adjOptPointValue,
@@ -37,8 +40,8 @@ export class EquipmentsService {
   // }
 
   async findAll(dto: QueryEquipmentDto) {
-    const page = dto.page ?? 1;
-    const limit = dto.limit ?? 20;
+    const page = Number(dto.page) || 1;
+    const limit = Number(dto.limit) || 20;
     const skip = (page - 1) * limit;
 
     const subQuery = this.repo
@@ -109,12 +112,13 @@ export class EquipmentsService {
     }
 
     const sortMap: Record<string, string> = {
-      days_since_check: 'm.measDate',
-      point_value: 'm.adjOptPointValue',
-      grade: 'm.adjOptPointValue',  
-      equipment: 'm.equipment',
+      id: 'm.id',
+      // days_since_check: 'm.measDate',
+      // point_value: 'm.adjOptPointValue',
+      // grade: 'm.state',  
+      // equipment: 'm.equipment',
     };
-    const sortCol = sortMap[dto.sort ?? 'days_since_check'] ?? 'm.measDate';
+    const sortCol = sortMap[dto.sort ?? 'id'] ?? 'm.id';
     const sortDir = (dto.order ?? 'desc').toUpperCase() as 'ASC' | 'DESC';
 
     qb.orderBy(sortCol, sortDir);
@@ -166,7 +170,7 @@ export class EquipmentsService {
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
- 
+
   // update(id: number, updateEquipmentDto: UpdateEquipmentDto) {
   //   return `This action updates a #${id} equipment`;
   // }

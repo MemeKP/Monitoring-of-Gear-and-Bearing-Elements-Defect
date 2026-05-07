@@ -10,4 +10,4 @@ import { Measurement } from 'src/measurements/entities/measurement.entity';
   providers: [EquipmentsService],
   exports: [EquipmentsService]
 })
-export class EquipmentsModule {}
+export class EquipmentsModule {} 
