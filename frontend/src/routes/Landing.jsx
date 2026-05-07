@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { LiquidGlassButton, SiteCard, TransparentCard } from '../components/SiteSelector';
 import Dashboard from './Dashboard';
 import { useSites } from '../hooks/useSites';
+import RegionMap from '../components/RegionMap';
 
 const SiteCardSkeleton = () => (
     <div className="relative w-full group mt-2 ml-2 animate-pulse">
@@ -39,88 +40,100 @@ const Landing = () => {
 
     return (
         <>
-            {/* HEADER */}
-            <div className='flex flex-row items-center sm:p-4 mt-2 w-full'>
-                <img src={logo} className='w-12 ml-4 sm:w-12 pr-2 sm:pr-3 flex-shrink-0' alt="logo" />
-                <div className="flex flex-col min-w-0">
-                    <div className="text-slate-500 text-lg sm:text-xl font-bold tracking-tight">
-                        EGAT<span className='font-normal'>for</span>ALL
+
+            {/* FULL SCREEN MAP LAYOUT */}
+            <div className="relative w-full h-screen overflow-hidden">
+
+                {/* MAP — full background */}
+                {loading ? (
+                    <div className="w-full h-full bg-slate-800 animate-pulse flex items-center justify-center">
+                        <span className="text-slate-400 font-medium">Loading Map...</span>
                     </div>
-                    <div className="text-slate-400 text-xs sm:text-sm -mt-0.5 sm:-mt-1 leading-tight sm:leading-normal line-clamp-1 sm:line-clamp-none">
-                        Monitoring of Gear and Bearing Elements Defect
+                ) : error ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-red-400">Error loading map data</div>
                     </div>
-                </div>
-            </div>
+                ) : (
+                    <RegionMap
+                        sites={sites}
+                        hoveredSite={hoveredSite}
+                        onHover={setHoveredSite}
+                        onSiteClick={(id) => navigate(`/dashboard/${sites.id}`)}
+                    />
+                )}
 
-            {/* LEFT & RIGHT SIDE PANEL */}
-            <div className='col-span-2'>
-                <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr] gap-6">
-
-                    {/* left: MAP */}
-                    <div className="hidden sm:flex flex-col justify-center items-center p-4">
-                        {loading ? (
-                            // skeleton loading
-                            <div className="w-full max-w-md h-[400px] bg-slate-200/50 rounded-xl animate-pulse flex items-center justify-center">
-                                <span className="text-slate-400 font-medium">Loading Map...</span>
-                            </div>
-                        ) : error ? (
-                            <div className="text-red-400">Error loading map data</div>
-                        ) : (
-                            <ThaiMap
-                                sites={sites}
-                                hoveredSite={hoveredSite}
-                                onHover={setHoveredSite}
-                            // onSiteClick={(id) => navigate(`/dashboard?site=${id}`)}      
-                            />
-                        )}
-                    </div>
-
-                    {/* right: SITE LISTCARD */}
-                    <div className="flex flex-col h-full p-4">
-                        <h1 className="text-[18px] font-semibold text-slate-700 mb-4 pb-2">
-                            All Sites
-                        </h1>
-                        <div className="flex-1 overflow-y-auto pr-2">
-
-                            {loading ? (
-                                // hardcode count site -> can change to count from database
-                                <>
-                                    <div className="mb-4"><SiteCardSkeleton /></div>
-                                    <div className="mb-4"><SiteCardSkeleton /></div>
-                                    <div className="mb-4"><SiteCardSkeleton /></div>
-                                </>
-                            ) : error ? (
-                                <div className="text-red-400 p-4 bg-red-50 rounded-lg">Failed to load sites.</div>
-                            ) : (
-                                <>
-                                    {sites.map(site => (
-                                        <div className='mb-4' key={site.id}>
-                                            <SiteCard
-                                                site={site}
-                                                grades={site.grades}
-                                                isHovered={hoveredSite === site.id}
-                                                onHover={setHoveredSite}
-                                                onView={() => navigate(`/dashboard/${site.id}`)}
-                                            />
-                                        </div>
-                                    ))}
-
-                                    {/* {sites.map(site => (
-                                        <div className='mb-4' key={site.id}>
-                                            <TransparentCard
-                                                site={site}
-                                                grades={site.grades}
-                                                isHovered={hoveredSite === site.id}
-                                                onHover={setHoveredSite}
-                                                onView={() => navigate("/dashboard")}
-                                            />
-                                        </div>
-                                    ))} */}
-                                </>
-                            )}
+                {/* HEADER */}
+                <div className="absolute top-4 left-4 z-10 flex flex-row items-center
+                            bg-white/10 backdrop-blur-md 
+                            border border-white/20 
+                            rounded-2xl px-4 py-2.5 shadow-lg">
+                    <img src={logo} className="w-9 pr-2 flex-shrink-0" alt="logo" />
+                    <div className="flex flex-col min-w-0">
+                        <div className="text-white text-base font-bold tracking-tight drop-shadow">
+                            EGAT<span className="font-normal">for</span>ALL
+                        </div>
+                        <div className="text-white/70 text-xs leading-tight">
+                            Monitoring of Gear and Bearing Elements Defect
                         </div>
                     </div>
                 </div>
+
+                {/* SITE CARDS — right */}
+                <div className="absolute  top-4 right-4 bottom-4 z-10 
+                            w-80 flex flex-col gap-0 ">
+
+                    {/* Panel header */}
+                    <div className="px-4 pt-4 pb-3 border-b border-white/10">
+                        <h1 className="text-white font-semibold text-base">All Sites</h1>
+                    </div>
+
+                    {/* Cards list */}
+                    <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3">
+                        {loading ? (
+                            <>
+                                <SiteCardSkeleton />
+                                <SiteCardSkeleton />
+                                <SiteCardSkeleton />
+                            </>
+                        ) : error ? (
+                            <div className="text-red-400 p-4 bg-red-500/10 rounded-lg text-sm">
+                                Failed to load sites.
+                            </div>
+                        ) : (
+                            sites.map(site => (
+                                <SiteCard
+                                    key={site.id}
+                                    site={site}
+                                    grades={site.grades}
+                                    isHovered={hoveredSite === site.id}
+                                    onHover={setHoveredSite}
+                                    onView={() => navigate(`/dashboard/${site.id}`)}
+                                />
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* LEGEND  */}
+                {/* <div className="absolute bottom-4 left-4 z-10 
+                            flex flex-row gap-4 items-center
+                            bg-black/40 backdrop-blur-md
+                            border border-white/10
+                            rounded-xl px-4 py-2 text-xs text-white/80">
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#FF6B6B] inline-block" />
+                        F Grade
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#FFD93D] inline-block" />
+                        E Grade
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#6BCB77] inline-block" />
+                        Normal
+                    </span>
+                </div> */}
+
             </div>
         </>
     )
