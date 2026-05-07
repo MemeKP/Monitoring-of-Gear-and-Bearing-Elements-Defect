@@ -17,9 +17,9 @@ const getSeverityStyle = (site) => {
   const fCount = site.grades?.find(g => g.label?.startsWith("F"))?.count || 0;
   const eCount = site.grades?.find(g => g.label?.startsWith("E"))?.count || 0;
 
-  if (fCount >= 50) {
+  if (fCount > eCount) {
     return { fill: "#FFEAEA", hoverFill: "#FFD6D6" };
-  } else if (fCount > 0 || eCount >= 100) {
+  } else if (eCount > fCount) {
     return { fill: "#FFF7D6", hoverFill: "#FFEAA8" };
   } else {
     return { fill: "#E8F8EE", hoverFill: "#C6EFD4" };
