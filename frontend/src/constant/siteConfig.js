@@ -13,7 +13,7 @@ export const SITE_CONFIG = [
     provinces: ["saraburi"],             // which Thai provinces to highlight
     dot: { cx: 250, cy: 411 }, 
     lat:14.53,
-    lng: 100.52       // SVG coordinates on the Thailand map -> have to update with real coordinates
+    lng: 100.52       // coordinates on the map -> have to update with real coordinates
   },
   {
     id: "HPC",

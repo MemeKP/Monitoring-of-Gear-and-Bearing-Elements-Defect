@@ -22,17 +22,17 @@ const sitesToGeoJSON = (sites) => ({
         return {
             type: 'Feature',
             geometry: {
-                type: 'Point', 
+                type: 'Point',
                 coordinates:
                     [Number(site.lng),
-                Number(site.lat)]
-},
-    properties: {
-        id: site.id,
-        name: site.name,
-        severity,
-        defect_count: defectCount,
-    },
+                    Number(site.lat)]
+            },
+            properties: {
+                id: site.id,
+                name: site.name,
+                severity,
+                defect_count: defectCount,
+            },
         };
     }),
 });
@@ -47,7 +47,7 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
 
         const feature = e.features[0];
 
-        // ===== CLICK CLUSTER =====
+        // CLICK CLUSTER 
         if (feature.properties?.cluster) {
             const clusterId = feature.properties.cluster_id;
             const source = map.getSource('sites');
@@ -65,7 +65,7 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
             return;
         }
 
-        // ===== CLICK SINGLE DOT =====
+        // CLICK SINGLE DOT
         const siteId = feature.properties?.id;
 
         if (siteId) {
@@ -118,7 +118,7 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
 
             interactiveLayerIds={[
                 clusterLayer.id,
-                unclusteredPointLayer.id
+                unclusteredPointLayer.id,
             ]}
         >
             <Source

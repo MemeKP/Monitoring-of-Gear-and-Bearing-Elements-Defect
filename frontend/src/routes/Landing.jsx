@@ -58,7 +58,7 @@ const Landing = () => {
                         sites={sites}
                         hoveredSite={hoveredSite}
                         onHover={setHoveredSite}
-                        onSiteClick={(id) => navigate(`/dashboard/${sites.id}`)}
+                    
                     />
                 )}
 

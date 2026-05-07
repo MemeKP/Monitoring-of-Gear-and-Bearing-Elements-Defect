@@ -1,98 +1,3 @@
-
-// export function SiteCard({ site, grades = [], status, isHovered, onHover, onView }) {
-//   const badGrades = grades?.filter(g => g.label === 'E Grade' || g.label === 'F Grade') || [];
-//   return (
-//     <div
-//       className="relative w-full group mt-2 ml-2"
-//       onMouseEnter={() => onHover?.(site.id)}
-//       onMouseLeave={() => onHover?.(null)}
-//     >
-//       {/* Layer 1: Background */}
-//       <div
-//         className="absolute -top-[8px] -left-[8px] w-full h-full rounded-[15px] bg-gradient-to-r  from-[#5EA7FF] to-[#DFEBF7] backdrop-blur-md border border-white/20 z-0 "
-//       />
-
-//       {/* Layer 2: Main Card */}
-//       <div
-//       className="rectangle-div"
-//       >
-//         <div
-//           className="relative w-full h-full rounded-[15px] flex flex-col items-start justify-center"
-//           style={{
-//             backgroundColor: "rgba(255, 255, 255, 0.1)",
-//             padding: "16px 20px",
-//             boxSizing: "border-box",
-//             minHeight: 107,
-//           }}
-//         >
-//           {/* Top row */}
-//           <div className="flex w-full items-center justify-between mb-2">
-//             <span
-//               className="text-white font-bold tracking-wide leading-tight line-clamp-1"
-//               style={{
-//                 fontSize: 17,
-//                 fontFamily: "Montserrat, sans-serif",
-//                 fontWeight: 700,
-//                 letterSpacing: "0.02em",
-//                 textShadow: "0 1px 4px rgba(0,0,0,0.18)",
-//                 flex: 1,
-//                 paddingRight: 12,
-//               }}
-//             >
-//               {site.name}
-//             </span>
-
-//             <button
-//               onClick={e => { e.stopPropagation(); onView?.(); }}
-//               className="button-on-light"
-//               style={{ transition: "opacity 0.2s" }}
-//               onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
-//               onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
-//             >
-//               view
-//             </button>
-//           </div>
-
-//           {/* Content */}
-//           {status ? (
-//             <div className="flex items-center gap-2 mt-1">
-//               <div
-//                 style={{
-//                   width: 8, height: 8, borderRadius: "50%",
-//                   background: "#9CFF2E",
-//                   boxShadow: "0 0 6px rgba(156,255,46,0.6)",
-//                   flexShrink: 0,
-//                 }}
-//               />
-//               <span style={{ color: "#9CFF2E", fontSize: 10, fontFamily: "Montserrat, sans-serif", fontWeight: 600 }}>
-//                 {status}
-//               </span>
-//             </div>
-//           ) : (
-//             badGrades.length > 0 ? (
-//               <div className="w-full flex flex-col gap-[6px] mt-1">
-//                 {badGrades.map(grade => (
-//                     <GradeBar key={grade.label} grade={grade} />
-//                   ))}
-//               </div>
-//             ) : (
-//               <div className="flex items-center gap-2 mt-2 ml-1">
-//                 <div
-//                   className="w-2 h-2 rounded-full flex-shrink-0"
-//                   style={{ background: "#9CFF2E", boxShadow: "0 0 10px rgba(156, 255, 46, 0.6)" }}
-//                 />
-//                 <span className="tracking-wide" style={{ color: "#9CFF2E", fontFamily: "Montserrat, sans-serif", fontSize: 10, fontWeight: 600 }}>
-//                   Normal
-//                 </span>
-//               </div>
-//             )
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
 export function SiteCard({ site, grades = [], status, isHovered, onHover, onView }) {
   const badGrades = grades?.filter(g => g.label === 'E Grade' || g.label === 'F Grade') || [];
   return (
@@ -178,7 +83,6 @@ export function SiteCard({ site, grades = [], status, isHovered, onHover, onView
   );
 }
 
-
 /* Transparent Card */
 export function TransparentCard({ site, grades = [], status, isHovered, onHover }) {
   return (
@@ -195,16 +99,6 @@ export function TransparentCard({ site, grades = [], status, isHovered, onHover 
       {status ? (
         /* Status dot + label */
         <div className="flex items-center gap-2 mt-1">
-          {/* <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: "#9CFF2E",
-              boxShadow: "0 0 6px rgba(156,255,46,0.6)",
-              flexShrink: 0,
-            }}
-          /> */}
           <div className="transparent-card">
             <span
               style={{
