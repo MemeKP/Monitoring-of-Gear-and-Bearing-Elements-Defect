@@ -1,11 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronRight, Funnel, X, Plus, Search, RefreshCcw, ArrowDownNarrowWide } from 'lucide-react';
 import { useEquipmentList } from '../hooks/useEquipment';
 import SidePanel from '../components/SidePanel'
 import Navbar from '../components/Navbar'
 import { GRADE_BADGE_COLORS, GRADE_FILTERS, TABLE_COLS } from '../constant/gradeConfig';
-
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useInView } from 'react-intersection-observer';
 
 export default function EquipmentListPage() {
   const navigate = useNavigate();
@@ -29,16 +30,46 @@ export default function EquipmentListPage() {
     limit: LIMIT,
     order: sortOrder,
   }), [siteId, activeGrades, search, page, sortOrder]);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useEquipmentList(filters);
 
-  const { data, isLoading, isError, error, refetch } = useEquipmentList(filters);
-
-  console.log('DATA', data)
+  // console.log('DATA', data)
 
   const meta = data?.meta ?? {};
-   const items = data?.data ?? [];
-  const selectedItem = items?.find(item => item.id === selectedId) ?? null;
+  const items = data?.data ?? [];
+ 
   console.log('META', meta)
-   // const items = data?.data ?? [];
+  // const items = data?.data ?? [];
+
+  const allRows = useMemo(() => {
+    return data?.pages.flatMap((page) => page.data) ?? [];
+  }, [data]);
+
+  const parentRef = useRef();
+ const selectedItem = allRows?.find(item => item.id === selectedId) ?? null;
+  const rowVirtualizer = useVirtualizer({
+    count: hasNextPage ? allRows.length + 1 : allRows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 52,
+    overscan: 10,
+  });
+
+  const { ref: loadMoreRef, inView } = useInView();
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   // Grade chip toggle
   const toggleGrade = (grade) => {
     setActiveGrades(prev =>
@@ -146,9 +177,9 @@ export default function EquipmentListPage() {
                 }}
               />
               <button onClick={toggleSortOrder} className="flex items-center gap-1 cursor-pointer text-[#546A81] hover:text-blue-600">
-              <ArrowDownNarrowWide size={15} className={sortOrder === 'asc' ? 'rotate-180 transition-transform' : 'transition-transform'} />
-              <span className="text-xs font-semibold uppercase">{sortOrder}</span>
-            </button>
+                <ArrowDownNarrowWide size={15} className={sortOrder === 'asc' ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                <span className="text-xs font-semibold uppercase">{sortOrder}</span>
+              </button>
             </div>
           </div>
 
@@ -163,7 +194,7 @@ export default function EquipmentListPage() {
         {/* TABLE + SIDE PANEL */}
         <div className="flex overflow-hidden">
           {/* Scrollable table */}
-          <div className="flex-1 overflow-x-auto min-w-0">
+          {/* <div className="flex-1 overflow-x-auto min-w-0">
             {isError ? (
               <div className="p-6">
                 <div className="rounded-xl p-4 bg-red-50 border border-red-200">
@@ -247,7 +278,7 @@ export default function EquipmentListPage() {
             )}
 
             {/* PAGINATION */}
-            {!isLoading && meta.totalPages > 1 && (
+          {/* {!isLoading && meta.totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 py-4">
                 <button
                   disabled={page === 1}
@@ -268,6 +299,106 @@ export default function EquipmentListPage() {
                 </button>
               </div>
             )}
+          </div>  */}
+
+          {/* TABLE AREA  */}
+          <div className="flex-1 flex flex-col overflow-hidden px-4 md:px-6">
+            <div
+              ref={parentRef}
+              className="flex-1 overflow-auto"
+            >
+              {/* TABLE HEADER (Sticky) */}
+              <div className="flex w-full border-b border-[#EEEEF2] bg-[#F9F9FC] sticky top-0 z-10">
+                {TABLE_COLS.map(col => (
+                  <div
+                    key={col.key}
+                    className={`px-4 py-3 text-[12px] font-semibold text-[#484964] whitespace-nowrap ${col.width} shrink-0`}
+                  >
+                    {col.label}
+                  </div>
+                ))}
+              </div>
+              {/* VIRTUALIZED ROWS */}
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const isLoaderRow = virtualRow.index > allRows.length - 1;
+                  const row = allRows[virtualRow.index];
+                  if (isLoaderRow) {
+                    return (
+                      <div
+                        key="loader"
+                        ref={loadMoreRef}
+                        style={{
+                          position: 'absolute', top: 0, left: 0, width: '100%',
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                        className="p-4 text-center text-sm text-gray-400"
+                      >
+                        {hasNextPage ? 'Loading more...' : 'End of results'}
+                      </div>
+                    );
+                  }
+
+                  const isSelected = selectedId === row.id;
+                  const gradeColors = GRADE_BADGE_COLORS[row.grade] ?? { bg: '#F0F0F0', text: '#666' };
+
+                  return (
+                    // <div
+                    //   key={row.id}
+                    //   onClick={() => setSelectedId(isSelected ? null : row.id)}
+                    //   style={{
+                    //     position: 'absolute', top: 0, left: 0, width: '100%',
+                    //     height: `${virtualRow.size}px`,
+                    //     transform: `translateY(${virtualRow.start}px)`,
+                    //   }}
+                    //   className={`flex items-center border-b border-[#EEEEF2] cursor-pointer transition-colors ${isSelected ? 'bg-[#EEF3FB]' : 'hover:bg-[#F3F6FB]'
+                    //     }`}
+                    // >
+                    <div
+                      key={row.id}
+                      onClick={() => {
+                        setSelectedId(isSelected ? null : row.id);
+                      }}
+                      className={`flex items-center border-b border-[#EEEEF2] cursor-pointer transition-colors ${isSelected ? 'bg-[#EEF3FB]' : 'hover:bg-[#F3F6FB]'
+                        }`}
+                      style={{
+                        position: 'absolute', top: 0, left: 0, width: '100%',
+                        height: `${virtualRow.size}px`,
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                    >
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[0].width} shrink-0`}>{row.id}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[1].width} shrink-0 truncate`}>{row.equipment}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[2].width} shrink-0`}>{row.site}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[3].width} shrink-0`}>{row.state ?? '—'}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[4].width} shrink-0`}>{row.meas_date}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[5].width} shrink-0`}>{row.meas_time ?? '—'}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[6].width} shrink-0 truncate`}>{row.meas_point}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[7].width} shrink-0`}>{row.bpfo ?? '—'}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[8].width} shrink-0`}>{row.f0 ?? '—'}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[9].width} shrink-0`}>{row.ibeta ?? '—'}</div>
+                      <div className={`px-4 ${TABLE_COLS[10].width} shrink-0`}>
+                        <span
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-full font-bold text-[12px]"
+                          style={{ background: gradeColors.bg, color: gradeColors.text }}
+                        >
+                          {row.grade}
+                        </span>
+                      </div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[11].width} shrink-0 truncate`}>{row.when_action ?? '—'}</div>
+                    </div>
+
+                    // </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* SIDE PANEL — slides in when row is selected */}

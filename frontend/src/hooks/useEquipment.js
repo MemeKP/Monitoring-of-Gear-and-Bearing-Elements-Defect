@@ -1,10 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { equipmentApi } from '../api/dashboard';
 
 export function useEquipmentList(filters = {}) {
-    return useQuery({
-        queryKey: ['equipment', 'list', filters],
-        queryFn: () => equipmentApi.getList(filters),
-        placeholderData: (prev)=>prev,
-    })
+    return useInfiniteQuery({
+    queryKey: ['equipment', 'infinite', filters],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await equipmentApi.getList({ ...filters, page: pageParam });
+      return res; // { data: [], meta: { page, totalPages, ... } }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.meta;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    placeholderData: (prev) => prev,
+  });
 }

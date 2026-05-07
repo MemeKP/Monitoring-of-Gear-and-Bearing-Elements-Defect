@@ -44,15 +44,15 @@ export class EquipmentsService {
     const limit = Number(dto.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const subQuery = this.repo
-      .createQueryBuilder('sub')
-      .select('MAX(sub.id)', 'max_id')
-      .groupBy('sub.equipment')
-      .addGroupBy('sub.site');
+    // const subQuery = this.repo
+    //   .createQueryBuilder('sub')
+    //   .select('MAX(sub.id)', 'max_id')
+    //   .groupBy('sub.equipment')
+    //   .addGroupBy('sub.site');
 
     const qb = this.repo
       .createQueryBuilder('m')
-      .where(`m.id IN (${subQuery.getQuery()})`);
+      // .where(`m.id IN (${subQuery.getQuery()})`);
 
     if (dto.site && dto.site !== 'all') {
       qb.andWhere('m.site = :site', { site: dto.site });
