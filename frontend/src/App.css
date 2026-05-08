@@ -122,3 +122,49 @@ body {
   box-shadow: "0 0 6px rgba(156,255,46,0.6)";
   flex-shrink: 0;
 }
+
+/* From Uiverse.io by vinodjangid07 */ 
+.Btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100px;
+  height: 30px;
+  border: none;
+  padding: 0px 20px;
+  background: linear-gradient(to right, #5EA7FF, #DFEBF7);
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 12px;
+  box-shadow: 0 20px 30px -7px rgba(97, 118, 238, 0.5);
+  transition-duration: 0.3s;
+}
+
+.svg {
+  width: 12px;
+  position: absolute;
+  right: 0;
+  margin-right: 20px;
+  fill: white;
+  transition-duration: 0.3s;
+}
+
+.Btn:hover {
+  color: transparent;
+}
+
+.Btn:hover svg {
+  right: 43%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  transition-duration: 0.3s;
+}
+
+.Btn:active {
+  transform: translate(3px, 3px);
+  transition-duration: 0.3s;
+}

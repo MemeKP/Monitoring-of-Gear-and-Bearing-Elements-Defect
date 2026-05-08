@@ -116,7 +116,6 @@ export default function EquipmentListPage() {
           <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <Funnel className="w-4 text-[#546A81]" />
-
               {/* Active grade chips */}
               {activeGrades.map(grade => {
                 const colors = GRADE_BADGE_COLORS[grade] ?? {};
@@ -176,7 +175,7 @@ export default function EquipmentListPage() {
                 }}
               />
               <button onClick={toggleSortOrder} className="flex items-center gap-1 cursor-pointer text-[#546A81] hover:text-blue-600">
-                <ArrowDownNarrowWide size={15} className={sortOrder === 'asc' ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                <ArrowDownNarrowWide size={15} className={sortOrder === 'asc' ? 'transition-transform' : 'transition-transform rotate-180 '} />
                 <span className="text-xs font-semibold uppercase">{sortOrder}</span>
               </button>
             </div>

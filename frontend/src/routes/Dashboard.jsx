@@ -11,26 +11,22 @@ import { useDashboardAttention, useDashboardOverdue, useDashboardStats } from '.
 import { StatisticOverview } from '../components/StatisticOverview.jsx';
 import { GRADE_COLORS } from '../constant/gradeConfig.js';
 import { AttentionRow } from '../components/AttentionRow.jsx';
+import { SITE_IMAGES } from '../constant/siteConfig';
 
 const Dashboard = () => {
-
+  const FALLBACK_IMAGES = [mmm, mmm2, mmm3];
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { siteId } = useParams();
   const site = siteId ?? 'all';
   const [attentionFilter, setAttentionFilter] = useState('Critical');
-
   const stats = useDashboardStats(site);
-
   const attention = useDashboardAttention({ site, filter: attentionFilter });
   const overdue = useDashboardOverdue(site);
-
   const stageBreakdown = stats.data?.stage_breakdown ?? [];
-
   const attentionItems = attention.data?.items ?? [];
   const attentionTotal = attention.data?.length ?? 0;
-
   const overdueData = overdue.data;
   const overdueItems = overdueData?.items ?? [];
   const criticalCount = overdueData?.critical_count ?? 0;
@@ -192,17 +188,22 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
-            {/* Images (2 on top, 1 full width on bottom) */}
+            {/* Images — 2 on top, 1 full width on bottom */}
             <div className="grid grid-cols-2 gap-3 h-full">
-              {[mmm, mmm2, mmm3].map((img, i) => (
+              {(SITE_IMAGES[siteId] ?? FALLBACK_IMAGES).map((img, i) => (
                 <div
                   key={i}
-                  className={`${i === 2 ? "md:col-span-2" : "md:col-span-1"
-                    } rounded-2xl overflow-hidden shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)] hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)] transition h-40`}
+                  className={`
+        ${i === 2 ? 'col-span-2' : 'col-span-1'}
+        rounded-2xl overflow-hidden
+        shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)]
+        hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)]
+        transition h-40
+      `}
                 >
                   <img
                     src={img}
-                    alt="Site"
+                    alt={`${siteId ?? 'Site'} image ${i + 1}`}
                     className="w-full h-full object-cover"
                   />
                 </div>
