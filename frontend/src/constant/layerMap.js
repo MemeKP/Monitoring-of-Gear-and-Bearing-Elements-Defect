@@ -12,7 +12,7 @@ export const clusterLayer = {
       10, '#FF6B6B',   // 10+ → red
     ],
     'circle-radius': [
-      'step', ['get', 'point_count'],
+      'step', ['get', 'point_count'], 
       20, 5, 28, 10, 36
     ],
     'circle-opacity': 0.85,

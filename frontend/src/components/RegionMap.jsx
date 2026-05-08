@@ -40,37 +40,34 @@ const sitesToGeoJSON = (sites) => ({
 function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
     const mapRef = useRef(null);
 
-    // Click cluster → zoom in
-    const onClusterClick = useCallback((e) => {
+    const handleMapClick = useCallback((e) => {
         const map = mapRef.current?.getMap();
+        console.log('click features:', e.features); 
         if (!map || !e.features?.length) return;
 
         const feature = e.features[0];
+        console.log('feature properties:', feature.properties);
 
-        // CLICK CLUSTER 
-        if (feature.properties?.cluster) {
+        if (feature.properties.cluster_id) {
             const clusterId = feature.properties.cluster_id;
             const source = map.getSource('sites');
 
-            source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-                if (err) return;
-
-                map.easeTo({
-                    center: feature.geometry.coordinates,
-                    zoom,
-                    duration: 500,
-                });
-            });
-
+            source.getClusterExpansionZoom(clusterId)
+                .then((zoom) => {
+                    map.easeTo({
+                        center: feature.geometry.coordinates,
+                        zoom: zoom + 1,
+                        duration: 500,
+                    });
+                })
+                .catch(console.error);
             return;
         }
 
-        // CLICK SINGLE DOT
+        // single dot → open site
         const siteId = feature.properties?.id;
-
         if (siteId) {
             onSiteClick(siteId);
-
             map.easeTo({
                 center: feature.geometry.coordinates,
                 zoom: 11,
@@ -79,15 +76,6 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
         }
     }, [onSiteClick]);
 
-    // Click single site dot
-    const onDotClick = useCallback((e) => {
-        const features = e.features;
-        if (!features?.length) return;
-        const siteId = features[0].properties?.id;
-        if (siteId) onSiteClick(siteId);
-    }, [onSiteClick]);
-
-    // Hover
     const onMouseEnter = useCallback((e) => {
         const map = mapRef.current?.getMap();
         if (map) map.getCanvas().style.cursor = 'pointer';
@@ -106,18 +94,13 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
     return (
         <Map
             ref={mapRef}
-            initialViewState={{
-                longitude: 102,
-                latitude: 15,
-                zoom: 5
-            }}
+            initialViewState={{ longitude: 102, latitude: 15, zoom: 5 }}
             style={{ width: '100%', height: '100%' }}
             mapStyle={MAP_STYLE}
-            onClick={onClusterClick}
-            interactiveLayerIds={[
-                clusterLayer.id,
-                unclusteredPointLayer.id,
-            ]}
+            interactiveLayerIds={['clusters', 'unclustered-point']}
+            onClick={handleMapClick}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
         >
             <Source
                 id="sites"
@@ -130,12 +113,7 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
                 <Layer {...pulseLayer} />
                 <Layer {...clusterLayer} />
                 <Layer {...clusterCountLayer} />
-                <Layer
-                    {...unclusteredPointLayer}
-                    // onClick={onDotClick}
-                    onMouseEnter={onMouseEnter}
-                    onMouseLeave={onMouseLeave}
-                />
+                <Layer {...unclusteredPointLayer} />
             </Source>
         </Map>
     );

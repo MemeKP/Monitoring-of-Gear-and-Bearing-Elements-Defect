@@ -3,16 +3,6 @@ import { SITE_CONFIG } from "../constant/siteConfig";
 import { useDashboardStats } from "./useDashboardStats";
 import { MOCK_SITE_DATA } from "../mock/SITES";
 
-/**
- * Returns the merged SITES array that ThaiMap and SiteCard expect.
- * Shape per item:
- * {
- *   id, displayName, provinces, dot,
- *   grades: [{ label, color, count, pct }],
- *   total_machines,
- *   loading, error
- * }
- */
 export function useSites() {
   const { data: statsData, isLoading: loading, error } = useDashboardStats();
 
