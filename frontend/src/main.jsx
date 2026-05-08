@@ -11,7 +11,6 @@ import {
 import Landing from './routes/Landing.jsx'
 import Dashboard from './routes/Dashboard.jsx'
 import GraphPage from './routes/GraphPage.jsx'
-import DashboardPageWrapper from './layout/DashboardPageWrapper.jsx'
 import EquipmentListPage from './routes/EquipmentListPage.jsx'
 import {
   QueryClient,

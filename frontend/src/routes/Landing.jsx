@@ -1,6 +1,5 @@
 import React from 'react'
 import { useState } from 'react';
-import { SITES } from '../mock/SITES';
 import ThaiMap from '../components/ThaiMap';
 import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
@@ -43,8 +42,7 @@ const Landing = () => {
 
             {/* FULL SCREEN MAP LAYOUT */}
             <div className="relative w-full h-screen overflow-hidden">
-
-                {/* MAP — full background */}
+                {/* MAP */}
                 {loading ? (
                     <div className="w-full h-full bg-slate-800 animate-pulse flex items-center justify-center">
                         <span className="text-slate-400 font-medium">Loading Map...</span>
@@ -58,7 +56,6 @@ const Landing = () => {
                         sites={sites}
                         hoveredSite={hoveredSite}
                         onHover={setHoveredSite}
-                    
                     />
                 )}
 
@@ -79,8 +76,7 @@ const Landing = () => {
                 </div>
 
                 {/* SITE CARDS — right */}
-                <div className="absolute  top-4 right-4 bottom-4 z-10 
-                            w-80 flex flex-col gap-0 ">
+                <div className="absolute  top-4 right-4 bottom-4 z-10 w-80 flex flex-col gap-0 ">
 
                     {/* Panel header */}
                     <div className="px-4 pt-4 pb-3 border-b border-white/10">

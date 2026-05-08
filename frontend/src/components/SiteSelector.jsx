@@ -2,29 +2,16 @@ export function SiteCard({ site, grades = [], status, isHovered, onHover, onView
   const badGrades = grades?.filter(g => g.label === 'E Grade' || g.label === 'F Grade') || [];
   return (
     <div
-      className="
-    relative group mt-2 ml-2 hover:cursor-pointer
-    transition-all duration-300 ease-out
-    hover:-translate-y-1
-    hover:scale-[1.02] "
+      className="relative group mt-2 ml-2 hover:cursor-pointer   transition-all duration-300 ease-out hover:-translate-y-1   hover:scale-[1.02] "
       onMouseEnter={() => onHover?.(site.id)}
       onMouseLeave={() => onHover?.(null)}
       onClick={e => { e.stopPropagation(); onView?.(); }}
     >
       <div>
 
-
         {/* Main Card */}
         <div
-          className="bg-white/10 backdrop-blur-md
-    border border-white/20
-    rounded-2xl px-4 py-2.5
-    shadow-lg
-    transition-all duration-300 ease-out
-    group-hover:bg-white/15
-    group-hover:border-white/40
-    group-hover:shadow-[0_0_25px_rgba(255,255,255,0.15)]"
-        >
+          className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 shadow-lg transition-all duration-300 ease-out group-hover:bg-white/15 group-hover:border-white/40 group-hover:shadow-[0_0_25px_rgba(255,255,255,0.15)]">
 
           {/* Top row */}
           <div className="flex w-full items-center justify-between mb-2">

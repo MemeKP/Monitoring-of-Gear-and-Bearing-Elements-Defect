@@ -10,7 +10,7 @@ import {
 
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-// convert sites → GeoJSON
+// convert sites -> GeoJSON
 const sitesToGeoJSON = (sites) => ({
     type: 'FeatureCollection',
     features: sites.map(site => {
@@ -113,9 +113,7 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
             }}
             style={{ width: '100%', height: '100%' }}
             mapStyle={MAP_STYLE}
-
             onClick={onClusterClick}
-
             interactiveLayerIds={[
                 clusterLayer.id,
                 unclusteredPointLayer.id,

@@ -6,7 +6,7 @@ export function useEquipmentList(filters = {}) {
     queryKey: ['equipment', 'infinite', filters],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await equipmentApi.getList({ ...filters, page: pageParam });
-      return res; // { data: [], meta: { page, totalPages, ... } }
+      return res; 
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

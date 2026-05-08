@@ -31,7 +31,7 @@ const SidePanel = ({ equipment, onClose }) => {
   if (!equipment) return null
   return (
     <>
-      {/* Mobile overlay */}
+      {/* MOBILE OVERLAY */}
       <div
         className="fixed inset-0 bg-black/20 z-30 md:hidden"
         onClick={onClose}
@@ -44,7 +44,7 @@ const SidePanel = ({ equipment, onClose }) => {
           shadow-xl
         `}>
         <div className="p-5 flex flex-col gap-5 flex-1">
-          {/* Header */}
+          {/* HEADER */}
           <div className="flex justify-between items-start gap-3">
             <div>
               <h2 className="text-[17px] font-bold text-[#546A81] leading-snug">
@@ -59,7 +59,7 @@ const SidePanel = ({ equipment, onClose }) => {
             </button>
           </div>
 
-          {/* Status */}
+          {/* STATUS */}
           <div>
             <p className="text-[13px] font-bold text-[#546A81] mb-2">Status</p>
             <div className="flex justify-between text-[13px] py-1">
@@ -72,7 +72,7 @@ const SidePanel = ({ equipment, onClose }) => {
             </div>
           </div>
 
-          {/* Last Measurement */}
+          {/* LAST MEASUREMENT */}
           <div>
             <p className="text-[13px] font-bold text-[#546A81] mb-2">Last measurement</p>
             <div className="flex justify-between text-[13px] py-1">
@@ -85,7 +85,7 @@ const SidePanel = ({ equipment, onClose }) => {
             </div>
           </div>
 
-          {/* Bearing Parameters */}
+          {/* BEARING PARAMETERS */}
           <div>
             <p className="text-[13px] font-bold text-[#546A81] mb-2">Bearing Parameters</p>
             <div className="flex justify-between text-[13px] py-1">
@@ -102,13 +102,13 @@ const SidePanel = ({ equipment, onClose }) => {
             </div>
           </div>
 
-          {/* Chart */}
+          {/* CHART */}
           <div className="bg-[#F9F9FC] rounded-lg p-3">
             <p className="text-[13px] font-bold text-[#546A81] mb-2">Point Value Trend</p>
             <FrequencyChart />
           </div>
 
-          {/* View Full Details */}
+          {/* VIEW */}
           <button className="mt-auto bg-[#708DA8] hover:bg-[#ffff] hover:text-[#708DA8] hover:border-solid hover:border-2 hover:border-[#708DA8] text-white font-semibold text-[14px] py-3 rounded-lg transition-colors"
             onClick={() => {navigate(`/dashboard/${siteId}/equipment/${equipmentId}/graph`)}}
           >

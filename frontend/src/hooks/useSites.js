@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { SITE_CONFIG } from "../constant/siteConfig";
 import { useDashboardStats } from "./useDashboardStats";
+import { MOCK_SITE_DATA } from "../mock/SITES";
 
 /**
  * Returns the merged SITES array that ThaiMap and SiteCard expect.
@@ -15,11 +16,12 @@ import { useDashboardStats } from "./useDashboardStats";
 export function useSites() {
   const { data: statsData, isLoading: loading, error } = useDashboardStats();
 
+  const IS_MOCK = false;
   const sites = useMemo(() => {
+    const activeData = IS_MOCK ? MOCK_SITE_DATA : statsData;
     return SITE_CONFIG.map(config => {
-
-      const bySite = statsData?.data?.by_site ?? statsData?.by_site ?? [];
-
+      const bySite = activeData?.data?.by_site ?? activeData?.by_site ?? [];
+      // const bySite = statsData?.data?.by_site ?? statsData?.by_site ?? [];
       const siteStats = bySite.find(
         s => String(s.site).toLowerCase() === String(config.id).toLowerCase()
       );
@@ -41,7 +43,7 @@ export function useSites() {
         }))
         : [];
 
-      // Dot color = driven by worst grade present
+      // dot
       const worstGrade = grades.find(g => g.count > 0)?.label?.[0] ?? "A";
       const dotColor = GRADE_COLORS[worstGrade] ?? "#546A81";
       console.log("Stats Data:", statsData);
@@ -53,7 +55,7 @@ export function useSites() {
         dot: { ...config.dot, color: dotColor },
       };
     });
-  }, [statsData]);
+  }, [statsData, IS_MOCK]);
 
   return { sites, loading, error };
 }
