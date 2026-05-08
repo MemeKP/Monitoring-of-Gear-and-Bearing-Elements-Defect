@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useState } from 'react';
 import ThaiMap from '../components/ThaiMap';
 import logo from '../assets/logo.png';
@@ -7,6 +7,7 @@ import { LiquidGlassButton, SiteCard, TransparentCard } from '../components/Site
 import Dashboard from './Dashboard';
 import { useSites } from '../hooks/useSites';
 import RegionMap from '../components/RegionMap';
+import SiteModal from '../components/SiteModal';
 
 const SiteCardSkeleton = () => (
     <div className="relative w-full group mt-2 ml-2 animate-pulse">
@@ -32,6 +33,12 @@ const Landing = () => {
     const { sites, loading, error } = useSites();
     const navigate = useNavigate();
     const [activeSite, setActiveSite] = useState(null);
+    const [selectedSite, setSelectedSite] = useState(null);
+
+    const onSiteClick = useCallback((siteId) => {
+        const site = sites.find(s => s.id === siteId);
+        setSelectedSite(site);
+    }, [sites]);
 
     return (
         <>
@@ -51,6 +58,14 @@ const Landing = () => {
                         sites={sites}
                         hoveredSite={hoveredSite}
                         onHover={setHoveredSite}
+                        onSiteClick={onSiteClick}
+                    />
+                )}
+
+                {selectedSite && (
+                    <SiteModal
+                        site={selectedSite}
+                        onClose={() => setSelectedSite(null)}
                     />
                 )}
 
@@ -71,12 +86,10 @@ const Landing = () => {
                 </div>
 
                 {/* SITE CARDS — right */}
-                <div className="absolute  top-4 right-4 bottom-4 z-10 w-80 flex flex-col gap-0 ">
-                    {/* Panel header */}
+                {/* <div className="absolute  top-4 right-4 bottom-4 z-10 w-80 flex flex-col gap-0 ">
                     <div className="px-4 pt-4 pb-3 border-b border-white/10">
                         <h1 className="text-white font-semibold text-base">All Sites</h1>
                     </div>
-                    {/* Cards list */}
                     <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3">
                         {loading ? (
                             <>
@@ -101,7 +114,7 @@ const Landing = () => {
                             ))
                         )}
                     </div>
-                </div>
+                </div> */}
             </div>
         </>
     )
