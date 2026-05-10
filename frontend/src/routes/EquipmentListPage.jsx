@@ -46,7 +46,7 @@ export default function EquipmentListPage() {
   const meta = data?.meta ?? {};
   const items = data?.data ?? [];
  
-  console.log('META', meta)
+  // console.log('META', meta)
 
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) ?? [];

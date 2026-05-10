@@ -1,4 +1,28 @@
-import { useRef, useCallback } from 'react';
+/**
+ * Main Responsibility:
+ *  This component renders an interactive map using MapLibre.
+ * It visualizes site data as markers with clustering support.
+ * 
+ * Features:
+ * - Display site on the map.
+ * - Automatically cluster markers when zomm out.
+ * - Click cluster to zoom in.
+ * - Click marker to focus size.
+ * 
+ * Props:
+ * @param {Array} sites
+ * List all site object
+ * 
+ * @param {Function} onHover
+ * Callback triggered when hovering a marker.
+ * Returns the site id to the parent component.
+ *
+ * @param {Function} onSiteClick
+ * Callback triggered when clicking a site marker.
+ * Returns the site id to the parent component.
+ * */
+
+import { useRef, useCallback, useEffect } from 'react';
 import Map, { Source, Layer } from '@vis.gl/react-maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
@@ -42,16 +66,13 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
 
     const handleMapClick = useCallback((e) => {
         const map = mapRef.current?.getMap();
-        console.log('click features:', e.features); 
         if (!map || !e.features?.length) return;
 
         const feature = e.features[0];
-        console.log('feature properties:', feature.properties);
 
         if (feature.properties.cluster_id) {
             const clusterId = feature.properties.cluster_id;
             const source = map.getSource('sites');
-
             source.getClusterExpansionZoom(clusterId)
                 .then((zoom) => {
                     map.easeTo({
@@ -64,7 +85,6 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
             return;
         }
 
-        // single dot → open site
         const siteId = feature.properties?.id;
         if (siteId) {
             onSiteClick(siteId);
@@ -89,7 +109,40 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
         onHover(null);
     }, [onHover]);
 
-    const geojson = sitesToGeoJSON(sites);
+    const handleMapLoad = useCallback(() => {
+        const map = mapRef.current?.getMap();
+        if (!map) return;
+
+        map.addSource('sites', {
+            type: 'geojson',
+            data: sitesToGeoJSON(sites),
+            cluster: true,
+            clusterMaxZoom: 10,
+            clusterRadius: 50,
+            clusterProperties: {
+                sum_f: [['+', ['accumulated'], ['get', 'sum_f']], ['case', ['==', ['get', 'severity'], 'F'], 1, 0]],
+                sum_e: [['+', ['accumulated'], ['get', 'sum_e']], ['case', ['==', ['get', 'severity'], 'E'], 1, 0]],
+            },
+        });
+
+        map.addLayer(pulseLayer);
+        map.addLayer(clusterLayer);
+        map.addLayer(clusterCountLayer);
+        map.addLayer(unclusteredPointLayer);
+
+        map.on('click', 'clusters', handleMapClick);
+        map.on('click', 'unclustered-point', handleMapClick);
+        map.on('mouseenter', 'clusters', onMouseEnter);
+        map.on('mouseenter', 'unclustered-point', onMouseEnter);
+        map.on('mouseleave', 'clusters', onMouseLeave);
+        map.on('mouseleave', 'unclustered-point', onMouseLeave);
+    }, [handleMapClick, onMouseEnter, onMouseLeave]); 
+
+    useEffect(() => {
+        const map = mapRef.current?.getMap();
+        if (!map || !map.getSource('sites')) return;
+        map.getSource('sites').setData(sitesToGeoJSON(sites));
+    }, [sites]);
 
     return (
         <Map
@@ -97,26 +150,10 @@ function RegionMap({ sites, hoveredSite, onHover, onSiteClick }) {
             initialViewState={{ longitude: 102, latitude: 15, zoom: 5 }}
             style={{ width: '100%', height: '100%' }}
             mapStyle={MAP_STYLE}
-            interactiveLayerIds={['clusters', 'unclustered-point']}
-            onClick={handleMapClick}
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
+            onLoad={handleMapLoad}
         >
-            <Source
-                id="sites"
-                type="geojson"
-                data={geojson}
-                cluster={true}
-                clusterMaxZoom={10}
-                clusterRadius={50}
-            >
-                <Layer {...pulseLayer} />
-                <Layer {...clusterLayer} />
-                <Layer {...clusterCountLayer} />
-                <Layer {...unclusteredPointLayer} />
-            </Source>
         </Map>
     );
 }
 
-export default RegionMap;
+export default RegionMap

@@ -1,3 +1,37 @@
+/**
+ * Main Responsibility:
+ * This hook combines:
+ * - Static site configuration
+ * - Dynamic dashboard statistics
+ *
+ * Why this hook exists:
+ *  Raw API data and UI config data come from different sources.
+ *
+ * This hook acts as a "data composition layer"
+ * that merges:
+ * 1. Static frontend configuration
+ *    - map position
+ *    - site metadata
+ *    - default UI settings
+ * 2. Dynamic backend statistics
+ *    - grade counts
+ *    - percentages
+ *    - machine totals
+ *
+ * Result:
+ * Components receive fully prepared site objects
+ * without needing additional transformation logic.
+ *
+ * Data Sources:
+ * - SITE_CONFIG
+ *   Static frontend configuration
+ * - useDashboardStats()
+ *   Live API dashboard statistics
+ * - MOCK_SITE_DATA
+ *   Optional local mock data for development/testing
+ * 
+ */
+
 import { useMemo } from "react";
 import { SITE_CONFIG } from "../constant/siteConfig";
 import { useDashboardStats } from "./useDashboardStats";
@@ -36,7 +70,7 @@ export function useSites() {
       // dot
       const worstGrade = grades.find(g => g.count > 0)?.label?.[0] ?? "A";
       const dotColor = GRADE_COLORS[worstGrade] ?? "#546A81";
-      console.log("Stats Data:", statsData);
+      // console.log("Stats Data:", statsData);
 
       return {
         ...config,

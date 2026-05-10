@@ -33,3 +33,17 @@ export const GRADE_BADGE_COLORS = {
   A: { bg: '#D1ECF1', text: '#0C5460' },
 };
 
+export const GRADE_CONFIG = {
+  F: {
+    color: '#FF3B3B',
+    glow: 'rgba(255,59,59,0.35)',
+    bg: 'rgba(255,59,59,0.15)',
+    label: 'Critical',
+  },
+  E: {
+    color: '#FFCB05',
+    glow: 'rgba(255,203,5,0.3)',
+    bg: 'rgba(255,203,5,0.12)',
+    label: 'Warning',
+  },
+};

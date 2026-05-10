@@ -105,7 +105,7 @@ export class DashboardService {
 
   async getAttention(
     site?: string,
-    filter?: string,   // "F" | "E" 
+    filter?: string,   
     page = 1,
     limit = 20,
   ) {

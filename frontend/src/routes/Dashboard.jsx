@@ -33,7 +33,7 @@ const Dashboard = () => {
   const warningCount = overdueData?.warning_count ?? 0;
   const maxDelayLabel = overdueData?.max_delay_label ?? '--';
   // console.log("OVERDUE COUNT", overdueData)
-  console.log('ATTENTION', attention?.data)
+  // console.log('ATTENTION', attention?.data)
   const siteName = siteId ?? 'All sites';
 
   const filteredCount = useMemo(() => {
@@ -50,8 +50,8 @@ const Dashboard = () => {
     return items.length;
   }, [attention.data, attentionFilter]);
 
-  console.log("FILTER:", attentionFilter);
-  console.log('5555', filteredCount.toLocaleString())
+  // console.log("FILTER:", attentionFilter);
+  // console.log('5555', filteredCount.toLocaleString())
 
   // const machinesRequiringAttention = [
   //   {
