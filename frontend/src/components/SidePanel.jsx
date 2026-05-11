@@ -25,8 +25,9 @@ const FrequencyChart = () => (
 
 const SidePanel = ({ equipment, onClose }) => {
   const navigate = useNavigate()
-
   const {siteId, equipmentId} = useParams()
+
+  console.log('EQUIPMET', equipment)
 
   if (!equipment) return null
   return (
@@ -77,7 +78,7 @@ const SidePanel = ({ equipment, onClose }) => {
             <p className="text-[13px] font-bold text-[#546A81] mb-2">Last measurement</p>
             <div className="flex justify-between text-[13px] py-1">
               <span className="text-[#546A81]">Date</span>
-              <span className="font-medium">{equipment.date}</span>
+              <span className="font-medium">{equipment.meas_date}</span>
             </div>
             <div className="flex justify-between text-[13px] py-1">
               <span className="text-[#546A81]">Days ago</span>
@@ -98,7 +99,7 @@ const SidePanel = ({ equipment, onClose }) => {
             </div>
             <div className="flex justify-between text-[13px] py-1">
               <span className="text-[#546A81]">BPFO / BPFI</span>
-              <span className="font-medium">{equipment.bpfo} / {equipment.bpfo + 10}</span>
+              <span className="font-medium">{equipment.bpfo} / {Number(equipment.bpfo) + 10}</span>
             </div>
           </div>
 

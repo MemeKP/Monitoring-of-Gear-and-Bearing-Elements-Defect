@@ -26,11 +26,6 @@ class DashboardOverdueQuery {
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  // @Post()
-  // create(@Body() createDashboardDto: CreateDashboardDto) {
-  //   return this.dashboardService.create(createDashboardDto);
-  // }
-
   // GET /api/v1/dashboard/stats?site=all
   @Get('stats')
   getStats(@Query() q: DashboardStatsQuery) {
@@ -58,14 +53,4 @@ export class DashboardController {
   findOne(@Param('id') id: string) {
     return this.dashboardService.findOne(+id);
   }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateDashboardDto: UpdateDashboardDto) {
-  //   return this.dashboardService.update(+id, updateDashboardDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.dashboardService.remove(+id);
-  // }
 }
