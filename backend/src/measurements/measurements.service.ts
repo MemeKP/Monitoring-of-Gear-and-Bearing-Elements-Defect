@@ -94,7 +94,6 @@ export class MeasurementsService {
     return qb;
   }
 
-  // GET /measurements 
   async findAll(dto: QueryMeasurementDto) {
     const page  = dto.page  ?? 1;
     const limit = dto.limit ?? 20;
@@ -123,7 +122,6 @@ export class MeasurementsService {
     };
   }
 
-  // GET /measurements/:id 
   async findOne(id: number) {
     const m = await this.repo.findOne({ where: { id } });
     if (!m) throw new NotFoundException(`Measurement #${id} not found`);

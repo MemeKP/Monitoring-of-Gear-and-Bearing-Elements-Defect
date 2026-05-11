@@ -40,9 +40,11 @@ import { MOCK_SITE_DATA } from "../mock/SITES";
 export function useSites() {
   const { data: statsData, isLoading: loading, error } = useDashboardStats();
 
-  const IS_MOCK = false;
+  // const IS_MOCK = true;
   const sites = useMemo(() => {
-    const activeData = IS_MOCK ? MOCK_SITE_DATA : statsData;
+    // const activeData = IS_MOCK ? MOCK_SITE_DATA : statsData;
+    const activeData = statsData;
+
     return SITE_CONFIG.map(config => {
       const bySite = activeData?.data?.by_site ?? activeData?.by_site ?? [];
       // const bySite = statsData?.data?.by_site ?? statsData?.by_site ?? [];
@@ -79,7 +81,7 @@ export function useSites() {
         dot: { ...config.dot, color: dotColor },
       };
     });
-  }, [statsData, IS_MOCK]);
+  }, [statsData]); // if use mock -> IS_MOCK here
 
   return { sites, loading, error };
 }

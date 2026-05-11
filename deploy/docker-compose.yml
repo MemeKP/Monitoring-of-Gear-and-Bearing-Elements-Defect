@@ -14,21 +14,21 @@ services:
     networks:
       - vibration-network
 
-  backend:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
-    container_name: backend
-    environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USERNAME: root
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_DATABASE: ${DB_DATABASE}
-    depends_on:
-      - mysql
-    networks:
-      - vibration-network
+  # backend:
+  #   build:
+  #     context: ../backend
+  #     dockerfile: Dockerfile
+  #   container_name: backend
+  #   environment:
+  #     DB_HOST: mysql
+  #     DB_PORT: 3306
+  #     DB_USERNAME: root
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_DATABASE: ${DB_DATABASE}
+  #   depends_on:
+  #     - mysql
+  #   networks:
+  #     - vibration-network
 
   # frontend:
   #   build:

@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar'
 import { GRADE_BADGE_COLORS, GRADE_FILTERS, TABLE_COLS } from '../constant/gradeConfig';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useInView } from 'react-intersection-observer';
+import dayjs from 'dayjs';
 
 export default function EquipmentListPage() {
   const navigate = useNavigate();
@@ -19,7 +20,19 @@ export default function EquipmentListPage() {
   const [activeGrades, setActiveGrades] = useState([]);
   const [page, setPage] = useState(1);
   const [sortOrder, setSortOrder] = useState('desc');
+  const [filterOpen, setFilterOpen] = useState(false);
   const LIMIT = 20;
+
+  useEffect(() => {
+    if (!filterOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest('#grade-filter-dropdown')) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [filterOpen]);
 
   // Build filters object — changes trigger a new query key → refetch
   const filters = useMemo(() => ({
@@ -41,19 +54,17 @@ export default function EquipmentListPage() {
     refetch
   } = useEquipmentList(filters);
 
-  // console.log('DATA', data)
-
   const meta = data?.meta ?? {};
   const items = data?.data ?? [];
- 
-  // console.log('META', meta)
 
+  // console.log('META', meta)
+  // console.log('DATA', data)
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
-
+console.log('ROW', allRows)
   const parentRef = useRef();
- const selectedItem = allRows?.find(item => item.id === selectedId) ?? null;
+  const selectedItem = allRows?.find(item => item.id === selectedId) ?? null;
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? allRows.length + 1 : allRows.length,
     getScrollElement: () => parentRef.current,
@@ -77,7 +88,6 @@ export default function EquipmentListPage() {
     setPage(1);
   };
 
-  // Search: fire on Enter or button click
   const handleSearch = () => {
     setSearch(searchInput);
     setPage(1);
@@ -116,42 +126,80 @@ export default function EquipmentListPage() {
           <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <Funnel className="w-4 text-[#546A81]" />
-              {/* Active grade chips */}
+
+              {/* Active grade chips — clicking removes the filter */}
               {activeGrades.map(grade => {
                 const colors = GRADE_BADGE_COLORS[grade] ?? {};
                 return (
                   <button
                     key={grade}
                     onClick={() => toggleGrade(grade)}
-                    className="flex items-center font-semibold text-sm py-1 px-3 gap-2 rounded-full cursor-pointer"
+                    className="flex items-center font-semibold text-sm py-1 px-3 gap-1.5 rounded-full"
                     style={{ background: colors.bg, color: colors.text }}
                   >
-                    {grade} Grade <X size={12} />
+                    Grade {grade} <X size={11} />
                   </button>
                 );
               })}
 
-              {/* Grade filter picker */}
-              <div className="relative group">
-                <button className="flex items-center gap-1 font-semibold text-sm text-[#546A81]">
+              {/* Filter picker — controlled by useState, not CSS group trick */}
+              <div id="grade-filter-dropdown" className="relative">
+                <button
+                  onClick={() => setFilterOpen(prev => !prev)}
+                  className="flex items-center gap-1 font-semibold text-sm text-[#546A81] hover:text-[#425D78]"
+                >
                   <Plus size={14} /> Filter
                 </button>
-                {/* Dropdown */}
-                <div className="absolute left-0 top-7 hidden group-focus-within:flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20 min-w-[120px]">
-                  {GRADE_FILTERS.map(grade => (
-                    <button
-                      key={grade}
-                      onClick={() => toggleGrade(grade)}
-                      className={`px-4 py-2 text-sm text-left hover:bg-gray-50 flex items-center justify-between ${activeGrades.includes(grade) ? 'font-bold text-[#546A81]' : 'text-gray-600'
-                        }`}
-                    >
-                      Grade {grade}
-                      {activeGrades.includes(grade) && <span className="text-xs">✓</span>}
-                    </button>
-                  ))}
-                </div>
+
+                {filterOpen && (
+                  <div className="absolute left-0 top-8 flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20 min-w-[130px]">
+                    {GRADE_FILTERS.map(grade => {
+                      const isActive = activeGrades.includes(grade);
+                      const colors = GRADE_BADGE_COLORS[grade] ?? {};
+                      return (
+                        <button
+                          key={grade}
+                          onClick={() => {
+                            toggleGrade(grade);
+                            // Keep dropdown open so user can pick multiple grades
+                          }}
+                          className="px-4 py-2 text-sm text-left hover:bg-gray-50 flex items-center justify-between gap-4"
+                          style={isActive ? { color: colors.text, fontWeight: 700 } : { color: '#6b7280' }}
+                        >
+                          <span>Grade {grade}</span>
+                          {isActive && (
+                            <span
+                              className="text-xs font-bold px-1.5 py-0.5 rounded-full"
+                              style={{ background: colors.bg, color: colors.text }}
+                            >
+                              ✓
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+
+                    {/* Clear all — only shown when at least 1 active */}
+                    {activeGrades.length > 0 && (
+                      <>
+                        <div className="h-px bg-gray-100 my-1" />
+                        <button
+                          onClick={() => {
+                            setActiveGrades([]);
+                            setPage(1);
+                            setFilterOpen(false);
+                          }}
+                          className="px-4 py-2 text-xs text-left text-red-400 hover:bg-red-50 hover:text-red-500"
+                        >
+                          Clear all filters
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
+
 
             {/* SEARCH + CONTROLS */}
             <div className="flex flex-row gap-x-3 items-center">
@@ -182,131 +230,32 @@ export default function EquipmentListPage() {
           </div>
 
           {/* ROW COUNT */}
-          <div className="mt-3 text-sm text-[#546A81]">
+          {/* <div className="mt-3 text-sm text-[#546A81]">
             {isLoading
               ? 'Loading...'
               : `Showing ${items.length} from ${meta.total ?? 0} results`}
-          </div>
+          </div> */}
         </div>
 
         {/* TABLE + SIDE PANEL */}
         <div className="flex overflow-hidden">
-          {/* Scrollable table */}
-          {/* <div className="flex-1 overflow-x-auto min-w-0">
-            {isError ? (
-              <div className="p-6">
-                <div className="rounded-xl p-4 bg-red-50 border border-red-200">
-                  <p className="text-sm text-red-600 font-medium">
-                    Failed to load equipment: {error.message}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-[#EEEEF2] bg-[#F9F9FC]">
-                    {TABLE_COLS.map(col => (
-                      <th
-                        key={col.key}
-                        className="px-4 py-3 text-left text-[12px] font-semibold text-[#484964] whitespace-nowrap"
-                      >
-                        {col.label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoading ? (
-                    // Skeleton rows
-                    Array.from({ length: 8 }).map((_, i) => (
-                      <tr key={i} className="border-b border-[#EEEEF2] animate-pulse">
-                        {TABLE_COLS.map(col => (
-                          <td key={col.key} className="px-4 py-3">
-                            <div className="h-3 bg-gray-200 rounded w-3/4" />
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : data.length === 0 ? (
-                    <tr>
-                      <td colSpan={TABLE_COLS.length} className="text-center py-12 text-gray-400 text-sm">
-                        No equipment found
-                      </td>
-                    </tr>
-                  ) : (
-                    items.map(row => {
-                      const isSelected = selectedId === row.id;
-                      const gradeColors = GRADE_BADGE_COLORS[row.grade] ?? { bg: '#F0F0F0', text: '#666' };
-                      return (
-                        <tr
-                          key={row.id}
-                          onClick={() => setSelectedId(isSelected ? null : row.id)}
-                          className={`border-b border-[#EEEEF2] cursor-pointer transition-colors ${isSelected ? 'bg-[#EEF3FB]' : 'hover:bg-[#F3F6FB]'
-                            }`}
-                        >
-                          <td className="px-4 py-3 text-[13px] text-[#484964]">{row.id}</td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964] max-w-[200px] whitespace-normal leading-snug">
-                            {row.equipment}
-                          </td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964] whitespace-nowrap">{row.site}</td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964]">{row.state ?? '—'}</td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964] whitespace-nowrap">{row.meas_date}</td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964]">{row.meas_time ?? '—'}</td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964] whitespace-nowrap">{row.meas_point}</td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964]">{row.bpfo ?? '—'}</td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964]">{row.f0 ?? '—'}</td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964]">{row.ibeta ?? '—'}</td>
-                          <td className="px-4 py-3 text-[13px]">
-                            <span
-                              className="inline-flex items-center justify-center w-7 h-7 rounded-full font-bold text-[13px]"
-                              style={{ background: gradeColors.bg, color: gradeColors.text }}
-                            >
-                              {row.grade}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-[13px] text-[#484964] whitespace-nowrap">
-                            {row.when_action ?? '—'}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            )}
+          {/* SCROLLABLE TABLE */}
 
-            {/* PAGINATION */}
-          {/* {!isLoading && meta.totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 py-4">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage(p => p - 1)}
-                  className="px-3 py-1 rounded-lg text-sm text-[#546A81] disabled:opacity-40 hover:bg-gray-100"
-                >
-                  ← Prev
-                </button>
-                <span className="text-sm text-[#546A81]">
-                  Page {meta.page} of {meta.totalPages}
-                </span>
-                <button
-                  disabled={page === meta.totalPages}
-                  onClick={() => setPage(p => p + 1)}
-                  className="px-3 py-1 rounded-lg text-sm text-[#546A81] disabled:opacity-40 hover:bg-gray-100"
-                >
-                  Next →
-                </button>
-              </div>
-            )}
-          </div>  */}
 
           {/* TABLE AREA  */}
           <div className="flex-1 flex flex-col overflow-hidden px-4 md:px-6">
+
+
+
+            {/* VIRTUALIZED ROWS */}
             <div
               ref={parentRef}
               className="flex-1 overflow-auto"
             >
+
+
               {/* TABLE HEADER (Sticky) */}
-              <div className="flex w-full border-b border-[#EEEEF2] bg-[#F9F9FC] sticky top-0 z-10">
+              <div className="flex w-full border-b border-[#EEEEF2] bg-[#F9F9FC] shrink-0 z-10">
                 {TABLE_COLS.map(col => (
                   <div
                     key={col.key}
@@ -316,12 +265,12 @@ export default function EquipmentListPage() {
                   </div>
                 ))}
               </div>
-              {/* VIRTUALIZED ROWS */}
               <div
                 style={{
                   height: `${rowVirtualizer.getTotalSize()}px`,
                   width: '100%',
                   position: 'relative',
+                  minWidth: 'max-content',
                 }}
               >
                 {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -334,6 +283,7 @@ export default function EquipmentListPage() {
                         ref={loadMoreRef}
                         style={{
                           position: 'absolute', top: 0, left: 0, width: '100%',
+                          minWidth: '100%',
                           transform: `translateY(${virtualRow.start}px)`,
                         }}
                         className="p-4 text-center text-sm text-gray-400"
@@ -347,17 +297,6 @@ export default function EquipmentListPage() {
                   const gradeColors = GRADE_BADGE_COLORS[row.grade] ?? { bg: '#F0F0F0', text: '#666' };
 
                   return (
-                    // <div
-                    //   key={row.id}
-                    //   onClick={() => setSelectedId(isSelected ? null : row.id)}
-                    //   style={{
-                    //     position: 'absolute', top: 0, left: 0, width: '100%',
-                    //     height: `${virtualRow.size}px`,
-                    //     transform: `translateY(${virtualRow.start}px)`,
-                    //   }}
-                    //   className={`flex items-center border-b border-[#EEEEF2] cursor-pointer transition-colors ${isSelected ? 'bg-[#EEF3FB]' : 'hover:bg-[#F3F6FB]'
-                    //     }`}
-                    // >
                     <div
                       key={row.id}
                       onClick={() => {
@@ -389,10 +328,12 @@ export default function EquipmentListPage() {
                           {row.grade}
                         </span>
                       </div>
-                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[11].width} shrink-0 truncate`}>{row.when_action ?? '—'}</div>
+                      <div className={`px-4 text-[13px] text-[#484964] ${TABLE_COLS[11].width} shrink-0 truncate`}>
+                        {row.when_action
+                          ? dayjs(row.when_action).format('DD/MM/YYYY HH:mm')
+                          : '—'}
+                      </div>
                     </div>
-
-                    // </div>
                   );
                 })}
               </div>

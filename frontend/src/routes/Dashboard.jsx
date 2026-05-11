@@ -193,13 +193,7 @@ const Dashboard = () => {
               {(SITE_IMAGES[siteId] ?? FALLBACK_IMAGES).map((img, i) => (
                 <div
                   key={i}
-                  className={`
-        ${i === 2 ? 'col-span-2' : 'col-span-1'}
-        rounded-2xl overflow-hidden
-        shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)]
-        hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)]
-        transition h-40
-      `}
+                  className={`${i === 2 ? 'col-span-2' : 'col-span-1'} rounded-2xl overflow-hidden shadow-[10px_10px_20px_0px_rgba(191,202,228,1.00)] hover:shadow-[-10px_-10px_20px_0px_rgba(255,255,255,0.55)] transition h-40`}
                 >
                   <img
                     src={img}
