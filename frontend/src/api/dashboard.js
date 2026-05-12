@@ -28,6 +28,7 @@ export const dashboardApi = {
     getAttention: ({ site = 'all', filter = 'all', page = 1, limit = 20 } = {}) =>
         apiClient.get('/dashboard/attention', {
             params: { site, filter, page, limit },
+            reqFullData: true,
         }),
 
     getOverdue: ({ site = 'all', thresholdDays = 90, limit = 8 } = {}) =>

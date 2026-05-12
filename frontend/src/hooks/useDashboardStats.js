@@ -35,7 +35,7 @@
  * 
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '../api/dashboard';
 
 export function useDashboardStats(site = 'all') {
@@ -48,18 +48,21 @@ export function useDashboardStats(site = 'all') {
   });
 }
 
-export function useDashboardAttention({ site = 'all', filter = 'all', page = 1 } = {}) {
-  return useQuery({
-    queryKey: ['dashboard', 'attention', { site, filter, page }],
-    queryFn:  async () => {
-       const res = await dashboardApi.getAttention({ site, filter, page });
-        // console.log(" API:", res);
-        return {
-        items: res,                 // data list
-        total: res?.length ?? 0,    // fallback
-      };
+export function useDashboardAttention({ site = 'all', filter = 'all' } = {}) {
+  return useInfiniteQuery({
+    queryKey: ['dashboard', 'attention', { site, filter }],
+    initialPageParam: 1,
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await dashboardApi.getAttention({ site, filter, page: pageParam });
+      return response; 
     },
-    placeholderData: (prev) => prev,
+    getNextPageParam: (lastPage) => {
+      const meta = lastPage?.meta;
+      if (meta && meta.page < meta.totalPages) {
+        return meta.page + 1;
+      }
+      return undefined;
+    },
   });
 }
 

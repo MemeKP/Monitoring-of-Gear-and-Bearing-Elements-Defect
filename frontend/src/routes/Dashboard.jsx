@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import { ChevronLeft, Menu, X } from "lucide-react";
 import mmm from '../assets/img/mmm.jpg'
@@ -12,6 +12,7 @@ import { StatisticOverview } from '../components/StatisticOverview.jsx';
 import { GRADE_COLORS } from '../constant/gradeConfig.js';
 import { AttentionRow } from '../components/AttentionRow.jsx';
 import { SITE_IMAGES } from '../constant/siteConfig';
+import { useInView } from 'react-intersection-observer';
 
 const Dashboard = () => {
   const FALLBACK_IMAGES = [mmm, mmm2, mmm3];
@@ -22,10 +23,16 @@ const Dashboard = () => {
   const site = siteId ?? 'all';
   const [attentionFilter, setAttentionFilter] = useState('Critical');
   const stats = useDashboardStats(site);
-  const attention = useDashboardAttention({ site, filter: attentionFilter });
+
   const overdue = useDashboardOverdue(site);
   const stageBreakdown = stats.data?.stage_breakdown ?? [];
-  const attentionItems = attention.data?.items ?? [];
+  //const attentionItems = attention.data?.items ?? [];
+  const attention = useDashboardAttention({ site, filter: attentionFilter });
+  //  const attentionItems =
+  //   attention.data?.pages.flatMap((page) => page || []) ?? [];
+  //  console.log('ATTENTION', attentionItems)
+  const attentionItems =
+    attention.data?.pages.flatMap((page) => page.data || []) ?? [];
   const attentionTotal = attention.data?.length ?? 0;
   const overdueData = overdue.data;
   const overdueItems = overdueData?.items ?? [];
@@ -35,20 +42,21 @@ const Dashboard = () => {
   // console.log("OVERDUE COUNT", overdueData)
   // console.log('ATTENTION', attention?.data)
   const siteName = siteId ?? 'All sites';
+  const { ref, inView } = useInView({
+    threshold: 0,
+  });
 
-  const filteredCount = useMemo(() => {
-    const items = attention.data?.items || [];
+  // const filteredCount = useMemo(() => {
+  //   const items =
+  //     attention.data?.pages.flatMap((page) => page || []) ?? [];
 
-    if (attentionFilter === 'critical') {
-      return items.filter(m => m.grade === 'F').length;
-    }
+  //   return items.length;
+  // }, [attention.data]);
+  const filteredCount =
+    attention.data?.pages?.[0]?.meta?.total ?? 0;
 
-    if (attentionFilter === 'warning') {
-      return items.filter(m => m.grade === 'E').length;
-    }
-
-    return items.length;
-  }, [attention.data, attentionFilter]);
+  //   console.log("ATTENTION DATA", attention.data);
+  // console.log("FIRST PAGE", attention.data?.pages?.[0]);
 
   // console.log("FILTER:", attentionFilter);
   // console.log('5555', filteredCount.toLocaleString())
@@ -113,6 +121,15 @@ const Dashboard = () => {
   //   { name: "Case_OAB, 12-3 G", days: "72 days" },
   // ];
 
+  useEffect(() => {
+    if (inView && attention.hasNextPage && !attention.isFetchingNextPage) {
+      attention.fetchNextPage();
+    }
+  }, [
+    inView,
+    attention.hasNextPage,
+    attention.isFetchingNextPage,
+  ]);
   return (
     <>
       {/* NAVBAR BAR */}
@@ -215,7 +232,7 @@ const Dashboard = () => {
                   <h3 className="text-[#546A81] font-bold text-xl">
                     Machines requiring attention
                   </h3>
-                  {/* const total = attention.data?.meta?.total ?? 0; */}
+
                   <p className="text-xs text-gray-400 mt-1">
                     {attention.isLoading
                       ? 'Loading...'
@@ -244,22 +261,38 @@ const Dashboard = () => {
               </div>
 
               {/* List */}
-              <div className="space-y-4 overflow-y-auto pr-2">
+              <div className="space-y-4 overflow-y-auto pr-2 h-full"> {/* อย่าลืมกำหนด height / max-height ให้ container ถ้ายาวเกินไป */}
                 {attention.isLoading ? (
                   // Skeleton rows while loading
                   [1, 2, 3, 4].map(i => <AttentionRowSkeleton key={i} />)
                 ) : attention.isError ? (
-                  <ErrorBox message={attention.error.message} />
+                  <ErrorBox message={attention.error?.message || "Something went wrong"} />
                 ) : attentionItems.length === 0 ? (
                   <p className="text-center text-gray-400 py-8">No machines requiring attention</p>
                 ) : (
-                  attentionItems.map(item => (
-                    <AttentionRow
-                      key={item.id}
-                      item={item}
-                      onClick={() => navigate(`/dashboard/${siteId}/equipment/${item.id}`)}
-                    />
-                  ))
+                  <>
+                    {attentionItems.map(item => (
+                      <AttentionRow
+                        key={item.id}
+                        item={item}
+                        onClick={() => navigate(`/dashboard/${siteId}/equipment/${item.id}`)}
+                      />
+                    ))}
+
+                    {/* Infinite Scroll Trigger */}
+                    <div
+                      ref={ref}
+                      className="py-4 text-center flex justify-center items-center"
+                    >
+                      {attention.isFetchingNextPage ? (
+                        <span className="text-sm text-gray-400 animate-pulse">Loading more machines...</span>
+                      ) : attention.hasNextPage ? (
+                        <span className="text-sm text-transparent">Scroll for more</span>
+                      ) : (
+                        <span className="text-sm text-gray-400">All machines loaded.</span>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
