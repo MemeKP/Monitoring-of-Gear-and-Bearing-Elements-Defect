@@ -8,6 +8,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MeasurementsModule } from './measurements/measurements.module';
 import { EquipmentsModule } from './equipments/equipments.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
@@ -27,6 +29,16 @@ import { DashboardModule } from './dashboard/dashboard.module';
         synchronize: false, // never true in production
       }),
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,  
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        store: redisStore,
+        url: config.get('REDIS_URL'),
+        ttl: 300_000,
+      }),
+    }),
 
     MeasurementsModule,
 
@@ -42,4 +54,4 @@ import { DashboardModule } from './dashboard/dashboard.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
