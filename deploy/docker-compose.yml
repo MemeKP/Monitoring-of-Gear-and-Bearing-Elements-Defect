@@ -22,6 +22,19 @@ services:
     networks:
       - vibration-network
 
+# For search engine
+  typesense:
+    image: typesense/typesense:26.0 
+    container_name: typesense_search
+    restart: on-failure
+    ports:
+      - "8108:8108"
+    volumes:
+      - ./typesense-data:/data 
+    command: '--data-dir /data --api-key=SuperSecretKey123 --enable-cors=true'
+    networks:
+      - vibration-network
+
   # backend:
   #   build:
   #     context: ../backend

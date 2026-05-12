@@ -73,5 +73,12 @@ export const equipmentApi = {
         return apiClient.get(`/equipments?${params.toString()}`, {
             reqFullData: true 
         });
-    } 
+    },
+
+    search: ({ q, site = 'all' }) => {
+      return apiClient.get('/equipments/search', {
+        params: { q, site },
+        reqFullData: true 
+      });
+    },
 }

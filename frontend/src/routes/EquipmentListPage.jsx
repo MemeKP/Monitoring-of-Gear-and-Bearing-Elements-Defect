@@ -12,15 +12,16 @@ import dayjs from 'dayjs';
 export default function EquipmentListPage() {
   const navigate = useNavigate();
   const { siteId } = useParams();
+  
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [activeGrades, setActiveGrades] = useState([]);
-  const [page, setPage] = useState(1);
-  const [sortOrder, setSortOrder] = useState('desc');
   const [filterOpen, setFilterOpen] = useState(false);
+
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); 
+  const [activeGrades, setActiveGrades] = useState([]);
+  const [sortOrder, setSortOrder] = useState('desc');
   const LIMIT = 20;
 
   useEffect(() => {
@@ -34,15 +35,21 @@ export default function EquipmentListPage() {
     return () => document.removeEventListener('mousedown', handler);
   }, [filterOpen]);
 
-  // Build filters object — changes trigger a new query key → refetch
-  const filters = useMemo(() => ({
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 300); 
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const searchFilter = useMemo(() => ({
     site: siteId ?? undefined,
     grade: activeGrades.length ? activeGrades.join(',') : undefined,
-    search: search || undefined,
-    page,
+    search: searchQuery || undefined, 
     limit: LIMIT,
     order: sortOrder,
-  }), [siteId, activeGrades, search, page, sortOrder]);
+  }), [siteId, activeGrades, searchQuery, sortOrder]);
+
   const {
     data,
     fetchNextPage,
@@ -52,19 +59,15 @@ export default function EquipmentListPage() {
     isError,
     error,
     refetch
-  } = useEquipmentList(filters);
-
-  const meta = data?.meta ?? {};
-  const items = data?.data ?? [];
-
-  // console.log('META', meta)
-  // console.log('DATA', data)
+  } = useEquipmentList(searchFilter);
+  
   const allRows = useMemo(() => {
-    return data?.pages.flatMap((page) => page.data) ?? [];
+    return data?.pages.flatMap((page) => page?.data || []) ?? [];
   }, [data]);
-console.log('ROW', allRows)
-  const parentRef = useRef();
+
   const selectedItem = allRows?.find(item => item.id === selectedId) ?? null;
+
+  const parentRef = useRef();
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? allRows.length + 1 : allRows.length,
     getScrollElement: () => parentRef.current,
@@ -73,29 +76,26 @@ console.log('ROW', allRows)
   });
 
   const { ref: loadMoreRef, inView } = useInView();
-
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // Grade chip toggle
   const toggleGrade = (grade) => {
     setActiveGrades(prev =>
       prev.includes(grade) ? prev.filter(g => g !== grade) : [...prev, grade]
     );
-    setPage(1);
-  };
-
-  const handleSearch = () => {
-    setSearch(searchInput);
-    setPage(1);
   };
 
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-    setPage(1);
+  };
+
+  const handleRefresh = () => {
+    setSearchInput('');
+    setSearchQuery(''); 
+    refetch(); 
   };
 
   const siteName = siteId ?? 'All sites';
@@ -206,22 +206,20 @@ console.log('ROW', allRows)
               <div className="flex items-center bg-[#DDE1E6] rounded-full px-4 py-1.5 gap-2">
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search equipment..."
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
                   className="bg-transparent outline-none text-sm text-[#546A81] w-36 placeholder-gray-400"
                 />
-                <Search size={15} className="cursor-pointer text-[#546A81]" onClick={handleSearch} />
+                <Search size={15} className="text-[#546A81]" />
               </div>
+
               <RefreshCcw
                 size={15}
                 className="cursor-pointer text-[#546A81] hover:rotate-180 transition-transform duration-500"
-                onClick={() => {
-                  setPage(1);
-                  refetch();
-                }}
+                onClick={handleRefresh}
               />
+
               <button onClick={toggleSortOrder} className="flex items-center gap-1 cursor-pointer text-[#546A81] hover:text-blue-600">
                 <ArrowDownNarrowWide size={15} className={sortOrder === 'asc' ? 'transition-transform' : 'transition-transform rotate-180 '} />
                 <span className="text-xs font-semibold uppercase">{sortOrder}</span>

@@ -1,16 +1,64 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Measurement } from 'src/measurements/entities/measurement.entity';
 import { computeGrade, daysSinceCheck, gradeToStatus } from 'src/helpers/grade.helper';
 import { QueryEquipmentDto } from './dto/query-equipment.dto';
+import { TypesenseService } from 'src/shared/typesense.service';
+
+interface RawMachineData {
+  id: number;
+  equipment: string;
+  site: string;
+}
 
 @Injectable()
 export class EquipmentsService {
   constructor(
     @InjectRepository(Measurement)
     private readonly repo: Repository<Measurement>,
+    private readonly typesenseService: TypesenseService,
   ) { }
+
+  async syncAllToTypesense() {
+    const machines = await this.repo.createQueryBuilder('m')
+      .select('MAX(m.id)', 'id') 
+      .addSelect('m.equipment', 'equipment')
+      .addSelect('m.site', 'site')
+      .where("m.indicator != 'I'")
+      .groupBy('m.site')
+      .addGroupBy('m.equipment')
+      .getRawMany<RawMachineData>();
+
+    console.log(`Found ${machines.length} machines. Syncing to Typesense...`);
+
+    for (const m of machines) {
+      await this.typesenseService.upsertEquipment({
+        id: m.id,
+        equipment: m.equipment,
+        site: m.site,
+      });
+    }
+
+    return { message: `Synced ${machines.length} machines successfully!` };
+  }
+
+  async searchEquipmentList(searchQuery: string, site?: string) {
+    const matchedIds = await this.typesenseService.searchEquipment(searchQuery, site);
+
+    if (!matchedIds || matchedIds.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    const equipments = await this.repo.find({
+      where: { 
+        id: In(matchedIds) 
+      },
+      // for relation/order in equipment(if any)
+    });
+
+    return { success: true, data: equipments };
+  }
 
   private enrich(m: Measurement) {
     const grade = computeGrade(m.state);

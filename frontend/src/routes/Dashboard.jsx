@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import { ChevronLeft, Menu, X } from "lucide-react";
 import mmm from '../assets/img/mmm.jpg'
@@ -6,7 +6,6 @@ import mmm2 from '../assets/img/mmm2.jpg'
 import mmm3 from '../assets/img/view4.webp'
 import clock from '../assets/clock.png'
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSites } from '../hooks/useSites.js';
 import { useDashboardAttention, useDashboardOverdue, useDashboardStats } from '../hooks/useDashboardStats.js';
 import { StatisticOverview } from '../components/StatisticOverview.jsx';
 import { GRADE_COLORS } from '../constant/gradeConfig.js';
@@ -55,7 +54,7 @@ const Dashboard = () => {
   const filteredCount =
     attention.data?.pages?.[0]?.meta?.total ?? 0;
 
-  //   console.log("ATTENTION DATA", attention.data);
+  // console.log("ATTENTION DATA", attention.data);
   // console.log("FIRST PAGE", attention.data?.pages?.[0]);
 
   // console.log("FILTER:", attentionFilter);
@@ -121,6 +120,7 @@ const Dashboard = () => {
   //   { name: "Case_OAB, 12-3 G", days: "72 days" },
   // ];
 
+  // INFINITE SCROLL HELPER
   useEffect(() => {
     if (inView && attention.hasNextPage && !attention.isFetchingNextPage) {
       attention.fetchNextPage();
@@ -130,6 +130,7 @@ const Dashboard = () => {
     attention.hasNextPage,
     attention.isFetchingNextPage,
   ]);
+
   return (
     <>
       {/* NAVBAR BAR */}

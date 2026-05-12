@@ -203,12 +203,12 @@ export class DashboardService {
     page = 1,
     limit = 20,
   ) {
-    // 1. สร้าง Cache Key ที่ครอบคลุมทุกเงื่อนไข (Site, Filter, Page, Limit)
+    // create Cache Key (Site, Filter, Page, Limit)
     const normalizedFilter = filter?.toLowerCase() || 'all';
     const siteKey = site || 'all';
     const cacheKey = `attention:${siteKey}:${normalizedFilter}:${page}:${limit}`;
 
-    // 2. เช็ค Cache ก่อน ถ้ามีก็เสิร์ฟเลย เร็วระดับ Millisecond!
+    // check Cache 
     const cachedData = await this.cache.get(cacheKey);
     if (cachedData) {
       return cachedData;
@@ -232,20 +232,20 @@ export class DashboardService {
                 .where("sub.indicator != 'I'") 
                 .andWhere('sub.state IS NOT NULL');
             }, 'ranked')
-            .where('ranked.rn = 1'); // เอาเฉพาะ ID ที่เป็นอันดับ 1 (ล่าสุด + แย่สุด)
+            .where('ranked.rn = 1'); // ID 1st (latest + worst)
         },
         'latest',
-        'm.id = latest.id' // JOIN กลับด้วย ID 
+        'm.id = latest.id' // JOIN ID 
       )
       .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue'])
       .where("m.indicator != 'I'"); 
 
-    // เงื่อนไข Site
+    // Site
     if (site && site !== 'all') {
       qb.andWhere('m.site = :site', { site });
     }
 
-    // เงื่อนไข Filter (Critical = 6, Warning = 5)
+    // Filter (Critical = 6, Warning = 5)
     if (normalizedFilter === 'critical') {
       qb.andWhere('m.state = :state', { state: 6 }); 
     } else if (normalizedFilter === 'warning') {
@@ -283,7 +283,6 @@ export class DashboardService {
       },
     };
 
-    // 4. เก็บลง Redis Cache 
     await this.cache.set(cacheKey, responseData, 300); // 300 seconds = 5 mins
 
     return responseData;

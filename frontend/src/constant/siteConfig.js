@@ -10,6 +10,15 @@ import mmm from '../assets/img/mmm.jpg'
 import mmm2 from '../assets/img/mmm2.jpg'
 import mmm3 from '../assets/img/view4.webp'
 
+import mmp1 from '../assets/img/mmp1.webp'
+import mmp2 from '../assets/img/mmp2.webp'
+import mmp3 from '../assets/img/mmp3.webp'
+
+import nbp1 from '../assets/img/nbp1.webp'
+import nbp2 from '../assets/img/nbp2.webp'
+import nbp3 from '../assets/img/nbp3.webp'
+
+
 /**
  * STATIC site configuration — only geography & map dot positions.
  * Grade counts / percentages come from the API, NOT from here.
@@ -24,7 +33,7 @@ export const SITE_CONFIG = [
     dot: { cx: 600, cy: 500 },
     lat: 18.29826537461988, 
     lng: 99.74240541400528,
-    imgs: [mmm, mmm2, mmm3],
+    imgs: [mmp1, mmp2, mmp3],
   },
   {
     id: "NBP",
@@ -33,7 +42,7 @@ export const SITE_CONFIG = [
     dot: { cx: 0, cy: 0 },
     lat: 13.813608,
     lng: 100.509824,
-    imgs: [mmm, mmm2, mmm3]
+    imgs: [nbp3, nbp2, nbp1]
   },
   // --- REAL OLD DATA ---
   {

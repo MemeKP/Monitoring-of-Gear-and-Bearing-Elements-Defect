@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, Query, ParseIntPipe, Post } from '@nestjs/common';
 import { EquipmentsService } from './equipments.service';
 import { QueryEquipmentDto } from './dto/query-equipment.dto';
 
@@ -10,6 +10,18 @@ export class EquipmentsController {
   // create(@Body() createEquipmentDto: CreateEquipmentDto) {
   //   return this.equipmentsService.create(createEquipmentDto);
   // }
+  // /equipments/search?q=fgd
+  @Get('search')
+   searchEquipments(
+    @Query('q') query: string,
+    @Query('site') site?: string,
+  ) {
+    if (!query || query.trim() === '') {
+      return { success: true, data: [] };
+    }
+    return this.equipmentsService.searchEquipmentList(query, site);
+  }
+
 
   // GET /api/v1/equipment?site=xxx&grade=F,E&sort=days_since_check&order=desc
   @Get()
@@ -33,6 +45,13 @@ export class EquipmentsController {
     return this.equipmentsService.findHistory(id, page, limit);
   }
 
+  // /equipment/sync-typesense
+  @Post('sync-typesense')
+  syncToTypesense() {
+    return this.equipmentsService.syncAllToTypesense();
+  }
+
+  
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateEquipmentDto: UpdateEquipmentDto) {
   //   return this.equipmentsService.update(+id, updateEquipmentDto);

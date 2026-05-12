@@ -10,6 +10,7 @@ import { EquipmentsModule } from './equipments/equipments.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { SharedModule } from './shared/typesense.module';
 
 @Module({
   imports: [
@@ -45,6 +46,8 @@ import { redisStore } from 'cache-manager-redis-yet';
     EquipmentsModule,
 
     DashboardModule,
+
+    SharedModule,
 
     // GraphQLModule.forRoot<ApolloDriverConfig>({
     //   driver: ApolloDriver,
