@@ -1,31 +1,26 @@
 import { X } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
-
-// Mini frequency chart using SVG
-const FrequencyChart = () => (
-  <svg width="100%" height="120" viewBox="0 0 290 130" xmlns="http://www.w3.org/2000/svg">
-    <text x="0" y="12" fill="#546A81" fontSize="10">306</text>
-    <text x="0" y="62" fill="#546A81" fontSize="10">204</text>
-    <text x="0" y="112" fill="#546A81" fontSize="10">102</text>
-    <line x1="28" y1="10" x2="290" y2="10" stroke="#E5E7EB" strokeWidth="0.5" />
-    <line x1="28" y1="60" x2="290" y2="60" stroke="#E5E7EB" strokeWidth="0.5" />
-    <line x1="28" y1="110" x2="290" y2="110" stroke="#E5E7EB" strokeWidth="0.5" />
-    <path d="M28,110 Q50,110 60,60 Q70,20 80,60 Q90,90 100,110 Q140,110 160,80 Q175,50 185,80 Q195,100 210,110 Q240,110 255,90 Q265,75 275,90 Q283,100 290,110 Z" fill="#C8D8F8" opacity="0.6" />
-    <path d="M28,110 Q50,110 60,60 Q70,20 80,60 Q90,90 100,110" fill="none" stroke="#3B5BDB" strokeWidth="1.5" opacity="0.8" />
-    <path d="M140,110 Q155,110 165,80 Q175,50 185,80 Q195,100 210,110" fill="none" stroke="#3B5BDB" strokeWidth="1.5" opacity="0.6" />
-    <path d="M240,110 Q255,110 265,85 Q272,75 280,85 Q286,95 290,110" fill="none" stroke="#3B5BDB" strokeWidth="1.5" opacity="0.4" />
-    <text x="28" y="126" fill="#546A81" fontSize="9">0</text>
-    <text x="74" y="126" fill="#546A81" fontSize="9">180</text>
-    <text x="126" y="126" fill="#546A81" fontSize="9">360</text>
-    <text x="176" y="126" fill="#546A81" fontSize="9">540</text>
-    <text x="226" y="126" fill="#546A81" fontSize="9">630</text>
-    <text x="145" y="140" fill="#546A81" fontSize="9" textAnchor="middle">Frequency (Hz)</text>
-  </svg>
-)
+import { useMeasurement } from "../hooks/useMeasurement"
+import { useMemo } from "react"
+import FrequencyChart from "./FrequencyChart"
 
 const SidePanel = ({ equipment, onClose }) => {
   const navigate = useNavigate()
   const {siteId} = useParams()
+  const { data: detailData, isLoading } = useMeasurement(equipment?.id);
+
+  // DOWN SAMPLING (50 points)
+  const miniChartData = useMemo(() => {
+    const fftRaw = detailData?.envelopedFft;
+    if (!fftRaw || !fftRaw.length) return [];
+
+    const amplitudes = fftRaw.map(point => point[1]);
+    
+    const targetPoints = 50; 
+    const step = Math.ceil(amplitudes.length / targetPoints);
+    
+    return amplitudes.filter((_, index) => index % step === 0);
+  }, [detailData]);
 
   console.log('EQUIPMET', equipment)
 
@@ -69,7 +64,7 @@ const SidePanel = ({ equipment, onClose }) => {
             </div>
             <div className="flex justify-between text-[13px] py-1">
               <span className="text-[#546A81]">Stage</span>
-              <span className="font-medium">{equipment.stage ?? 1}</span>
+              <span className="font-medium">{equipment.state ?? 'none'}</span>
             </div>
           </div>
 
@@ -105,8 +100,11 @@ const SidePanel = ({ equipment, onClose }) => {
 
           {/* CHART */}
           <div className="bg-[#F9F9FC] rounded-lg p-3">
-            <p className="text-[13px] font-bold text-[#546A81] mb-2">Point Value Trend</p>
-            <FrequencyChart />
+            <p className="text-[13px] font-bold text-[#546A81] mb-2">FFT Spectrum Preview</p>
+            <FrequencyChart
+              trendData={miniChartData} 
+              isLoading={isLoading} 
+            />
           </div>
 
           {/* VIEW */}

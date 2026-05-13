@@ -7,28 +7,6 @@ import { useParams } from 'react-router-dom'
 import { useMeasurement } from '../hooks/useMeasurement.js'
 import { ErrorBox, HeaderSkeleton } from '../components/SkeletonLoader.jsx';
 
-const equipmentData = [
-  {
-    id: 29786,
-    name: "(Test_BPKMH2) Crusher 2: Single Roll Crush",
-    site: "MMP",
-    state: 5,
-    date: "2017-4-4",
-    time: "14:20:00",
-    measPoint: "24-005_CR-H05",
-    bpfo: 170,
-    f0: 4951,
-    ibeta: 2.6,
-    grade: "F",
-    whenActioned: "2024-02-01 10:53:54",
-    pointLabel: "MMP Point 3V",
-    stage: 2,
-    daysAgo: "3302 days",
-    pointValue: 40
-  },
-];
-
-
 const GraphPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -42,7 +20,6 @@ const GraphPage = () => {
   const envelopedFftData = data?.envelopedFft || [];
   const peaksData = data?.peakData || [];
   const detailPeakData = data?.detailPeak || [];
-
   
   const allAmp = envelopedFftData.map(p => p[1]);
   // let maxHz = 0;
