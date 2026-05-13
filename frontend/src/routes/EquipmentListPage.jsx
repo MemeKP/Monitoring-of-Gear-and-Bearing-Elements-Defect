@@ -206,7 +206,7 @@ export default function EquipmentListPage() {
               <div className="flex items-center bg-[#DDE1E6] rounded-full px-4 py-1.5 gap-2">
                 <input
                   type="text"
-                  placeholder="Search equipment..."
+                  placeholder="Search..."
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
                   className="bg-transparent outline-none text-sm text-[#546A81] w-36 placeholder-gray-400"

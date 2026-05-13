@@ -22,7 +22,7 @@ export class EquipmentsService {
 
   async syncAllToTypesense() {
     const machines = await this.repo.createQueryBuilder('m')
-      .select('MAX(m.id)', 'id') 
+      .select('MAX(m.id)', 'id')
       .addSelect('m.equipment', 'equipment')
       .addSelect('m.site', 'site')
       .where("m.indicator != 'I'")
@@ -43,22 +43,34 @@ export class EquipmentsService {
     return { message: `Synced ${machines.length} machines successfully!` };
   }
 
-  async searchEquipmentList(searchQuery: string, site?: string) {
-    const matchedIds = await this.typesenseService.searchEquipment(searchQuery, site);
+  // async searchEquipmentList(searchQuery: string, site?: string) {
+  //   const matchedIds = await this.typesenseService.searchEquipment(searchQuery, site);
 
-    if (!matchedIds || matchedIds.length === 0) {
-      return { success: true, data: [] };
-    }
+  //   if (!matchedIds || matchedIds.length === 0) {
+  //     return { success: true, data: [] };
+  //   }
 
-    const equipments = await this.repo.find({
-      where: { 
-        id: In(matchedIds) 
-      },
-      // for relation/order in equipment(if any)
-    });
+  //   const equipments = await this.repo.createQueryBuilder('m')
+  //     .select([
+  //       'm.id',
+  //       'm.site',
+  //       'm.equipment',
+  //       'm.measPoint',
+  //       'm.measDate',
+  //       'm.measTime',
+  //       'm.bpfo',
+  //       'm.f0',
+  //       'm.ibeta',
+  //       'm.state',
+  //       'm.adjOptPointValue',
+  //       'm.seqId',
+  //       'm.whenAction',
+  //     ])
+  //     .where('m.id IN (:...matchedIds)', { matchedIds })
+  //     .getMany();
 
-    return { success: true, data: equipments };
-  }
+  //   return { success: true, data: equipments };
+  // }
 
   private enrich(m: Measurement) {
     const grade = computeGrade(m.state);
@@ -196,7 +208,7 @@ export class EquipmentsService {
       const statusMap: Record<string, string> = {
         critical: 'F',
         warning: 'E',
-        careful: 'D',
+        careful: 'D', //!!!!
         normal: 'A,B,C',
       };
       const gradeStr = statusMap[dto.status.toLowerCase()];
@@ -207,8 +219,17 @@ export class EquipmentsService {
       qb.andWhere('m.site = :site', { site: dto.site });
     }
 
-    if (dto.search) {
-      qb.andWhere('m.equipment LIKE :search', { search: `%${dto.search}%` });
+    if (dto.search && dto.search.trim() !== '') {
+      const matchedIds = await this.typesenseService.searchEquipment(dto.search, dto.site);
+      if (!matchedIds || matchedIds.length === 0) {
+        return {
+          success: true,
+          data: [],
+          meta: { page, limit, total: 0, totalPages: 0 },
+        };
+      }
+
+      qb.andWhere('m.id IN (:...matchedIds)', { matchedIds });
     }
 
     if (dto.grade && dto.grade !== 'all') {
@@ -228,7 +249,7 @@ export class EquipmentsService {
       id: 'm.id',
       days_since_check: 'm.measDate',
       point_value: 'm.adjOptPointValue',
-      grade: 'm.state',  
+      grade: 'm.state',
       equipment: 'm.equipment',
     };
     const sortCol = sortMap[dto.sort ?? 'id'] ?? 'm.id';

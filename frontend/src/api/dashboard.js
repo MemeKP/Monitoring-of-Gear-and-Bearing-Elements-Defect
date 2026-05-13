@@ -75,10 +75,10 @@ export const equipmentApi = {
         });
     },
 
-    search: ({ q, site = 'all' }) => {
-      return apiClient.get('/equipments/search', {
-        params: { q, site },
-        reqFullData: true 
-      });
-    },
+    // search: ({ q, site = 'all' }) => {
+    //   return apiClient.get('/equipments/search', {
+    //     params: { q, site },
+    //     reqFullData: true 
+    //   });
+    // },
 }

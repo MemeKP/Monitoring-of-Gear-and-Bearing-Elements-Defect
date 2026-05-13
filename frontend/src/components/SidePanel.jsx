@@ -25,7 +25,7 @@ const FrequencyChart = () => (
 
 const SidePanel = ({ equipment, onClose }) => {
   const navigate = useNavigate()
-  const {siteId, equipmentId} = useParams()
+  const {siteId} = useParams()
 
   console.log('EQUIPMET', equipment)
 
@@ -111,7 +111,7 @@ const SidePanel = ({ equipment, onClose }) => {
 
           {/* VIEW */}
           <button className="mt-auto bg-[#708DA8] hover:bg-[#ffff] hover:text-[#708DA8] hover:border-solid hover:border-2 hover:border-[#708DA8] text-white font-semibold text-[14px] py-3 rounded-lg transition-colors"
-            onClick={() => {navigate(`/dashboard/${siteId}/equipment/${equipmentId}`)}}
+            onClick={() => {navigate(`/dashboard/${siteId}/equipment/${equipment.id}`)}}
           >
             View full details
           </button>

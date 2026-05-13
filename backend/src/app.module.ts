@@ -42,11 +42,8 @@ import { SharedModule } from './shared/typesense.module';
     }),
 
     MeasurementsModule,
-
     EquipmentsModule,
-
     DashboardModule,
-
     SharedModule,
 
     // GraphQLModule.forRoot<ApolloDriverConfig>({
