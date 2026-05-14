@@ -81,7 +81,7 @@ export function useSites() {
         dot: { ...config.dot, color: dotColor },
       };
     });
-  }, [statsData]); // if use mock -> IS_MOCK here
+  }, [statsData]); // if use mock -> add IS_MOCK here
 
   return { sites, loading, error };
 }

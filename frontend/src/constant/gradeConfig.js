@@ -26,8 +26,8 @@ export const TABLE_COLS = [
 
 export const GRADE_BADGE_COLORS = {
   F: { bg: '#FDDCDC', text: '#C0392B' },
-  E: { bg: '#FFF3C7', text: '#B8860B' },
-  D: { bg: '#FFE8CC', text: '#CC6600' },
+  E: { bg: '#FFFDC5', text: '#FFCB05' },
+  D: { bg: '#F5FBCF', text: '#C5DD27' },
   C: { bg: '#EEF7DA', text: '#4A7C00' },
   B: { bg: '#D4EDDA', text: '#155724' },
   A: { bg: '#D1ECF1', text: '#0C5460' },

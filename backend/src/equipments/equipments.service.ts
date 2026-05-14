@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Measurement } from 'src/measurements/entities/measurement.entity';
 import { computeGrade, daysSinceCheck, gradeToStatus } from 'src/helpers/grade.helper';
 import { QueryEquipmentDto } from './dto/query-equipment.dto';

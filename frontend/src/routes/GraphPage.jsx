@@ -202,7 +202,6 @@ const GraphPage = () => {
               />
             </div>
           </div>
-
         </div>
       </div>
     </div>

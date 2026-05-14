@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { GRADE_CONFIG } from '../constant/gradeConfig';
+import { X } from 'lucide-react';
 function SiteModal({ site, onClose }) {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
@@ -121,17 +122,9 @@ function SiteModal({ site, onClose }) {
         {/* MODAL */}
         <div
           onClick={e => e.stopPropagation()}
-          className={`
-            relative overflow-hidden
-            w-[280px]
-            rounded-[24px]
-
-            border border-white/20
-            backdrop-blur-3xl
-            bg-white/[0.08]
-
-            shadow-2xl
-
+          className={`relative overflow-hidden
+            w-[280px] rounded-[24px] border border-white/20
+            backdrop-blur-3xl bg-white/[0.08] shadow-2xl
             ${visible
               ? 'animate-[modal-in_.3s_cubic-bezier(0.34,1.56,0.64,1)_forwards]'
               : 'animate-[modal-out_.28s_ease_forwards]'
@@ -194,7 +187,7 @@ function SiteModal({ site, onClose }) {
                   transition-all duration-200
                 "
               >
-                ✕
+                <X />{/* ✕ */}
               </button>
             </div>
 
@@ -219,7 +212,6 @@ function SiteModal({ site, onClose }) {
               ) : (
                 alertGrades.map(({ key, count, pct }, i) => {
                   const cfg = GRADE_CONFIG[key];
-
                   const barPct =
                     total > 0
                       ? (count / total) * 100
@@ -229,9 +221,7 @@ function SiteModal({ site, onClose }) {
                     <div
                       key={key}
                       className="animate-[modal-in_.4s_cubic-bezier(0.34,1.2,0.64,1)_both]"
-                      style={{
-                        animationDelay: `${0.1 + i * 0.07}s`,
-                      }}
+                      style={{animationDelay: `${0.1 + i * 0.07}s`,}}
                     >
                       {/* ROW */}
                       <div className="flex items-center justify-between mb-2">
@@ -239,10 +229,7 @@ function SiteModal({ site, onClose }) {
 
                           <span
                             className="text-[22px] font-bold leading-none"
-                            style={{
-                              color: cfg.color,
-                              textShadow: `0 0 12px ${cfg.glow}`,
-                            }}
+                            style={{color: cfg.color, textShadow: `0 0 12px ${cfg.glow}`,}}
                           >
                             {key}
                           </span>
@@ -286,9 +273,7 @@ function SiteModal({ site, onClose }) {
                         }}
                       >
                         <div
-                          className="
-                            h-full rounded-full
-                          "
+                          className=" h-full rounded-full"
                           style={{
                             '--bar-w': `${barPct.toFixed(1)}%`,
                             width: `${barPct.toFixed(1)}%`,
@@ -332,14 +317,14 @@ function SiteModal({ site, onClose }) {
               onClick={() => navigate(`/dashboard/${site.id}`)}
               className="group relative w-full p-2 overflow-hidden rounded-xl border border-white/20 bg-gradient-to-r from-[#203851]/50 to-[#242E29]/50 text-white font-bold tracking-wide transition-all duration-500 active:scale-[0.98]">
               {/* LIQUID SHINE */}
+              {/* animate-[liquid-shift_2s_linear_infinite] add ท้าย วิบวับ */}
               <div
-                className=" absolute inset-0 opacity-0 group-hover:opacity-100   transition duration-700  bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.22),transparent)]  bg-[length:200%_100%] animate-[liquid-shift_2s_linear_infinite] "
+                className=" absolute inset-0 opacity-0 group-hover:opacity-100   transition duration-700  bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.22),transparent)]  bg-[length:200%_100%] "
               />
 
               {/* ICON CONTAINER */}
               <div
-                className="absolute left-[6px] top-1/2 -translate-y-1/2  h-[50px] w-[45px] rounded-xl flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-[calc(100%-12px)]
-    "
+                className="absolute left-[6px] top-1/2 -translate-y-1/2  h-[50px] w-[45px] rounded-xl flex items-center justify-center transition-all duration-500 ease-in-out group-hover:w-[calc(100%-12px)]"
               >
                 <svg
                   viewBox="0 0 320 512"
@@ -350,7 +335,7 @@ function SiteModal({ site, onClose }) {
 
               {/* TEXT */}
               <span
-                className=" relative z-10 text-sm flex items-center justify-center transition-all duration-500 group-hover:opacity-0 group-hover:translate-x-6 "
+                className="relative z-10 text-sm flex items-center justify-center transition-all duration-500 group-hover:opacity-0 group-hover:translate-x-6 "
               >
                 View Dashboard
               </span>

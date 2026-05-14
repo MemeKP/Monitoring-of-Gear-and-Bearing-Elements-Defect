@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
-import { ChevronLeft, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, Menu, TriangleAlert, X } from "lucide-react";
 import mmm from '../assets/img/mmm.jpg'
 import mmm2 from '../assets/img/mmm2.jpg'
 import mmm3 from '../assets/img/view4.webp'
@@ -45,12 +45,6 @@ const Dashboard = () => {
     threshold: 0,
   });
 
-  // const filteredCount = useMemo(() => {
-  //   const items =
-  //     attention.data?.pages.flatMap((page) => page || []) ?? [];
-
-  //   return items.length;
-  // }, [attention.data]);
   const filteredCount =
     attention.data?.pages?.[0]?.meta?.total ?? 0;
 
@@ -59,66 +53,6 @@ const Dashboard = () => {
 
   // console.log("FILTER:", attentionFilter);
   // console.log('5555', filteredCount.toLocaleString())
-
-  // const machinesRequiringAttention = [
-  //   {
-  //     id: 1,
-  //     name: "[Test_BPKMH2] Crusher 2: Single Roll Crush",
-  //     code: "MMP_1V - 2017-04-08",
-  //     status: "F",
-  //     daysAgo: "3302 days ago",
-  //     // path: `/equipment/${id}`
-  //     path: `/equipment/test123`
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "[MH2] Crusher 2: Single Roll Crush",
-  //     code: "MMP_1V - 2017-04-06",
-  //     status: "F",
-  //     daysAgo: "3302 days ago",
-  //     path: `/equipment/${id}`
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "Case_OAB, 12-3 G",
-  //     code: "MMP_1V - 2022-11-14",
-  //     status: "F",
-  //     daysAgo: "72 days ago",
-  //     path: `/equipment/${id}`
-  //   },
-  //   {
-  //     id: 4,
-  //     name: "Case_OAB, 12-3 G",
-  //     code: "MMP_1V - 2022-11-14",
-  //     status: "F",
-  //     daysAgo: "72 days ago",
-  //     path: `/equipment/${id}`
-  //   },
-  //   {
-  //     id: 5,
-  //     name: "Case_OAB, 12-3 G",
-  //     code: "MMP_1V - 2022-11-14",
-  //     status: "F",
-  //     daysAgo: "72 days ago",
-  //     path: `/equipment/${id}`
-  //   },
-  // ];
-
-  // const healthCheckItems = [
-  //   { label: "Critical", count: 2, color: "bg-red-500" },
-  //   { label: "Warning", count: 5, color: "bg-yellow-400" },
-  //   { label: "Max delay", count: "+9yr", color: "bg-gray-300" },
-  // ];
-
-  // const recentItems = [
-  //   { name: "Rear Drive Unit_LH", days: "3302 days" },
-  //   { name: "(MH2) Crusher 2: Single Roll Crush", days: "3302 days" },
-  //   { name: "(MH2) L2.3: Rear Drive Unit_LH", days: "3302 days" },
-  //   { name: "[Test_BPKMH3] L3.2: Rear Drive Unit_LH", days: "3302 days" },
-  //   { name: "[Test_BPKMH4] L4.3: Rear Drive Unit_LH", days: "3302 days" },
-  //   { name: "Case_OAB, 12-3 G", days: "72 days" },
-  //   { name: "Case_OAB, 12-3 G", days: "72 days" },
-  // ];
 
   // INFINITE SCROLL HELPER
   useEffect(() => {
@@ -154,7 +88,7 @@ const Dashboard = () => {
           <div className="flex font-medium items-center gap-2 text-base text-[#546A81]">
             <span className='hover:cursor-pointer' onClick={() => navigate(`/`)}>All sites</span>
             <span>›</span>
-            <span className="text-[#546A81]">{siteName}</span>
+            <span className="text-[#546A81]" onClick={() => navigate(`/dashboard/${siteId}`)}>{siteName}</span>
             <span>›</span>
             <span className="text-[#546A81]">Dashboard</span>
           </div>
@@ -228,12 +162,11 @@ const Dashboard = () => {
             <div className="lg:col-span-2 bg-[#f4f7fa] rounded-2xl p-6">
 
               {/* Header & Filter Buttons */}
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-4 sm:gap-0">
                 <div>
                   <h3 className="text-[#546A81] font-bold text-xl">
                     Machines requiring attention
                   </h3>
-
                   <p className="text-xs text-gray-400 mt-1">
                     {attention.isLoading
                       ? 'Loading...'
@@ -241,28 +174,53 @@ const Dashboard = () => {
                   </p>
                 </div>
 
-                {/* Toggle*/}
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setAttentionFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
+                {/* Desktop View: Toggle Buttons*/}
+                <div className="hidden sm:flex items-center gap-3">
+                  <button
+                    onClick={() => setAttentionFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
                     className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'Critical'
                       ? 'bg-[#ff7a7a] text-white'
                       : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
-                      }`}>
+                      }`}
+                  >
                     Critical
                   </button>
-                  <button onClick={() => setAttentionFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
-
+                  <button
+                    onClick={() => setAttentionFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
                     className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'Warning'
-                      ? 'bg-yellow-400 text-white'
-                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
-                      }`}>
-                    <span className="text-yellow-400 text-lg leading-none">⚠️</span> Warning
+                        ? 'bg-yellow-400 text-white'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
+                      }`}
+                  >
+                    <TriangleAlert
+                      className={`w-[18px] h-[18px] transition-colors ${attentionFilter === 'Warning' ? 'text-white' : 'text-[#FFCB05]'
+                        }`}
+                    />
+                    Warning
                   </button>
+                </div>
+
+                {/* Mobile View: Dropdown */}
+                <div className="block sm:hidden w-full relative">
+                  <select
+                    value={attentionFilter}
+                    onChange={(e) => setAttentionFilter(e.target.value)}
+                    className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#546A81] font-semibold hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none transition-all duration-200 cursor-pointer"
+                  >
+                    <option value="all">All</option>
+                    <option value="Critical">Critical (F)</option>
+                    <option value="Warning">Warning (E)</option>
+                  </select>
+
+                  {/* Custom Chevron Icon */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
+                    <ChevronDown className='w-5' color="#b5b5b5" />
+                  </div>
                 </div>
               </div>
 
               {/* List */}
-              <div className="space-y-4 overflow-y-auto pr-2 h-full"> {/* อย่าลืมกำหนด height / max-height ให้ container ถ้ายาวเกินไป */}
+              <div className="space-y-4 overflow-y-auto pr-2 h-full">
                 {attention.isLoading ? (
                   // Skeleton rows while loading
                   [1, 2, 3, 4].map(i => <AttentionRowSkeleton key={i} />)
@@ -366,8 +324,6 @@ const Dashboard = () => {
                   </div>
                 </>
               )}
-
-
             </div>
           </div>
         </div>

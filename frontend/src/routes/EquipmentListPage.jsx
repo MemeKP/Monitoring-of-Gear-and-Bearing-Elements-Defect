@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronRight, Funnel, X, Plus, Search, RefreshCcw, ArrowDownNarrowWide } from 'lucide-react';
+import { ChevronRight, Funnel, X, Plus, Search, RefreshCcw, ArrowDownNarrowWide, Check } from 'lucide-react';
 import { useEquipmentList } from '../hooks/useEquipment';
 import SidePanel from '../components/SidePanel'
 import Navbar from '../components/Navbar'
@@ -12,14 +12,14 @@ import dayjs from 'dayjs';
 export default function EquipmentListPage() {
   const navigate = useNavigate();
   const { siteId } = useParams();
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
 
   const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState(''); 
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeGrades, setActiveGrades] = useState([]);
   const [sortOrder, setSortOrder] = useState('desc');
   const LIMIT = 20;
@@ -38,14 +38,14 @@ export default function EquipmentListPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(searchInput);
-    }, 300); 
+    }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
   const searchFilter = useMemo(() => ({
     site: siteId ?? undefined,
     grade: activeGrades.length ? activeGrades.join(',') : undefined,
-    search: searchQuery || undefined, 
+    search: searchQuery || undefined,
     limit: LIMIT,
     order: sortOrder,
   }), [siteId, activeGrades, searchQuery, sortOrder]);
@@ -60,7 +60,9 @@ export default function EquipmentListPage() {
     error,
     refetch
   } = useEquipmentList(searchFilter);
-  
+
+  // console.log('EP DATA', data)
+
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page?.data || []) ?? [];
   }, [data]);
@@ -94,8 +96,8 @@ export default function EquipmentListPage() {
 
   const handleRefresh = () => {
     setSearchInput('');
-    setSearchQuery(''); 
-    refetch(); 
+    setSearchQuery('');
+    refetch();
   };
 
   const siteName = siteId ?? 'All sites';
@@ -110,14 +112,14 @@ export default function EquipmentListPage() {
       />
 
       <div className={`transition-all duration-300 pt-14 md:pt-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
-
+        
         {/* HEADER */}
         <div className="p-4 md:p-6 pb-0">
           <div className="text-[#546A81] text-4xl font-bold leading-[66px]">Equipment Health</div>
           <div className="flex font-medium items-center gap-2 text-base text-[#546A81]">
             <span className="hover:cursor-pointer" onClick={() => navigate('/')}>All sites</span>
             <ChevronRight size={16} />
-            <span>{siteName}</span>
+            <span className='hover:cursor-pointer' onClick={()=>navigate(`/dashboard/${siteId}`)}>{siteName}</span>
             <ChevronRight size={16} />
             <span>Equipment Health</span>
           </div>
@@ -142,7 +144,7 @@ export default function EquipmentListPage() {
                 );
               })}
 
-              {/* Filter picker — controlled by useState, not CSS group trick */}
+              {/* Filter picker */}
               <div id="grade-filter-dropdown" className="relative">
                 <button
                   onClick={() => setFilterOpen(prev => !prev)}
@@ -169,15 +171,15 @@ export default function EquipmentListPage() {
                           <span>Grade {grade}</span>
                           {isActive && (
                             <span
-                              className="text-xs font-bold px-1.5 py-0.5 rounded-full"
+                              className="text-xs px-1 py-0.5 rounded-full"
                               style={{ background: colors.bg, color: colors.text }}
                             >
-                              ✓
+                              <Check className='w-3 h-4 font-bold'/>
                             </span>
                           )}
                         </button>
                       );
-                    })}
+                    })} {/* ✓ */}
 
                     {/* Clear all — only shown when at least 1 active */}
                     {activeGrades.length > 0 && (
@@ -186,7 +188,7 @@ export default function EquipmentListPage() {
                         <button
                           onClick={() => {
                             setActiveGrades([]);
-                            setPage(1);
+                            // setPage(1);
                             setFilterOpen(false);
                           }}
                           className="px-4 py-2 text-xs text-left text-red-400 hover:bg-red-50 hover:text-red-500"
@@ -199,7 +201,6 @@ export default function EquipmentListPage() {
                 )}
               </div>
             </div>
-
 
             {/* SEARCH + CONTROLS */}
             <div className="flex flex-row gap-x-3 items-center">
@@ -228,30 +229,32 @@ export default function EquipmentListPage() {
           </div>
 
           {/* ROW COUNT */}
-          {/* <div className="mt-3 text-sm text-[#546A81]">
+          <div className="mt-3 text-sm text-[#546A81]">
             {isLoading
               ? 'Loading...'
-              : `Showing ${items.length} from ${meta.total ?? 0} results`}
-          </div> */}
+              : (() => {
+                const loadedCount = data?.pages?.reduce(
+                  (acc, page) => acc + (page?.data?.length || 0),
+                  0
+                ) || 0;
+                const totalCount = data?.pages?.[0]?.meta?.total || 0;
+                return `Showing ${loadedCount.toLocaleString()} of ${totalCount.toLocaleString()} results`;
+              })()
+            }
+          </div>
         </div>
 
         {/* TABLE + SIDE PANEL */}
         <div className="flex overflow-hidden">
           {/* SCROLLABLE TABLE */}
 
-
           {/* TABLE AREA  */}
           <div className="flex-1 flex flex-col overflow-hidden px-4 md:px-6">
-
-
-
             {/* VIRTUALIZED ROWS */}
             <div
               ref={parentRef}
               className="flex-1 overflow-auto"
             >
-
-
               {/* TABLE HEADER (Sticky) */}
               <div className="flex w-full border-b border-[#EEEEF2] bg-[#F9F9FC] shrink-0 z-10">
                 {TABLE_COLS.map(col => (

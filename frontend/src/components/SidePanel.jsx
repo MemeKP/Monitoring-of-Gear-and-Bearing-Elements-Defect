@@ -22,8 +22,6 @@ const SidePanel = ({ equipment, onClose }) => {
     return amplitudes.filter((_, index) => index % step === 0);
   }, [detailData]);
 
-  console.log('EQUIPMET', equipment)
-
   if (!equipment) return null
   return (
     <>
@@ -63,7 +61,7 @@ const SidePanel = ({ equipment, onClose }) => {
               <span className="font-medium">{equipment.grade}</span>
             </div>
             <div className="flex justify-between text-[13px] py-1">
-              <span className="text-[#546A81]">Stage</span>
+              <span className="text-[#546A81]">State</span>
               <span className="font-medium">{equipment.state ?? 'none'}</span>
             </div>
           </div>

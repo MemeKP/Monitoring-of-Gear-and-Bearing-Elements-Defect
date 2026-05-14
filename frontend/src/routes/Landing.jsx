@@ -2,7 +2,6 @@ import React, { useCallback } from 'react'
 import { useState } from 'react';
 import ThaiMap from '../components/ThaiMap';
 import logo from '../assets/logo.png';
-import { useNavigate } from 'react-router-dom';
 import { LiquidGlassButton, SiteCard, TransparentCard } from '../components/SiteSelector';
 import Dashboard from './Dashboard';
 import { useSites } from '../hooks/useSites';
@@ -31,7 +30,6 @@ const Landing = () => {
     const [hoveredSite, setHoveredSite] = useState(null);
     const [activePage, setActivePage] = useState("map");
     const { sites, loading, error } = useSites();
-    const navigate = useNavigate();
     const [activeSite, setActiveSite] = useState(null);
     const [selectedSite, setSelectedSite] = useState(null);
 
