@@ -40,6 +40,7 @@ const Dashboard = () => {
   const maxDelayLabel = overdueData?.max_delay_label ?? '--';
   // console.log("OVERDUE COUNT", overdueData)
   // console.log('ATTENTION', attention?.data)
+  const [activeMobileTab, setActiveMobileTab] = useState('attention')
   const siteName = siteId ?? 'All sites';
   const { ref, inView } = useInView({
     threshold: 0,
@@ -157,11 +158,42 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Machines requiring attention 2:1 */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-[#f4f7fa] rounded-2xl p-6">
+          {/* Machines requiring attention */}
+          {/* TAB (mobile) */}
+          <div className="flex lg:hidden bg-gray-100 p-1.5 rounded-xl mb-6">
+            <button
+              onClick={() => setActiveMobileTab('attention')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${activeMobileTab === 'attention'
+                ? 'bg-white text-[#546A81] shadow-sm'
+                : 'text-gray-400 hover:text-[#546A81]'
+                }`}
+            >
+              Attention
+              <span className={`text-xs px-2 py-0.5 rounded-full transition-colors ${activeMobileTab === 'attention' ? 'bg-[#ffe5e5] text-red-500' : 'bg-gray-200 text-gray-500'
+                }`}>
+                {filteredCount || 0}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveMobileTab('overdue')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${activeMobileTab === 'overdue'
+                ? 'bg-white text-red-500 shadow-sm'
+                : 'text-gray-400 hover:text-red-400'
+                }`}
+            >
+              Overdue
+              <span className={`text-xs px-2 py-0.5 rounded-full transition-colors ${activeMobileTab === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-gray-200 text-gray-500'
+                }`}>
+                {overdueData?.overdue_count ?? 0}
+              </span>
+            </button>
+          </div>
 
-              {/* Header & Filter Buttons */}
+          {/* Grid: Attention (2 cols) + Overdue (1 col) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Attention Column (spans 2) */}
+            <div className={`${activeMobileTab === 'attention' ? 'block' : 'hidden'} lg:block lg:col-span-2 bg-[#f4f7fa] rounded-2xl p-6`}>
+              {/* Header & Filter */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-4 sm:gap-0">
                 <div>
                   <h3 className="text-[#546A81] font-bold text-xl">
@@ -174,7 +206,7 @@ const Dashboard = () => {
                   </p>
                 </div>
 
-                {/* Desktop View: Toggle Buttons*/}
+                {/* Desktop: Toggle Buttons */}
                 <div className="hidden sm:flex items-center gap-3">
                   <button
                     onClick={() => setAttentionFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
@@ -188,19 +220,17 @@ const Dashboard = () => {
                   <button
                     onClick={() => setAttentionFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
                     className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'Warning'
-                        ? 'bg-yellow-400 text-white'
-                        : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
+                      ? 'bg-yellow-400 text-white'
+                      : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
                       }`}
                   >
-                    <TriangleAlert
-                      className={`w-[18px] h-[18px] transition-colors ${attentionFilter === 'Warning' ? 'text-white' : 'text-[#FFCB05]'
-                        }`}
-                    />
+                    <TriangleAlert className={`w-[18px] h-[18px] transition-colors ${attentionFilter === 'Warning' ? 'text-white' : 'text-[#FFCB05]'
+                      }`} />
                     Warning
                   </button>
                 </div>
 
-                {/* Mobile View: Dropdown */}
+                {/* Mobile: Dropdown */}
                 <div className="block sm:hidden w-full relative">
                   <select
                     value={attentionFilter}
@@ -211,8 +241,6 @@ const Dashboard = () => {
                     <option value="Critical">Critical (F)</option>
                     <option value="Warning">Warning (E)</option>
                   </select>
-
-                  {/* Custom Chevron Icon */}
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
                     <ChevronDown className='w-5' color="#b5b5b5" />
                   </div>
@@ -222,7 +250,6 @@ const Dashboard = () => {
               {/* List */}
               <div className="space-y-4 overflow-y-auto pr-2 h-full">
                 {attention.isLoading ? (
-                  // Skeleton rows while loading
                   [1, 2, 3, 4].map(i => <AttentionRowSkeleton key={i} />)
                 ) : attention.isError ? (
                   <ErrorBox message={attention.error?.message || "Something went wrong"} />
@@ -237,12 +264,7 @@ const Dashboard = () => {
                         onClick={() => navigate(`/dashboard/${siteId}/equipment/${item.id}`)}
                       />
                     ))}
-
-                    {/* Infinite Scroll Trigger */}
-                    <div
-                      ref={ref}
-                      className="py-4 text-center flex justify-center items-center"
-                    >
+                    <div ref={ref} className="py-4 text-center flex justify-center items-center">
                       {attention.isFetchingNextPage ? (
                         <span className="text-sm text-gray-400 animate-pulse">Loading more machines...</span>
                       ) : attention.hasNextPage ? (
@@ -256,8 +278,8 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Health Checkup Overdue */}
-            <div className="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            {/* Overdue Column (spans 1) */}
+            <div className={`${activeMobileTab === 'overdue' ? 'block' : 'hidden'} lg:block lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100`}>
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="bg-[#ffe5e5] p-2 rounded-xl border border-red-500 text-red-500 flex items-center justify-center">
@@ -275,14 +297,13 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* 3 Summary Boxes */}
               {overdue.isLoading ? (
                 <OverdueSkeleton />
               ) : overdue.isError ? (
                 <ErrorBox message={overdue.error.message} />
               ) : (
                 <>
-                  {/* 3 summary boxes */}
+                  {/* Summary boxes */}
                   <div className="grid grid-cols-3 gap-2 mb-6">
                     <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                       <span className="text-[#990000] font-bold text-2xl">{criticalCount}</span>
@@ -313,9 +334,7 @@ const Dashboard = () => {
                             </p>
                           </div>
                           <div className="text-right">
-                            <span className="text-sm font-bold text-[#546A81]">
-                              {item.days_since_check}
-                            </span>
+                            <span className="text-sm font-bold text-[#546A81]">{item.days_since_check}</span>
                             <span className="text-[10px] text-gray-400 ml-1">days</span>
                           </div>
                         </div>
