@@ -19,7 +19,7 @@ const Dashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { siteId } = useParams();
-  const site = siteId ?? 'all';
+  const site = siteId ?? 'all'; 
   const [attentionFilter, setAttentionFilter] = useState('Critical');
   const stats = useDashboardStats(site);
 
@@ -215,18 +215,30 @@ const Dashboard = () => {
                       : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
                       }`}
                   >
-                    Critical
+                    F
                   </button>
+
+                  {/* F motor -> peak === 100 */}
+                  <button
+                    onClick={() => setAttentionFilter(attentionFilter === 'f_motor' ? 'all' : 'f_motor')}
+                    className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'f_motor'
+                      ? 'bg-[#ff7a7a] text-white'
+                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
+                      }`}
+                  >
+                    F Motor
+                  </button>
+
                   <button
                     onClick={() => setAttentionFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
                     className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'Warning'
                       ? 'bg-yellow-400 text-white'
-                      : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
+                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
                       }`}
                   >
-                    <TriangleAlert className={`w-[18px] h-[18px] transition-colors ${attentionFilter === 'Warning' ? 'text-white' : 'text-[#FFCB05]'
-                      }`} />
-                    Warning
+                    {/* <TriangleAlert className={`w-[18px] h-[18px] transition-colors ${attentionFilter === 'Warning' ? 'text-white' : 'text-[#FFCB05]'
+                      }`} /> */}
+                    E
                   </button>
                 </div>
 
@@ -239,6 +251,7 @@ const Dashboard = () => {
                   >
                     <option value="all">All</option>
                     <option value="Critical">Critical (F)</option>
+                    <option value="f_motor">F Motor</option>
                     <option value="Warning">Warning (E)</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">

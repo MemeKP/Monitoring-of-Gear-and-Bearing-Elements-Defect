@@ -12,7 +12,7 @@ export class DashboardService {
     @InjectRepository(Measurement)
     private readonly repo: Repository<Measurement>,
 
-    @Inject(CACHE_MANAGER)         
+    @Inject(CACHE_MANAGER)
     private readonly cache: Cache,
   ) { }
 
@@ -27,7 +27,7 @@ export class DashboardService {
     ]);
   }
 
-   async getStats(site?: string) {
+  async getStats(site?: string) {
     const key = this.cacheKey(site);
 
     // Cache hit → return
@@ -128,7 +128,7 @@ export class DashboardService {
     await this.cache.set(key, result, 300_000);
     return result;
   }
- 
+
 
   // async getAttention(
   //   site?: string,
@@ -228,8 +228,8 @@ export class DashboardService {
                   'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
                   'rn'
                 )
-                .from('enveloped_fft', 'sub') 
-                .where("sub.indicator != 'I'") 
+                .from('enveloped_fft', 'sub')
+                .where("sub.indicator != 'I'")
                 .andWhere('sub.state IS NOT NULL');
             }, 'ranked')
             .where('ranked.rn = 1'); // ID 1st (latest + worst)
@@ -238,20 +238,40 @@ export class DashboardService {
         'm.id = latest.id' // JOIN ID 
       )
       .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue'])
-      .where("m.indicator != 'I'"); 
+      .where("m.indicator != 'I'");
 
     // Site
     if (site && site !== 'all') {
       qb.andWhere('m.site = :site', { site });
     }
 
-    // Filter (Critical = 6, Warning = 5)
+    // โอย แงงงงง แก้ต่อ;-; 
+    // Filter (Critical(F) = 6, Warning(E) = 5, and 1st peak = 100 = F Motor)
+    // if (normalizedFilter === 'critical') {
+    //   qb.andWhere('m.state = :state', { state: 6 }); 
+    // } else if (normalizedFilter === 'warning') {
+    //   qb.andWhere('m.state = :state', { state: 5 }); 
+    // } else {
+    //   qb.andWhere('m.state IN (:...states)', { states: [5, 6] });
+    // }
+ 
+    const fMotorCondition = `
+  (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
+  FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
     if (normalizedFilter === 'critical') {
-      qb.andWhere('m.state = :state', { state: 6 }); 
+      // filter state 6 but cant be F-Motor
+      qb.andWhere('m.state = :state', { state: 6 });
+      qb.andWhere(`NOT ${fMotorCondition}`);
     } else if (normalizedFilter === 'warning') {
-      qb.andWhere('m.state = :state', { state: 5 }); 
+      // warning 
+      qb.andWhere('m.state = :state', { state: 5 });
+      qb.andWhere(`NOT ${fMotorCondition}`); 
+    } else if (normalizedFilter === 'f_motor') {
+      // f-motor 
+      qb.andWhere(fMotorCondition);
     } else {
-      qb.andWhere('m.state IN (:...states)', { states: [5, 6] });
+      // all
+      qb.andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] });
     }
 
     qb.orderBy('m.state', 'DESC')
@@ -274,7 +294,7 @@ export class DashboardService {
           point_value: m.adjOptPointValue,
           grade,
           days_since_check: daysSinceCheck(m.measDate),
-          status_label: gradeToStatus(grade), 
+          status_label: gradeToStatus(grade),
         };
       }),
       meta: {
@@ -282,9 +302,7 @@ export class DashboardService {
         totalPages: Math.ceil(total / limit),
       },
     };
-
     await this.cache.set(cacheKey, responseData, 300); // 300 seconds = 5 mins
-
     return responseData;
   }
 

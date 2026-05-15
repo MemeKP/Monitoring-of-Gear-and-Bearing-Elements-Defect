@@ -9,6 +9,8 @@ import equipment from "../assets/equipment.png";
 import equipmentActive from "../assets/equipment-active.png";
 import logout from "../assets/logout.png";
 import leftArrow from "../assets/left-arrow.png";
+import folder from "../assets/folder.png";
+import folderActive from "../assets/folderActive.png"
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 export default function Navbar({
@@ -58,6 +60,12 @@ export default function Navbar({
       iconActive: equipmentActive,
       label: "Equipment Folder",
       path: `/dashboard/${currentSite}/equipment`,
+    },
+    {
+      icon: folder,
+      iconActive: folderActive,
+      label: "Machine Index",
+      path: `/dashboard/${currentSite}/machine-index`,
     },
   ];
 
