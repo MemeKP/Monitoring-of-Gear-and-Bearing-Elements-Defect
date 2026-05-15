@@ -27,7 +27,7 @@ import { SharedModule } from './shared/typesense.module';
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false, // never true in production
+        synchronize: false, // never true in production!!!!!
       }),
     }),
     CacheModule.registerAsync({

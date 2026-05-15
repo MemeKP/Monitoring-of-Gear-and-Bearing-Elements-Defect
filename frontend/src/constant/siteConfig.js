@@ -18,7 +18,6 @@ import nbp1 from '../assets/img/nbp1.webp'
 import nbp2 from '../assets/img/nbp2.webp'
 import nbp3 from '../assets/img/nbp3.webp'
 
-
 /**
  * STATIC site configuration — only geography & map dot positions.
  * Grade counts / percentages come from the API, NOT from here.
