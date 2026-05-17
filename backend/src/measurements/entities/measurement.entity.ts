@@ -2,9 +2,9 @@ import { commaSeparatedToArray } from "src/helpers/transformer.helper";
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('enveloped_fft')
-@Index('idx_site_date', ['site', 'meas_date'])
-@Index('idx_site_state_id', ['site', 'state', 'id'])
-@Index('idx_dashboard_optimized', ['site','equipment','meas_date','state', 'indicator', 'id'])
+// @Index('idx_site_date', ['site', 'meas_date'])
+// @Index('idx_site_state_id', ['site', 'state', 'id'])
+// @Index('idx_dashboard_optimized', ['site','equipment','meas_date','state', 'indicator', 'id'])
 export class Measurement {
 
     @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })

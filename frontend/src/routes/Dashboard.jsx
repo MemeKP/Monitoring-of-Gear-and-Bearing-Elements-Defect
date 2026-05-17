@@ -19,9 +19,10 @@ const Dashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { siteId } = useParams();
-  const site = siteId ?? 'all'; 
+  const site = siteId ?? 'all';
   const [attentionFilter, setAttentionFilter] = useState('Critical');
   const stats = useDashboardStats(site);
+  const [overdueFilter, setOverdueFilter] = useState('all')
 
   const overdue = useDashboardOverdue(site);
   const stageBreakdown = stats.data?.stage_breakdown ?? [];
@@ -38,13 +39,18 @@ const Dashboard = () => {
   const criticalCount = overdueData?.critical_count ?? 0;
   const warningCount = overdueData?.warning_count ?? 0;
   const maxDelayLabel = overdueData?.max_delay_label ?? '--';
-  // console.log("OVERDUE COUNT", overdueData)
-  // console.log('ATTENTION', attention?.data)
+  console.log("OVERDUE COUNT", overdueData)
+  console.log('ATTENTION', attention?.data)
   const [activeMobileTab, setActiveMobileTab] = useState('attention')
   const siteName = siteId ?? 'All sites';
   const { ref, inView } = useInView({
     threshold: 0,
   });
+
+  const allAttentionItems = attention.data?.pages.flatMap((page) => page.data || []) ?? [];
+  const criticalAttentionCount = allAttentionItems.filter(item => item.grade === 'F').length;
+  const fMotorCount = allAttentionItems.filter(item => item.peak === 100).length;
+  const warningAttentionCount = allAttentionItems.filter(item => item.grade === 'E').length;
 
   const filteredCount =
     attention.data?.pages?.[0]?.meta?.total ?? 0;
@@ -260,6 +266,22 @@ const Dashboard = () => {
                 </div>
               </div>
 
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                  <span className="text-[#990000] font-bold text-2xl">{criticalAttentionCount}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical (F)</span>
+                </div>
+                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                  <span className="text-[#546A81] font-bold text-2xl">{fMotorCount}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">F Motor</span>
+                </div>
+                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                  <span className="text-[#FFCB05] font-bold text-2xl">{warningAttentionCount}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">Warning (E)</span>
+                </div>
+              </div>
+
               {/* List */}
               <div className="space-y-4 overflow-y-auto pr-2 h-full">
                 {attention.isLoading ? (
@@ -320,15 +342,81 @@ const Dashboard = () => {
                   <div className="grid grid-cols-3 gap-2 mb-6">
                     <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                       <span className="text-[#990000] font-bold text-2xl">{criticalCount}</span>
-                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical</span>
+                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical (F)</span>
                     </div>
                     <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                       <span className="text-[#FFCB05] font-bold text-2xl">{warningCount}</span>
-                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Warning</span>
+                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Warning (E)</span>
                     </div>
                     <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                       <span className="text-[#546A81] font-bold text-2xl">{maxDelayLabel}</span>
                       <span className="text-[10px] text-gray-400 mt-1 font-semibold">Max delay</span>
+                    </div>
+                  </div>
+
+                  {/* Desktop Toggles overdue panel */}
+                  {/* <div className="hidden sm:flex items-center gap-3 mb-4">
+                    <button
+                      onClick={() => setOverdueFilter(overdueFilter === 'Critical' ? 'all' : 'Critical')}
+                      className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${overdueFilter === 'Critical'
+                          ? 'bg-[#ff7a7a] text-white'
+                          : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
+                        }`}
+                    >
+                      F
+                    </button>
+
+                    <button
+                      onClick={() => setOverdueFilter(overdueFilter === 'f_motor' ? 'all' : 'f_motor')}
+                      className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${overdueFilter === 'f_motor'
+                          ? 'bg-[#ff7a7a] text-white'
+                          : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
+                        }`}
+                    >
+                      F Motor
+                    </button>
+
+                    <button
+                      onClick={() => setOverdueFilter(overdueFilter === 'Warning' ? 'all' : 'Warning')}
+                      className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${overdueFilter === 'Warning'
+                          ? 'bg-yellow-400 text-white'
+                          : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
+                        }`}
+                    >
+                      E
+                    </button>
+                  </div> */}
+                  {/* Desktop: Dropdown */}
+                  <div className="w-full relative mb-4">
+                    <select
+                      value={overdueFilter}
+                      onChange={(e) => setOverdueFilter(e.target.value)}
+                      className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#546A81] font-semibold hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none transition-all duration-200 cursor-pointer"
+                    >
+                      <option value="all">All</option>
+                      <option value="Critical">Critical (F)</option>
+                      <option value="f_motor">F Motor</option>
+                      <option value="Warning">Warning (E)</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
+                      <ChevronDown className='w-5' color="#b5b5b5" />
+                    </div>
+                  </div>
+
+                  {/* Mobile: Dropdown */}
+                  <div className="block sm:hidden w-full relative">
+                    <select
+                      value={overdueFilter}
+                      onChange={(e) => setOverdueFilter(e.target.value)}
+                      className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#546A81] font-semibold hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none transition-all duration-200 cursor-pointer"
+                    >
+                      <option value="all">All</option>
+                      <option value="Critical">Critical (F)</option>
+                      <option value="f_motor">F Motor</option>
+                      <option value="Warning">Warning (E)</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
+                      <ChevronDown className='w-5' color="#b5b5b5" />
                     </div>
                   </div>
 
@@ -367,7 +455,7 @@ const Dashboard = () => {
 
 export default Dashboard
 
-// DASHBOARD - SKELETON LOADER 
+// SKELETON LOADER 
 function StatsSkeleton() {
   return (
     <div className="flex gap-4 animate-pulse">
