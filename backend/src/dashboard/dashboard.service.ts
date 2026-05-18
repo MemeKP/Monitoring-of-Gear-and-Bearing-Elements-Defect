@@ -44,6 +44,7 @@ export class DashboardService {
           .select('sub.site', 'site')
           .addSelect('sub.equipment', 'equipment')
           .addSelect('sub.state', 'state')
+          // !!!!
           .addSelect(
             'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
             'rn'
@@ -452,10 +453,21 @@ export class DashboardService {
     limit = 10,
     filter = 'all',
   ) {
-
+    const normalizedFilter = filter?.toLowerCase() || 'all';
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() - thresholdDays);
     const skip = (page - 1) * limit;
+
+    const peakCondition = `
+  (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
+   FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
+
+    const fMotorCondition = `(m.state = 6 AND ${peakCondition})`;
+    const FCondition = `(m.state = 6 AND NOT ${peakCondition})`;
+
+    // const fMotorCondition = `m.state = 6 AND
+    // (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
+    // FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
 
     const baseQb = this.repo.createQueryBuilder('m')
       .innerJoin(
@@ -474,34 +486,45 @@ export class DashboardService {
     if (site && site !== 'all') {
       baseQb.andWhere('m.site = :site', { site });
     }
-    if (filter === 'critical' || filter === 'Critical') {
-      baseQb.andWhere('m.state = :state', { state: 6 });
-    } else if (filter === 'warning' || filter === 'Warning') {
-      baseQb.andWhere('m.state = :state', { state: 5 });
+
+    const statsQb = baseQb.clone().select([
+      'COUNT(m.id) AS total',
+       `SUM(CASE WHEN ${FCondition} THEN 1 ELSE 0 END) AS criticalCount`,
+      'SUM(CASE WHEN m.state = 5 THEN 1 ELSE 0 END) AS warningCount',
+      'SUM(CASE WHEN m.state = 4 THEN 1 ELSE 0 END) AS dCount',
+      'SUM(CASE WHEN m.state = 3 THEN 1 ELSE 0 END) AS cCount',
+      'SUM(CASE WHEN m.state = 2 THEN 1 ELSE 0 END) AS bCount',
+      'SUM(CASE WHEN m.state = 1 THEN 1 ELSE 0 END) AS aCount',
+      `SUM(CASE WHEN ${fMotorCondition} THEN 1 ELSE 0 END) AS fMotorCount`,
+      'MIN(m.measDate) AS oldestDate',
+    ]);
+
+    const itemsQb = baseQb.clone()
+      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state']);
+
+    if (normalizedFilter === 'f') {
+      itemsQb.andWhere(FCondition);
+      // itemsQb.andWhere(`NOT ${fMotorCondition}`);
+    } else if (normalizedFilter === 'f_motor') {
+      itemsQb.andWhere(fMotorCondition);
+    } else if (normalizedFilter === 'e') {
+      itemsQb.andWhere('m.state = :state', { state: 5 });
+    } else if (normalizedFilter === 'd') {
+      itemsQb.andWhere('m.state = :state', { state: 4 });
+    } else if (normalizedFilter === 'c') {
+      itemsQb.andWhere('m.state = :state', { state: 3 });
+    } else if (normalizedFilter === 'b') {
+      itemsQb.andWhere('m.state = :state', { state: 2 });
+    } else if (normalizedFilter === 'a') {
+      itemsQb.andWhere('m.state = :state', { state: 1 });
     }
 
-    // Stats (no pagination)
-    const statsQb = baseQb.clone()
-      .select('COUNT(*)', 'total')
-      .addSelect('SUM(CASE WHEN m.state = 6 THEN 1 ELSE 0 END)', 'criticalCount')
-      .addSelect('SUM(CASE WHEN m.state = 5 THEN 1 ELSE 0 END)', 'warningCount')
-      .addSelect('MIN(m.measDate)', 'oldestDate');
-
-    // Items (with pagination)
-    const itemsQb = baseQb.clone()
-      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state'])
-      .orderBy('m.measDate', 'ASC')
-      .skip(skip)
-      .take(limit);
+    itemsQb.orderBy('m.measDate', 'ASC').skip(skip).take(limit);
 
     const [stats, [items, total]] = await Promise.all([
       statsQb.getRawOne(),
       itemsQb.getManyAndCount(),
     ]);
-
-    const overdueCount = Number(stats.total) || 0;
-    const criticalCount = Number(stats.criticalCount) || 0;
-    const warningCount = Number(stats.warningCount) || 0;
 
     let maxDays = 0;
     if (stats.oldestDate) {
@@ -517,9 +540,14 @@ export class DashboardService {
     return {
       success: true,
       stats: {
-        overdue_count: overdueCount,
-        critical_count: criticalCount,
-        warning_count: warningCount,
+        overdue_count: Number(stats.total) || 0,
+        critical_count: Number(stats.criticalCount) || 0,
+        warning_count: Number(stats.warningCount) || 0,
+        d_count: Number(stats.dCount) || 0,
+        c_count: Number(stats.cCount) || 0,
+        b_count: Number(stats.bCount) || 0,
+        a_count: Number(stats.aCount) || 0,
+        f_motor_count: Number(stats.fMotorCount) || 0,
         max_delay_label: formatDelay(maxDays),
       },
       data: items.map(m => {
@@ -535,10 +563,7 @@ export class DashboardService {
           days_since_check: daysSinceCheck(m.measDate),
         };
       }),
-      meta: {
-        page, limit, total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
 

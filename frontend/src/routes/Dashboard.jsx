@@ -27,7 +27,7 @@ const Dashboard = () => {
   const [activeMobileTab, setActiveMobileTab] = useState('attention');
   const siteName = siteId ?? 'All sites';
 
-  // infinite Scroll
+  // infinite scroll
   const { ref, inView } = useInView({ threshold: 0 });
 
   // STATS
@@ -35,7 +35,7 @@ const Dashboard = () => {
   const stageBreakdown = stats.data?.stage_breakdown ?? [];
 
   // OVERDUE 
-  const overdue = useDashboardOverdue(site,overdueFilter);
+  const overdue = useDashboardOverdue(site, overdueFilter);
   const overdueData = overdue.data;
   // const overdueItems = overdueData?.items ?? [];
   // const maxDelayLabel = overdueData?.max_delay_label ?? '--';
@@ -46,9 +46,8 @@ const Dashboard = () => {
   const criticalCount = overdueStats?.critical_count ?? 0;
   const warningCount = overdueStats?.warning_count ?? 0;
   const overdueCount = overdueStats?.overdue_count ?? 0;
-
-  // items 
-const overdueItems = overdue.data?.pages?.flatMap(page => Array.isArray(page) ? page : (page.data ?? [])) ?? [];
+  const overdueItems = overdue.data?.pages?.flatMap(page => Array.isArray(page) ? page : (page.data ?? [])) ?? [];
+  
   // ATTENTION 
   const attention = useDashboardAttention({ site, filter: attentionFilter });
   const attentionItems = attention.data?.pages?.flatMap((page) => page.data || []) ?? [];
@@ -65,13 +64,13 @@ const overdueItems = overdue.data?.pages?.flatMap(page => Array.isArray(page) ? 
   const fMotorCount = attentionStats.fMotorStats;
   const filteredCount = attention.data?.pages?.[0]?.meta?.total ?? 0;
 
-  console.log('ATTENTION_PAGES', attention.data?.pages);
-  console.log('ATTENTION_STATS', attentionStats);
+  // console.log('ATTENTION_PAGES', attention.data?.pages);
+  // console.log('ATTENTION_STATS', attentionStats);
 
   // console.log("OVERDUE COUNT", overdueData)
-  console.log('OVERDUE DATA',overdueData)
-  console.log('OVERDUE ITEMS',overdueItems)
-  console.log('PAGE 0', overdue.data?.pages?.[0]);
+  // console.log('OVERDUE DATA', overdueData)
+  // console.log('OVERDUE ITEMS', overdueItems)
+  // console.log('PAGE 0', overdue.data?.pages?.[0]);
 
   // console.log('ATTENTION', attention?.data)
   // console.log("ATTENTION DATA", attention.data);
@@ -217,7 +216,10 @@ const overdueItems = overdue.data?.pages?.flatMap(page => Array.isArray(page) ? 
               Overdue
               <span className={`text-xs px-2 py-0.5 rounded-full transition-colors ${activeMobileTab === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-gray-200 text-gray-500'
                 }`}>
-                {overdueItems?.overdue_count ?? 0}
+                {/* {overdueItems?.overdue_count ?? 0} */}
+                {overdue.isLoading
+                      ? '...'
+                      : `${overdueCount}`}
               </span>
             </button>
           </div>
@@ -387,9 +389,13 @@ const overdueItems = overdue.data?.pages?.flatMap(page => Array.isArray(page) ? 
                       className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#546A81] font-semibold hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none transition-all duration-200 cursor-pointer"
                     >
                       <option value="all">All</option>
-                      <option value="Critical">Critical (F)</option>
-                      <option value="f_motor">F Motor</option>
-                      <option value="Warning">Warning (E)</option>
+                      <option value="f">F</option>
+                      <option value="f_motor">F(Motor)</option>
+                      <option value="e">E</option>
+                      <option value="d">D</option>
+                      <option value="c">C</option>
+                      <option value="b">B</option>
+                      <option value="a">A</option>
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
                       <ChevronDown className="w-5" color="#b5b5b5" />
@@ -430,7 +436,10 @@ const overdueItems = overdue.data?.pages?.flatMap(page => Array.isArray(page) ? 
                       <p className="text-center text-xs text-gray-400 py-2">Loading more...</p>
                     )}
                     {!overdue.hasNextPage && overdueItems.length > 0 && (
-                      <p className="text-center text-xs text-gray-400 py-2">All {overdueCount} machines loaded</p>
+                      <p className="text-center text-xs text-gray-400 py-2">All machines loaded</p>
+                    )}
+                    {overdueItems.length === 0 && (
+                      <p className="text-center text-xs text-gray-400 py-2">No machines found</p>
                     )}
                   </div>
                 </>

@@ -113,7 +113,7 @@ export default function EquipmentListPage() {
 
       <div className={`transition-all duration-300 pt-14 md:pt-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         
-        {/* HEADER */}
+        {/* HEADER */} 
         <div className="p-4 md:p-6 pb-0">
           <div className="text-[#546A81] text-4xl font-bold leading-[66px]">Equipment Health</div>
           <div className="flex font-medium items-center gap-2 text-base text-[#546A81]">

@@ -20,28 +20,28 @@ export class EquipmentsService {
     private readonly typesenseService: TypesenseService,
   ) { }
 
-  async syncAllToTypesense() {
-    const machines = await this.repo.createQueryBuilder('m')
-      .select('MAX(m.id)', 'id')
-      .addSelect('m.equipment', 'equipment')
-      .addSelect('m.site', 'site')
-      .where("m.indicator != 'I'")
-      .groupBy('m.site')
-      .addGroupBy('m.equipment')
-      .getRawMany<RawMachineData>();
+  // async syncAllToTypesense() {
+  //   const machines = await this.repo.createQueryBuilder('m')
+  //     .select('MAX(m.id)', 'id')
+  //     .addSelect('m.equipment', 'equipment')
+  //     .addSelect('m.site', 'site')
+  //     .where("m.indicator != 'I'")
+  //     .groupBy('m.site')
+  //     .addGroupBy('m.equipment')
+  //     .getRawMany<RawMachineData>();
 
-    console.log(`Found ${machines.length} machines. Syncing to Typesense...`);
+  //   console.log(`Found ${machines.length} machines. Syncing to Typesense...`);
 
-    for (const m of machines) {
-      await this.typesenseService.upsertEquipment({
-        id: m.id,
-        equipment: m.equipment,
-        site: m.site,
-      });
-    }
+  //   for (const m of machines) {
+  //     await this.typesenseService.upsertEquipment({
+  //       id: m.id,
+  //       equipment: m.equipment,
+  //       site: m.site,
+  //     });
+  //   }
 
-    return { message: `Synced ${machines.length} machines successfully!` };
-  }
+  //   return { message: `Synced ${machines.length} machines successfully!` };
+  // }
 
   // async searchEquipmentList(searchQuery: string, site?: string) {
   //   const matchedIds = await this.typesenseService.searchEquipment(searchQuery, site);
@@ -71,6 +71,25 @@ export class EquipmentsService {
 
   //   return { success: true, data: equipments };
   // }
+  async syncAllToTypesense() {
+    const machines = await this.repo.createQueryBuilder('m')
+      .select('m.id', 'id') 
+      .addSelect('m.equipment', 'equipment')
+      .addSelect('m.site', 'site')
+      .getRawMany<RawMachineData>();
+
+    console.log(`Found ${machines.length} records. Syncing to Typesense...`);
+
+    for (const m of machines) {
+      await this.typesenseService.upsertEquipment({
+        id: Number(m.id), 
+        equipment: m.equipment,
+        site: m.site,
+      });
+    }
+
+    return { message: `Synced ${machines.length} records successfully!` };
+  }
 
   private enrich(m: Measurement) {
     const grade = computeGrade(m.state);
