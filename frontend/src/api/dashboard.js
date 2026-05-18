@@ -11,7 +11,7 @@ apiClient.interceptors.response.use(
         if (res.config.reqFullData) {
             return res.data; // { success, data, meta } 
         }
-        
+
         return res.data.data;
     },
     (error) => {
@@ -24,30 +24,33 @@ export const dashboardApi = {
         apiClient.get('dashboard/stats', {
             params: { site }
         }),
- 
+
     getAttention: ({ site = 'all', filter = 'all', page = 1, limit = 20 } = {}) =>
         apiClient.get('/dashboard/attention', {
             params: { site, filter, page, limit },
             reqFullData: true,
         }),
 
-    getOverdue: ({ site = 'all', thresholdDays = 90, limit = 8 } = {}) =>
+    getOverdue: ({ site = 'all', thresholdDays = 90, page = 1, limit = 8, filter='all' } = {}) =>
         apiClient.get('/dashboard/overdue', {
             params: {
                 site,
                 threshold_days: thresholdDays,
-                limit
+                page,
+                limit,
+                filter,
             },
+            reqFullData: true,
         }),
 }
 
 export const measurementApi = {
-  getOne: (id) =>
-    apiClient.get(`/measurements/${id}`)
+    getOne: (id) =>
+        apiClient.get(`/measurements/${id}`)
 };
 
 export const equipmentApi = {
-    getList: ({site, grade, search, sort, order, page, limit} = {}) => {
+    getList: ({ site, grade, search, sort, order, page, limit } = {}) => {
         const params = new URLSearchParams();
         if (site) {
             params.set('site', site);
@@ -71,7 +74,7 @@ export const equipmentApi = {
             params.set('limit', limit);
         }
         return apiClient.get(`/equipments?${params.toString()}`, {
-            reqFullData: true 
+            reqFullData: true
         });
     },
 

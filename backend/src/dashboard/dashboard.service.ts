@@ -129,43 +129,71 @@ export class DashboardService {
     return result;
   }
 
-
   // async getAttention(
   //   site?: string,
   //   filter?: string,
   //   page = 1,
   //   limit = 20,
   // ) {
+  //   // create Cache Key (Site, Filter, Page, Limit)
+  //   const normalizedFilter = filter?.toLowerCase() || 'all';
+  //   const siteKey = site || 'all';
+  //   const cacheKey = `attention:${siteKey}:${normalizedFilter}:${page}:${limit}`;
+
+  //   // check Cache 
+  //   const cachedData = await this.cache.get(cacheKey);
+  //   if (cachedData) {
+  //     return cachedData;
+  //   }
+
   //   const skip = (page - 1) * limit;
+
   //   const qb = this.repo.createQueryBuilder('m')
-  //     // 1. INNER JOIN 
   //     .innerJoin(
   //       (subQuery) => {
   //         return subQuery
-  //           .select('MAX(sub.id)', 'max_id')
-  //           .from('enveloped_fft', 'sub')
-  //           .groupBy('sub.site')
-  //           .addGroupBy('sub.equipment');
+  //           .select('ranked.id', 'id')
+  //           .from((sq) => {
+  //             return sq
+  //               .select('sub.id', 'id')
+  //               .addSelect(
+  //                 'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
+  //                 'rn'
+  //               )
+  //               .from('enveloped_fft', 'sub')
+  //               .where("sub.indicator != 'I'")
+  //               .andWhere('sub.state IS NOT NULL');
+  //           }, 'ranked')
+  //           .where('ranked.rn = 1'); // ID 1st (latest + worst)
   //       },
   //       'latest',
-  //       'm.id = latest.max_id'
+  //       'm.id = latest.id' // JOIN ID 
   //     )
-  //     .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue']);
+  //     .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue'])
+  //     .where("m.indicator != 'I'");
 
-  //   // 2. Site
+  //   // Site
   //   if (site && site !== 'all') {
   //     qb.andWhere('m.site = :site', { site });
   //   }
 
-  //   // 3. Filter (Critical / Warning)
-  //   const normalizedFilter = filter?.toLowerCase();
-
+  //   const fMotorCondition = `
+  // (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
+  // FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
   //   if (normalizedFilter === 'critical') {
-  //     qb.andWhere('m.state = :state', { state: 6 }); // Critical = 6
+  //     // filter state 6 but cant be F-Motor
+  //     qb.andWhere('m.state = :state', { state: 6 });
+  //     qb.andWhere(`NOT ${fMotorCondition}`);
   //   } else if (normalizedFilter === 'warning') {
-  //     qb.andWhere('m.state = :state', { state: 5 }); // Warning = 5
+  //     // warning 
+  //     qb.andWhere('m.state = :state', { state: 5 });
+  //     qb.andWhere(`NOT ${fMotorCondition}`);
+  //   } else if (normalizedFilter === 'f_motor') {
+  //     // f-motor 
+  //     qb.andWhere(fMotorCondition);
   //   } else {
-  //     qb.andWhere('m.state IN (:...states)', { states: [5, 6] });
+  //     // all
+  //     qb.andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] });
   //   }
 
   //   qb.orderBy('m.state', 'DESC')
@@ -175,7 +203,22 @@ export class DashboardService {
 
   //   const [items, total] = await qb.getManyAndCount();
 
-  //   return {
+  //   const statsQb = qb.clone().select([
+  //     `SUM(CASE WHEN m.state = 6 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS critical_count`,
+  //     `SUM(CASE WHEN m.state = 5 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS warning_count`,
+  //     `SUM(CASE WHEN ${fMotorCondition} THEN 1 ELSE 0 END) AS f_motor_count`,
+  //     `COUNT(m.id) AS all_count`
+  //   ])
+
+
+  //   const rawStats = await statsQb.getRawOne();
+
+  //   const allStats = Number(rawStats?.all_count)
+  //   const criticalStats = Number(rawStats?.critical_count)
+  //   const warningStats = Number(rawStats?.warning_count)
+  //   const fMotorStats = Number(rawStats?.f_motor_count)
+
+  //   const responseData = {
   //     success: true,
   //     data: items.map(m => {
   //       const grade = computeGrade(m.state);
@@ -188,14 +231,22 @@ export class DashboardService {
   //         point_value: m.adjOptPointValue,
   //         grade,
   //         days_since_check: daysSinceCheck(m.measDate),
-  //         status_label: gradeToStatus(grade), //  'Critical' 'Warning' 
+  //         status_label: gradeToStatus(grade),
   //       };
   //     }),
   //     meta: {
   //       page, limit, total,
   //       totalPages: Math.ceil(total / limit),
   //     },
+  //     stats: {
+  //       allStats: allStats,
+  //       criticalStats: criticalStats,
+  //       warningStats: warningStats,
+  //       fMotorStats: fMotorStats,
+  //     },
   //   };
+  //   await this.cache.set(cacheKey, responseData, 300); // 5 mins
+  //   return responseData;
   // }
   async getAttention(
     site?: string,
@@ -203,12 +254,10 @@ export class DashboardService {
     page = 1,
     limit = 20,
   ) {
-    // create Cache Key (Site, Filter, Page, Limit)
     const normalizedFilter = filter?.toLowerCase() || 'all';
     const siteKey = site || 'all';
     const cacheKey = `attention:${siteKey}:${normalizedFilter}:${page}:${limit}`;
 
-    // check Cache 
     const cachedData = await this.cache.get(cacheKey);
     if (cachedData) {
       return cachedData;
@@ -216,7 +265,11 @@ export class DashboardService {
 
     const skip = (page - 1) * limit;
 
-    const qb = this.repo.createQueryBuilder('m')
+    const fMotorCondition = `
+    (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
+    FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
+
+    const baseQb = this.repo.createQueryBuilder('m')
       .innerJoin(
         (subQuery) => {
           return subQuery
@@ -232,45 +285,39 @@ export class DashboardService {
                 .where("sub.indicator != 'I'")
                 .andWhere('sub.state IS NOT NULL');
             }, 'ranked')
-            .where('ranked.rn = 1'); // ID 1st (latest + worst)
+            .where('ranked.rn = 1');
         },
         'latest',
-        'm.id = latest.id' // JOIN ID 
+        'm.id = latest.id'
       )
-      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue'])
       .where("m.indicator != 'I'");
 
-    // Site
     if (site && site !== 'all') {
-      qb.andWhere('m.site = :site', { site });
+      baseQb.andWhere('m.site = :site', { site });
     }
 
-    // โอย แงงงงง แก้ต่อ;-; 
-    // Filter (Critical(F) = 6, Warning(E) = 5, and 1st peak = 100 = F Motor)
-    // if (normalizedFilter === 'critical') {
-    //   qb.andWhere('m.state = :state', { state: 6 }); 
-    // } else if (normalizedFilter === 'warning') {
-    //   qb.andWhere('m.state = :state', { state: 5 }); 
-    // } else {
-    //   qb.andWhere('m.state IN (:...states)', { states: [5, 6] });
-    // }
- 
-    const fMotorCondition = `
-  (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
-  FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
+    const statsQb = baseQb.clone()
+      .andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] })
+      .select([
+        `SUM(CASE WHEN m.state = 6 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS critical_count`,
+        `SUM(CASE WHEN m.state = 5 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS warning_count`,
+        `SUM(CASE WHEN ${fMotorCondition} THEN 1 ELSE 0 END) AS f_motor_count`,
+        `COUNT(m.id) AS all_count`,
+      ]);
+
+    // filter QB 
+    const qb = baseQb.clone()
+      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue']);
+
     if (normalizedFilter === 'critical') {
-      // filter state 6 but cant be F-Motor
       qb.andWhere('m.state = :state', { state: 6 });
       qb.andWhere(`NOT ${fMotorCondition}`);
     } else if (normalizedFilter === 'warning') {
-      // warning 
       qb.andWhere('m.state = :state', { state: 5 });
-      qb.andWhere(`NOT ${fMotorCondition}`); 
+      qb.andWhere(`NOT ${fMotorCondition}`);
     } else if (normalizedFilter === 'f_motor') {
-      // f-motor 
       qb.andWhere(fMotorCondition);
     } else {
-      // all
       qb.andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] });
     }
 
@@ -279,7 +326,10 @@ export class DashboardService {
       .skip(skip)
       .take(limit);
 
-    const [items, total] = await qb.getManyAndCount();
+    const [[items, total], rawStats] = await Promise.all([
+      qb.getManyAndCount(),
+      statsQb.getRawOne(),
+    ]);
 
     const responseData = {
       success: true,
@@ -301,44 +351,153 @@ export class DashboardService {
         page, limit, total,
         totalPages: Math.ceil(total / limit),
       },
+      stats: {
+        allStats: Number(rawStats?.all_count ?? 0),
+        criticalStats: Number(rawStats?.critical_count ?? 0),
+        warningStats: Number(rawStats?.warning_count ?? 0),
+        fMotorStats: Number(rawStats?.f_motor_count ?? 0),
+      },
     };
-    await this.cache.set(cacheKey, responseData, 300); // 300 seconds = 5 mins
+
+    await this.cache.set(cacheKey, responseData, 300);
     return responseData;
   }
 
+  // async getOverdue(
+  //   site?: string,
+  //   thresholdDays = 90, // overdue 3 months
+  //   limit = 10,
+  // ) {
+  //   const targetDate = new Date();
+  //   targetDate.setDate(targetDate.getDate() - thresholdDays);
+
+  //   const qb = this.repo.createQueryBuilder('m')
+  //     .innerJoin(
+  //       (subQuery) => {
+  //         return subQuery
+  //           .select('MAX(sub.id)', 'max_id')
+  //           .from('enveloped_fft', 'sub')  
+  //           .groupBy('sub.site')
+  //           .addGroupBy('sub.equipment');
+  //       },
+  //       'latest',
+  //       'm.id = latest.max_id' // JOIN Primary Key 
+  //     )
+  //     .where('m.measDate < :targetDate', { targetDate });
+
+  //   if (site && site !== 'all') {
+  //     qb.andWhere('m.site = :site', { site });
+  //   }
+
+  //   const statsQb = qb.clone()
+  //     .select('COUNT(*)', 'total')
+  //     .addSelect('SUM(CASE WHEN m.state = 6 THEN 1 ELSE 0 END)', 'criticalCount')
+  //     .addSelect('SUM(CASE WHEN m.state = 5 THEN 1 ELSE 0 END)', 'warningCount')
+  //     .addSelect('MIN(m.measDate)', 'oldestDate');
+
+  //   const stats = await statsQb.getRawOne();
+
+  //   const overdueCount = Number(stats.total) || 0;
+  //   const criticalCount = Number(stats.criticalCount) || 0;
+  //   const warningCount = Number(stats.warningCount) || 0;
+
+  //   let maxDays = 0;
+  //   if (stats.oldestDate) {
+  //     maxDays = daysSinceCheck(String(stats.oldestDate));
+  //   }
+
+  //   const formatDelay = (days: number): string => {
+  //     if (days >= 365) return `+${Math.floor(days / 365)}yr`;
+  //     if (days >= 30) return `+${Math.floor(days / 30)}mo`;
+  //     return `+${days}d`;
+  //   };
+
+  //   const itemsQb = qb.clone()
+  //     .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state'])
+  //     .orderBy('m.measDate', 'ASC')
+  //     .take(limit);
+
+  //   const allOverdue = await itemsQb.getMany();
+
+  //   const items = allOverdue.map(m => {
+  //     const grade = computeGrade(m.state);
+  //     return {
+  //       id: m.id,
+  //       equipment: m.equipment,
+  //       site: m.site,
+  //       meas_point: m.measPoint,
+  //       meas_date: m.measDate,
+  //       grade,
+  //       status_label: gradeToStatus(grade),
+  //       days_since_check: daysSinceCheck(m.measDate),
+  //     };
+  //   });
+
+  //   return {
+  //     success: true,
+  //     data: {
+  //       overdue_count: overdueCount,
+  //       critical_count: criticalCount,
+  //       warning_count: warningCount,
+  //       max_delay_label: formatDelay(maxDays),
+  //       items,
+  //     },
+  //   };
+  // }
+
   async getOverdue(
     site?: string,
-    thresholdDays = 90, // overdue 3 months
+    thresholdDays = 90,
+    page = 1,
     limit = 10,
+    filter = 'all',
   ) {
+
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() - thresholdDays);
+    const skip = (page - 1) * limit;
 
-    const qb = this.repo.createQueryBuilder('m')
+    const baseQb = this.repo.createQueryBuilder('m')
       .innerJoin(
         (subQuery) => {
           return subQuery
             .select('MAX(sub.id)', 'max_id')
-            .from('enveloped_fft', 'sub')  /// !!!
+            .from('enveloped_fft', 'sub')
             .groupBy('sub.site')
             .addGroupBy('sub.equipment');
         },
         'latest',
-        'm.id = latest.max_id' // JOIN Primary Key 
+        'm.id = latest.max_id'
       )
       .where('m.measDate < :targetDate', { targetDate });
 
     if (site && site !== 'all') {
-      qb.andWhere('m.site = :site', { site });
+      baseQb.andWhere('m.site = :site', { site });
+    }
+    if (filter === 'critical' || filter === 'Critical') {
+      baseQb.andWhere('m.state = :state', { state: 6 });
+    } else if (filter === 'warning' || filter === 'Warning') {
+      baseQb.andWhere('m.state = :state', { state: 5 });
     }
 
-    const statsQb = qb.clone()
+    // Stats (no pagination)
+    const statsQb = baseQb.clone()
       .select('COUNT(*)', 'total')
       .addSelect('SUM(CASE WHEN m.state = 6 THEN 1 ELSE 0 END)', 'criticalCount')
       .addSelect('SUM(CASE WHEN m.state = 5 THEN 1 ELSE 0 END)', 'warningCount')
       .addSelect('MIN(m.measDate)', 'oldestDate');
 
-    const stats = await statsQb.getRawOne();
+    // Items (with pagination)
+    const itemsQb = baseQb.clone()
+      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state'])
+      .orderBy('m.measDate', 'ASC')
+      .skip(skip)
+      .take(limit);
+
+    const [stats, [items, total]] = await Promise.all([
+      statsQb.getRawOne(),
+      itemsQb.getManyAndCount(),
+    ]);
 
     const overdueCount = Number(stats.total) || 0;
     const criticalCount = Number(stats.criticalCount) || 0;
@@ -355,35 +514,30 @@ export class DashboardService {
       return `+${days}d`;
     };
 
-    const itemsQb = qb.clone()
-      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state'])
-      .orderBy('m.measDate', 'ASC')
-      .take(limit);
-
-    const allOverdue = await itemsQb.getMany();
-
-    const items = allOverdue.map(m => {
-      const grade = computeGrade(m.state);
-      return {
-        id: m.id,
-        equipment: m.equipment,
-        site: m.site,
-        meas_point: m.measPoint,
-        meas_date: m.measDate,
-        grade,
-        status_label: gradeToStatus(grade),
-        days_since_check: daysSinceCheck(m.measDate),
-      };
-    });
-
     return {
       success: true,
-      data: {
+      stats: {
         overdue_count: overdueCount,
         critical_count: criticalCount,
         warning_count: warningCount,
         max_delay_label: formatDelay(maxDays),
-        items,
+      },
+      data: items.map(m => {
+        const grade = computeGrade(m.state);
+        return {
+          id: m.id,
+          equipment: m.equipment,
+          site: m.site,
+          meas_point: m.measPoint,
+          meas_date: m.measDate,
+          grade,
+          status_label: gradeToStatus(grade),
+          days_since_check: daysSinceCheck(m.measDate),
+        };
+      }),
+      meta: {
+        page, limit, total,
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
