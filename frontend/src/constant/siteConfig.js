@@ -67,8 +67,8 @@ export const SITE_CONFIG = [
     name: "DEM",
     provinces: ["lampang"],
     dot: { cx: 160, cy: 132 },
-    lat: 18.29,
-    lng: 99.49,
+    lat: 18.298882370962698, 
+    lng: 99.73181403153471,
     imgs: [mmm, mmm2, mmm3]
   },
 

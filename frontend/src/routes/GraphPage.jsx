@@ -128,7 +128,6 @@ const GraphPage = () => {
         //   data: [
         //     ...harmonicLines, // เส้น Harmonic (55, 111, 166)
         //     ...peakLines,
-        //     // เส้นประชี้จุด Peak สูงสุด (ถ้าไม่อยากให้มีเส้นประค้างไว้ ลบ 2 บรรทัดล่างนี้ได้ครับ)
         //     // { xAxis: maxHz, lineStyle: { color: '#a855f7', type: 'dashed' } },
         //     // { yAxis: maxAmp, lineStyle: { color: '#a855f7', type: 'dashed' } }
         //   ]

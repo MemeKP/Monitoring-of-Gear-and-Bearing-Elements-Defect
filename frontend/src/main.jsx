@@ -31,7 +31,7 @@ const router = createBrowserRouter([
     element: <Dashboard />,
   },
   {
-    path: '/equipment/test123',
+    path: '/equipment/:equipmentId',
     element: <GraphPage/>,
   },
   {

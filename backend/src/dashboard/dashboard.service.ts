@@ -450,7 +450,7 @@ export class DashboardService {
     site?: string,
     thresholdDays = 90,
     page = 1,
-    limit = 10,
+    limit = 20,
     filter = 'all',
   ) {
     const normalizedFilter = filter?.toLowerCase() || 'all';
@@ -464,10 +464,6 @@ export class DashboardService {
 
     const fMotorCondition = `(m.state = 6 AND ${peakCondition})`;
     const FCondition = `(m.state = 6 AND NOT ${peakCondition})`;
-
-    // const fMotorCondition = `m.state = 6 AND
-    // (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
-    // FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
 
     const baseQb = this.repo.createQueryBuilder('m')
       .innerJoin(
