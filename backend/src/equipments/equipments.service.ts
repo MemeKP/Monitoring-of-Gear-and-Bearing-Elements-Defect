@@ -125,9 +125,22 @@ export class EquipmentsService {
       qb.andWhere('m.site = :site', { site: dto.site });
     }
 
+    // if (dto.search && dto.search.trim() !== '') {
+    //   const matchedIds = await this.typesenseService.searchEquipment(dto.search, dto.site);      
+    //   if (!matchedIds || matchedIds.length === 0) {
+    //     return {
+    //       success: true,
+    //       data: [],
+    //       meta: { page, limit, total: 0, totalPages: 0 },
+    //     };
+    //   }
+    //  qb.andWhere('m.id IN (:...matchedIds)', { matchedIds });
+    // }
+
     if (dto.search && dto.search.trim() !== '') {
-      const matchedIds = await this.typesenseService.searchEquipment(dto.search, dto.site);
-      if (!matchedIds || matchedIds.length === 0) {
+      const matchedNames = await this.typesenseService.searchEquipment(dto.search, dto.site);
+
+      if (!matchedNames || matchedNames.length === 0) {
         return {
           success: true,
           data: [],
@@ -135,17 +148,15 @@ export class EquipmentsService {
         };
       }
 
-      qb.andWhere('m.id IN (:...matchedIds)', { matchedIds });
+      qb.andWhere('m.equipment IN (:...matchedNames)', { matchedNames });
     }
 
     if (dto.grade && dto.grade !== 'all') {
       const gradeToState: Record<string, number> = {
         A: 1, B: 2, C: 3, D: 4, E: 5, F: 6,
       };
-
       const grades = dto.grade.split(',').map(g => g.trim().toUpperCase());
       const states = grades.map(g => gradeToState[g]).filter(Boolean);
-
       if (states.length) {
         qb.andWhere('m.state IN (:...states)', { states });
       }
@@ -229,7 +240,9 @@ export class EquipmentsService {
       equipmentQb.andWhere('m.equipment LIKE :search', { search: `%${dto.search}%` });
     }
 
-    const totalMachines = await equipmentQb.getCount();
+    const countQuery = this.repo
+      .createQueryBuilder('m')
+      .select('COUNT(DISTINCT m.equipment)', 'count')
 
     const paginatedEquipments = await equipmentQb
       .offset((page - 1) * limit)
@@ -329,6 +342,8 @@ export class EquipmentsService {
       };
     });
 
+    const countResult = await countQuery.getRawOne();
+    const totalMachines = Number(countResult?.count) || 0;
     const totalPages = Math.ceil(totalMachines / limit);
 
     return {

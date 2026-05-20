@@ -78,6 +78,31 @@ export class TypesenseService implements OnModuleInit {
       .documents()
       .search(searchParameters);
     
-    return searchResults.hits?.map(hit => hit.document.id) || [];
+    return searchResults.hits?.map(hit => hit.document.equipment) || [];
   }
-}
+}  
+
+// async searchEquipmentNames(searchQuery: string, site?: string): Promise<string[]> {
+  //   const searchParameters: any = {
+  //     q: searchQuery,
+  //     query_by: 'equipment',
+  //     group_by: 'equipment',
+  //     group_limit: 1, 
+  //     per_page: 50,   
+  //   };
+
+  //   if (site && site !== 'all') {
+  //     searchParameters.filter_by = `site:=${site}`;
+  //   }
+
+  //   const searchResults = await this.client
+  //     .collections<EquipmentDocument>('equipment')
+  //     .documents()
+  //     .search(searchParameters);
+    
+  //   if (!searchResults.grouped_hits || searchResults.grouped_hits.length === 0) {
+  //     return [];
+  //   }
+
+  //   return searchResults.grouped_hits.map(group => group.group_key[0]);
+  // }

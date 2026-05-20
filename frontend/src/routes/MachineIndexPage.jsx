@@ -46,7 +46,7 @@ const MachineIndexPage = () => {
         });
     }, [data]);
 
-   const filtered = useMemo(() => {
+    const filtered = useMemo(() => {
         const rows = Array.isArray(machines) ? machines : [];
         if (rows.length === 0) return [];
         return [...rows].sort((a, b) => {
@@ -62,6 +62,7 @@ const MachineIndexPage = () => {
 
     const totalCount = hasNextPage ? filtered.length + 1 : filtered.length;
 
+    const totalMachines = data?.pages?.[0]?.meta?.total || 0;
     const rowVirtualizer = useVirtualizer({
         count: totalCount,
         getScrollElement: () => parentRef.current,
@@ -142,10 +143,22 @@ const MachineIndexPage = () => {
                 </div>
 
                 {/* Row count */}
-                <div className="px-4 mt-3 mb-8 ml-4 text-sm text-[#546A81]">
+                {/* <div className="px-4 mt-3 mb-8 ml-4 text-sm text-[#546A81]">
                     {isLoading
                         ? 'Loading...'
                         : <><span>Showing </span><span className="font-semibold">{filtered.length}</span> of <span className='font-semibold'> {machines.length} </span>machines</>
+                    }
+                </div> */}
+                {/* Row count */}
+                <div className="px-4 mt-3 mb-8 ml-4 text-sm text-[#546A81]">
+                    {isLoading
+                        ? 'Loading...'
+                        : <>
+                            <span>Showing </span>
+                            <span className="font-semibold">{filtered.length}</span> of
+                            <span className='font-semibold'> {totalMachines} </span>
+                            machines
+                        </>
                     }
                 </div>
 
