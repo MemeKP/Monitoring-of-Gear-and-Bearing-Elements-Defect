@@ -59,18 +59,41 @@ export function useEquipmentList(filters = {}) {
   });
 }
 
+// export function useEquipmentIndex(site, search) {
+//   return useQuery({
+//     queryKey: ['equipment', 'tree', site, search],
+//     queryFn: async () => {
+//       const res = await equipmentApi.getTree({ 
+//         site, 
+//         search: search || undefined 
+
+//       });
+//       return res?.data || [];
+//     },
+//     enabled: !!site,  
+//   });
+// }
+
 export function useEquipmentIndex(site, search) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['equipment', 'tree', site, search],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       const res = await equipmentApi.getTree({ 
         site, 
-        search: search || undefined 
-
+        search: search || undefined,
+        page: pageParam,
+        limit: 20 
       });
-      // console.log('อะไรอ่าา', res)
-      return res?.data || [];
+      console.log('index', res)
+      return res; 
     },
-    enabled: !!site,  
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const meta = lastPage?.meta;
+      if (!meta) return undefined;
+      return meta.page < meta.totalPages ? meta.page + 1 : undefined;
+    },
+    placeholderData: (prev) => prev,
+    enabled: !!site, 
   });
 }

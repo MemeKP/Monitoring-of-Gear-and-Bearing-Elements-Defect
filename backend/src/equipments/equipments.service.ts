@@ -212,6 +212,36 @@ export class EquipmentsService {
   }
 
   async findMachineTree(dto: QueryEquipmentTreeDto) {
+    const page = Number(dto.page) || 1;
+    const limit = Number(dto.limit) || 20;
+
+    const equipmentQb = this.repo
+      .createQueryBuilder('m')
+      .select('m.equipment', 'equipment')
+      .groupBy('m.equipment')
+      .orderBy('m.equipment', 'ASC');
+
+    if (dto.site && dto.site !== 'all') {
+      equipmentQb.andWhere('m.site = :site', { site: dto.site });
+    }
+
+    if (dto.search && dto.search.trim() !== '') {
+      equipmentQb.andWhere('m.equipment LIKE :search', { search: `%${dto.search}%` });
+    }
+
+    const totalMachines = await equipmentQb.getCount();
+
+    const paginatedEquipments = await equipmentQb
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .getRawMany();
+
+    const equipmentNames = paginatedEquipments.map((e) => e.equipment);
+
+    if (equipmentNames.length === 0) {
+      return { success: true, data: [], nextPage: null };
+    }
+
     const qb = this.repo
       .createQueryBuilder('m')
       .select([
@@ -221,18 +251,14 @@ export class EquipmentsService {
         'm.measDate',
         'm.state',
         'm.bpfo',
-      ]);
+      ])
+      .where('m.equipment IN (:...equipmentNames)', { equipmentNames })
+      .orderBy('m.equipment', 'ASC')
+      .addOrderBy('m.measDate', 'DESC');
 
     if (dto.site && dto.site !== 'all') {
       qb.andWhere('m.site = :site', { site: dto.site });
     }
-
-    if (dto.search && dto.search.trim() !== '') {
-      qb.andWhere('m.equipment LIKE :search', { search: `%${dto.search}%` });
-    }
-
-    qb.orderBy('m.equipment', 'ASC')
-      .addOrderBy('m.measDate', 'DESC');
 
     const items = (await qb.getMany()) as EquipmentRaw[];
 
@@ -283,7 +309,6 @@ export class EquipmentsService {
     }
 
     const result = Array.from(machineMap.values()).map((m: MachineNode) => {
-
       const datesArray = Array.from(m.datesMap.entries()).map(([date, statesMap]: [string, Map<string, PointData[]>]) => {
         const standardGrades = ['F', 'E', 'D', 'C', 'B', 'A'];
         const statesArray = standardGrades.map((g: string) => ({
@@ -304,7 +329,18 @@ export class EquipmentsService {
       };
     });
 
-    return { success: true, data: result };
+    const totalPages = Math.ceil(totalMachines / limit);
+
+    return {
+      success: true,
+      data: result,
+      meta: {
+        page: page,
+        limit: limit,
+        total: totalMachines,
+        totalPages: totalPages
+      }
+    };
   }
 
 }

@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Navbar from '../components/Navbar';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowDownNarrowWide, ChevronRight, Funnel, Plus, RefreshCcw, Search } from 'lucide-react';
+import { ArrowDownNarrowWide, ChevronRight, Funnel, Loader2, Plus, RefreshCcw, Search } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { GRADE_BADGE_COLORS, GRADE_FILTERS } from '../constant/gradeConfig';
 import MachineCard from '../components/MachineCard';
 import { useEquipmentIndex } from '../hooks/useEquipment';
+import { useInView } from 'react-intersection-observer';
 
 const MachineIndexPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -22,35 +23,58 @@ const MachineIndexPage = () => {
     const { siteId } = useParams()
     const siteName = siteId ?? 'All sites';
 
-    const { data: machines = [], isLoading, isError, error, refetch } = useEquipmentIndex(siteId, searchQuery)
+    const {
+        data,
+        isLoading,
+        isError,
+        error,
+        refetch,
+        fetchNextPage,
+        isFetchingNextPage,
+        hasNextPage
+    } = useEquipmentIndex(siteId, searchQuery)
+
     const parentRef = useRef()
 
-    const filtered = useMemo(()=>{
-        let rows = machines;
-        return [...rows].sort((a,b) => {
-            const ai = GRADE_FILTERS.indexOf(a.grade)
-            const bi = GRADE_FILTERS.indexOf(b.grade)
-            return sortOrder === 'desc' ? ai - bi : bi -ai
-        })
-    }, [machines, activeGrades, sortOrder])
+    const machines = useMemo(() => {
+        if (!data?.pages) return [];
+        return data.pages.flatMap((page) => {
+            if (page && Array.isArray(page.data)) {
+                return page.data;
+            }
+            return [];
+        });
+    }, [data]);
+
+   const filtered = useMemo(() => {
+        const rows = Array.isArray(machines) ? machines : [];
+        if (rows.length === 0) return [];
+        return [...rows].sort((a, b) => {
+            const ai = GRADE_FILTERS.indexOf(a?.grade);
+            const bi = GRADE_FILTERS.indexOf(b?.grade);
+            return sortOrder === 'desc' ? ai - bi : bi - ai;
+        });
+    }, [machines, sortOrder, activeGrades]);
 
     // const allRows = useMemo(() => {
     //     return data?.pages.flatMap((page) => page?.data || []) ?? [];
     // }, [data]);
 
+    const totalCount = hasNextPage ? filtered.length + 1 : filtered.length;
+
     const rowVirtualizer = useVirtualizer({
-        count: filtered.length,
+        count: totalCount,
         getScrollElement: () => parentRef.current,
         estimateSize: () => 72,
         overscan: 8,
     });
 
-    // const { ref: loadMoreRef, inView } = useInView();
-    // useEffect(() => {
-    //     if (inView && hasNextPage && !isFetchingNextPage) {
-    //         fetchNextPage();
-    //     }
-    // }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+    const { ref: loadMoreRef, inView } = useInView();
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -58,12 +82,6 @@ const MachineIndexPage = () => {
         }, 300);
         return () => clearTimeout(timer);
     }, [searchInput]);
-
-    const toggleGrade = (grade) => {
-        setActiveGrades(prev =>
-            prev.includes(grade) ? prev.filter(g => g !== grade) : [...prev, grade]
-        );
-    };
 
     const toggleSortOrder = () => {
         setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
@@ -135,7 +153,7 @@ const MachineIndexPage = () => {
                 {isError && <div className="px-4 mt-4 text-sm text-red-500">{error?.message}</div>}
 
                 {!isError && (
-                    <div ref={parentRef} className="mt-3" >
+                    <div ref={parentRef} className="mt-3 flex-1 overflow-y-auto relative">
                         {isLoading ? (
                             Array.from({ length: 6 }).map((_, i) => (
                                 <div key={i} className="mx-4 mb-3 h-14 rounded-2xl bg-[#EEEEF2] animate-pulse" />
@@ -144,24 +162,34 @@ const MachineIndexPage = () => {
                             <div className="px-4 text-sm text-[#546A81]">No machines match your filters.</div>
                         ) : (
                             <div style={{ height: rowVirtualizer.getTotalSize(), position: 'relative' }}>
-                                {rowVirtualizer.getVirtualItems().map((virtualRow) => (
-                                    <div
-                                        key={virtualRow.key}
-                                        data-index={virtualRow.index}
-                                        ref={rowVirtualizer.measureElement}
-                                        style={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            transform: `translateY(${virtualRow.start}px)`,
-                                        }}
-                                    >
-                                        <div className="pb-3 ">
-                                            <MachineCard item={filtered[virtualRow.index]} />
+                                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                                    const isLoaderRow = virtualRow.index > filtered.length - 1;
+
+                                    return (
+                                        <div
+                                            key={virtualRow.key}
+                                            data-index={virtualRow.index}
+                                            ref={rowVirtualizer.measureElement}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                transform: `translateY(${virtualRow.start}px)`,
+                                            }}
+                                        >
+                                            <div className="pb-3">
+                                                {isLoaderRow ? (
+                                                    <div ref={loadMoreRef} className="flex justify-center items-center h-14 text-[#546A81]">
+                                                        {hasNextPage ? <Loader2 className="animate-spin" size={24} /> : 'No more data'}
+                                                    </div>
+                                                ) : (
+                                                    <MachineCard item={filtered[virtualRow.index]} />
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
