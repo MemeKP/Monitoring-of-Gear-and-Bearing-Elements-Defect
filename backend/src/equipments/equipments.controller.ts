@@ -19,7 +19,6 @@ export class EquipmentsController {
   //   return this.equipmentsService.searchEquipmentList(query, site);
   // }
 
-
   // GET /api/v1/equipments?site=xxx&grade=F,E&sort=days_since_check&order=desc
   @Get()
   findAll(@Query() query: QueryEquipmentDto) {
@@ -53,6 +52,4 @@ export class EquipmentsController {
   syncToTypesense() {
     return this.equipmentsService.syncAllToTypesense();
   }
-
-  
 }

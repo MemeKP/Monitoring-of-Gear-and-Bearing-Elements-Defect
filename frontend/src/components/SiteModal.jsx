@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { GRADE_CONFIG } from '../constant/gradeConfig';
 import { X } from 'lucide-react';
+
 function SiteModal({ site, onClose }) {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);

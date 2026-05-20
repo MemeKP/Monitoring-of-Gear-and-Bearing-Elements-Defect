@@ -123,9 +123,7 @@ function DateRow({ entry }) {
 
 const MachineCard = ({ item }) => {
   const [open, setOpen] = useState(false);
-
   if (!item) return null;
-
   const colors = GRADE_BADGE_COLORS[item.grade] || { bg: '#ffe5e5', text: '#ef4444' };
 
   return (

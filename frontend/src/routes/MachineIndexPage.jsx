@@ -207,20 +207,6 @@ const MachineIndexPage = () => {
                         )}
                     </div>
                 )}
-                {/* ROW COUNT */}
-                {/* <div className="mt-3 text-sm text-[#546A81]">
-                        {isLoading
-                            ? 'Loading...'
-                            : (() => {
-                                const loadedCount = data?.pages?.reduce(
-                                    (acc, page) => acc + (page?.data?.length || 0),
-                                    0
-                                ) || 0;
-                                const totalCount = data?.pages?.[0]?.meta?.total || 0;
-                                return `Showing ${loadedCount.toLocaleString()} of ${totalCount.toLocaleString()} results`;
-                            })()
-                        }
-                    </div> */}
             </div>
         </div>
     )

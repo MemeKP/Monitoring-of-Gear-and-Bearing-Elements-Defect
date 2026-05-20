@@ -179,9 +179,9 @@ export default function EquipmentListPage() {
                           )}
                         </button>
                       );
-                    })} {/* ✓ */}
+                    })} 
 
-                    {/* Clear all — only shown when at least 1 active */}
+                    {/* Clear all only shown when at least 1 active */}
                     {activeGrades.length > 0 && (
                       <>
                         <div className="h-px bg-gray-100 my-1" />
@@ -238,7 +238,16 @@ export default function EquipmentListPage() {
                   0
                 ) || 0;
                 const totalCount = data?.pages?.[0]?.meta?.total || 0;
-                return `Showing ${loadedCount.toLocaleString()} of ${totalCount.toLocaleString()} results`;
+                return (
+                  <>
+                  Showing {' '} 
+                  <span className='font-semibold'>
+                    {loadedCount.toLocaleString()}
+                  </span> of  {' '}
+                  <span className='font-semibold'>
+                  {totalCount.toLocaleString()} 
+                  </span> results
+                </>);
               })()
             }
           </div>

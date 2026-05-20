@@ -1,8 +1,13 @@
 import { Type } from "class-transformer";
-import { IsNumber, IsOptional, Max, Min } from "class-validator";
+import { IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class QueryEquipmentTreeDto {
+    @IsOptional()
+    @IsString()
     site?: string;
+
+    @IsOptional()
+    @IsString()
     search?: string;
 
     @IsOptional()

@@ -139,7 +139,6 @@ export class EquipmentsService {
 
     if (dto.search && dto.search.trim() !== '') {
       const matchedNames = await this.typesenseService.searchEquipment(dto.search, dto.site);
-
       if (!matchedNames || matchedNames.length === 0) {
         return {
           success: true,
@@ -147,7 +146,6 @@ export class EquipmentsService {
           meta: { page, limit, total: 0, totalPages: 0 },
         };
       }
-
       qb.andWhere('m.equipment IN (:...matchedNames)', { matchedNames });
     }
 
@@ -174,10 +172,24 @@ export class EquipmentsService {
 
     qb.orderBy(sortCol, sortDir);
 
+    // const countRaw = await qb.clone()
+    //   .select('COUNT(*)', 'count')
+    //   .getRawOne()
+
+    // const total = Number(countRaw?.count) || 0;
+
+    // !!!!!! 145450 has to be 145550
     const [items, total] = await qb
+      .withDeleted()
       .skip(skip)
       .take(limit)
       .getManyAndCount();
+
+    // const items = await qb
+    //   .withDeleted()
+    //   .skip(skip)
+    //   .take(limit)
+    //   .getMany();
 
     return {
       success: true,

@@ -47,6 +47,7 @@ export function useEquipmentList(filters = {}) {
     queryKey: ['equipment', 'infinite', filters],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await equipmentApi.getList({ ...filters, page: pageParam });
+      console.log('EQUIPLT', res)
       return res; 
     },
     initialPageParam: 1,
@@ -79,12 +80,11 @@ export function useEquipmentIndex(site, search) {
     queryKey: ['equipment', 'tree', site, search],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await equipmentApi.getTree({ 
-        site, 
+        site: site === 'all' ? undefined : site, 
         search: search || undefined,
         page: pageParam,
         limit: 20 
       });
-      console.log('index', res)
       return res; 
     },
     initialPageParam: 1,
@@ -93,7 +93,6 @@ export function useEquipmentIndex(site, search) {
       if (!meta) return undefined;
       return meta.page < meta.totalPages ? meta.page + 1 : undefined;
     },
-    placeholderData: (prev) => prev,
     enabled: !!site, 
   });
 }
