@@ -5,6 +5,7 @@ import { ArrowDownNarrowWide, ChevronRight, Funnel, Plus, RefreshCcw, Search } f
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { GRADE_BADGE_COLORS, GRADE_FILTERS } from '../constant/gradeConfig';
 import MachineCard from '../components/MachineCard';
+import { useEquipmentIndex } from '../hooks/useEquipment';
 
 const MachineIndexPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -21,18 +22,28 @@ const MachineIndexPage = () => {
     const { siteId } = useParams()
     const siteName = siteId ?? 'All sites';
 
+    const { data: machines = [], isLoading, isError, error, refetch } = useEquipmentIndex(siteId, searchQuery)
     const parentRef = useRef()
+
+    const filtered = useMemo(()=>{
+        let rows = machines;
+        return [...rows].sort((a,b) => {
+            const ai = GRADE_FILTERS.indexOf(a.grade)
+            const bi = GRADE_FILTERS.indexOf(b.grade)
+            return sortOrder === 'desc' ? ai - bi : bi -ai
+        })
+    }, [machines, activeGrades, sortOrder])
 
     // const allRows = useMemo(() => {
     //     return data?.pages.flatMap((page) => page?.data || []) ?? [];
     // }, [data]);
 
-    // const rowVirtualizer = useVirtualizer({
-    //     count: hasNextPage ? allRows.length + 1 : allRows.length,
-    //     getScrollElement: () => parentRef.current,
-    //     estimateSize: () => 52,
-    //     overscan: 10,
-    // });
+    const rowVirtualizer = useVirtualizer({
+        count: filtered.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 72,
+        overscan: 8,
+    });
 
     // const { ref: loadMoreRef, inView } = useInView();
     // useEffect(() => {
@@ -40,6 +51,13 @@ const MachineIndexPage = () => {
     //         fetchNextPage();
     //     }
     // }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearchQuery(searchInput);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
 
     const toggleGrade = (grade) => {
         setActiveGrades(prev =>
@@ -54,7 +72,7 @@ const MachineIndexPage = () => {
     const handleRefresh = () => {
         setSearchInput('');
         setSearchQuery('');
-        // refetch();
+        refetch();
     };
 
     return (
@@ -72,7 +90,7 @@ const MachineIndexPage = () => {
                 }`}>
                 {/* Header */}
                 <div className="p-4 md:p-6 pb-0">
-                    <div className="text-[#546A81] text-4xl font-bold leading-[66px]">Machine Index kid maii aok;-;</div>
+                    <div className="text-[#546A81] text-4xl font-bold leading-[66px]">Machine Index</div>
                     <div className="flex font-medium items-center gap-2 text-base text-[#546A81]">
                         <span className="hover:cursor-pointer" onClick={() => navigate('/')}>All sites</span>
                         <ChevronRight size={16} />
@@ -83,28 +101,71 @@ const MachineIndexPage = () => {
                 </div>
 
                 {/* FILTER AND SEARCH BAR */}
-                <div className="flex items-center justify-between mt-3 flex-wrap gap-2 pr-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {/* filter */}
-                    </div>
-                    {/* search*/}
+                <div className="flex ml-4 items-center justify-between mt-1 flex-wrap gap-2 px-4">
                     <div className="flex flex-row gap-x-3 items-center">
+                        {/* <button onClick={handleRefresh} className="text-[#546A81] hover:text-blue-600">
+                            <RefreshCcw size={15} />
+                        </button> */}
                         <div className="flex items-center bg-[#DDE1E6] rounded-full px-4 py-1.5 gap-2">
                             <input
                                 type="text"
                                 placeholder="Search..."
                                 value={searchInput}
-                                onChange={e => setSearchInput(e.target.value)}
+                                onChange={(e) => setSearchInput(e.target.value)}
                                 className="bg-transparent outline-none text-sm text-[#546A81] w-36 placeholder-gray-400"
                             />
                             <Search size={15} className="text-[#546A81]" />
                         </div>
-                        <button onClick={toggleSortOrder} className="flex items-center gap-1 cursor-pointer text-[#546A81] hover:text-blue-600">
-                            <ArrowDownNarrowWide size={15} className={sortOrder === 'asc' ? 'transition-transform' : 'transition-transform rotate-180 '} />
+                        <button onClick={() => setSortOrder(p => p === 'desc' ? 'asc' : 'desc')} className="flex items-center gap-1 cursor-pointer text-[#546A81] hover:text-blue-600">
+                            <ArrowDownNarrowWide size={15} className={sortOrder === 'asc' ? '' : 'rotate-180'} />
                             <span className="text-xs font-semibold uppercase">{sortOrder}</span>
                         </button>
                     </div>
                 </div>
+
+                {/* Row count */}
+                <div className="px-4 mt-3 mb-8 ml-4 text-sm text-[#546A81]">
+                    {isLoading
+                        ? 'Loading...'
+                        : <><span>Showing </span><span className="font-semibold">{filtered.length}</span> of <span className='font-semibold'> {machines.length} </span>machines</>
+                    }
+                </div>
+
+                {/* List */}
+                {isError && <div className="px-4 mt-4 text-sm text-red-500">{error?.message}</div>}
+
+                {!isError && (
+                    <div ref={parentRef} className="mt-3" >
+                        {isLoading ? (
+                            Array.from({ length: 6 }).map((_, i) => (
+                                <div key={i} className="mx-4 mb-3 h-14 rounded-2xl bg-[#EEEEF2] animate-pulse" />
+                            ))
+                        ) : filtered.length === 0 ? (
+                            <div className="px-4 text-sm text-[#546A81]">No machines match your filters.</div>
+                        ) : (
+                            <div style={{ height: rowVirtualizer.getTotalSize(), position: 'relative' }}>
+                                {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+                                    <div
+                                        key={virtualRow.key}
+                                        data-index={virtualRow.index}
+                                        ref={rowVirtualizer.measureElement}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            transform: `translateY(${virtualRow.start}px)`,
+                                        }}
+                                    >
+                                        <div className="pb-3 ">
+                                            <MachineCard item={filtered[virtualRow.index]} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
                 {/* ROW COUNT */}
                 {/* <div className="mt-3 text-sm text-[#546A81]">
                         {isLoading
@@ -119,16 +180,7 @@ const MachineIndexPage = () => {
                             })()
                         }
                     </div> */}
-                <div className="p-4 mt-3 text-sm text-[#546A81]">
-                    showing <span className='font-semibold'>127</span> of 127 machines
-                </div>
-
-                {/* CONTENT */}
-                <MachineCard/>
             </div>
-
-
-
         </div>
     )
 }

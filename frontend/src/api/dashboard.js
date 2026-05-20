@@ -31,7 +31,7 @@ export const dashboardApi = {
             reqFullData: true,
         }),
 
-    getOverdue: ({ site = 'all', thresholdDays = 90, page = 1, limit = 8, filter='all' } = {}) =>
+    getOverdue: ({ site = 'all', thresholdDays = 90, page = 1, limit = 8, filter = 'all' } = {}) =>
         apiClient.get('/dashboard/overdue', {
             params: {
                 site,
@@ -77,6 +77,10 @@ export const equipmentApi = {
             reqFullData: true
         });
     },
+    getTree: (params) => apiClient.get('/equipments/machine-index', {
+        params,
+        reqFullData: true
+    }),
 
     // search: ({ q, site = 'all' }) => {
     //   return apiClient.get('/equipments/search', {
@@ -84,4 +88,5 @@ export const equipmentApi = {
     //     reqFullData: true 
     //   });
     // },
+
 }

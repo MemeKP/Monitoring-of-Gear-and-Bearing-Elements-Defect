@@ -1,7 +1,7 @@
 import { ChevronRight, Calendar } from 'lucide-react';
 import React, { useState } from 'react';
 import { GRADE_BADGE_COLORS } from '../constant/gradeConfig';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const GRADE_ORDER = ["F", "E", "D", "C", "B", "A"];
 
@@ -24,7 +24,9 @@ const GradeBadge = ({ grade }) => {
 };
 
 const IdRows = ({ ids }) => {
-    const navigate = useNavigate()
+  const navigate = useNavigate()
+  const { siteId } = useParams()
+
   if (!ids || ids.length === 0) return null;
 
   return (
@@ -32,10 +34,9 @@ const IdRows = ({ ids }) => {
       {ids.map((item, i) => (
         <div
           key={item.id}
-          className={`flex items-center gap-2 px-3 py-2 ${
-            i < ids.length - 1 ? 'border-b border-[#EEEEF2]' : ''
-          }`}
-          onClick={()=>navigate(`/dashboard/MMP/equipment/29786`)}
+          className={`flex items-center gap-2 px-3 py-2 ${i < ids.length - 1 ? 'border-b border-[#EEEEF2]' : ''
+            }`}
+          onClick={() => { navigate(`/dashboard/${siteId}/equipment/${item.id}`) }}
         >
           <span className="font-mono text-[12px] text-[#484964] min-w-[80px]">
             {item.id}
@@ -59,16 +60,14 @@ const StateRow = ({ state }) => {
   return (
     <div>
       <div
-        className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors ${
-          hasIds ? 'cursor-pointer' : 'cursor-default'
-        } ${open ? 'bg-white border border-[#EEEEF2]' : 'hover:bg-white border border-transparent'}`}
+        className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors ${hasIds ? 'cursor-pointer' : 'cursor-default'
+          } ${open ? 'bg-white border border-[#EEEEF2]' : 'hover:bg-white border border-transparent'}`}
         onClick={() => hasIds && setOpen((v) => !v)}
       >
         <ChevronRight
           size={13}
-          className={`text-[#546A81] shrink-0 transition-transform duration-200 ${
-            open ? 'rotate-90' : ''
-          } ${!hasIds ? 'invisible' : ''}`}
+          className={`text-[#546A81] shrink-0 transition-transform duration-200 ${open ? 'rotate-90' : ''
+            } ${!hasIds ? 'invisible' : ''}`}
         />
         <GradeBadge grade={state.state} />
         <span className="text-[13px] text-[#484964] font-medium flex-1">
@@ -88,14 +87,14 @@ const StateRow = ({ state }) => {
 
 function DateRow({ entry }) {
   const [open, setOpen] = useState(false);
-  const grades = uniqueGrades(entry.states);
+  const activeStates = entry.states.filter((s) => s.ids && s.ids.length > 0);
+  const grades = uniqueGrades(activeStates);
 
   return (
     <div className="rounded-xl border border-[#EEEEF2] overflow-hidden bg-[#F9F9FC]">
       <div
-        className={`flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors ${
-          open ? 'bg-[#F3F6FB]' : 'hover:bg-[#F3F6FB]'
-        }`}
+        className={`flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors ${open ? 'bg-[#F3F6FB]' : 'hover:bg-[#F3F6FB]'
+          }`}
         onClick={() => setOpen((v) => !v)}
       >
         <ChevronRight
@@ -113,7 +112,7 @@ function DateRow({ entry }) {
 
       {open && (
         <div className="px-3 pb-2 pt-1 flex flex-col gap-1 border-t border-[#EEEEF2] bg-[#F9F9FC]">
-          {entry.states.map((s, i) => (
+          {activeStates.map((s, i) => (
             <StateRow key={i} state={s} />
           ))}
         </div>
@@ -122,76 +121,22 @@ function DateRow({ entry }) {
   );
 }
 
-const MachineCard = () => {
+const MachineCard = ({ item }) => {
   const [open, setOpen] = useState(false);
 
-  const MOCK_DATA = [
-    {
-      id: 'm1',
-      name: 'Study Case_OAB. 12-3 G',
-      flag: true,
-      grade: 'F',
-      dates: [
-        {
-          date: '2022-11-14',
-          states: [
-            {
-              state: 'F',
-              ids: [
-                { id: 'ID=8-3A', bpfo: 80, bpfi: 90 },
-                { id: 'ID=9-3A', bpfo: 90, bpfi: 100 },
-                { id: 'ID=9-2V', bpfo: 90, bpfi: 100 },
-                { id: 'ID=10-2V', bpfo: 100, bpfi: 110 },
-              ],
-            },
-            { state: 'E', ids: [] },
-            { state: 'C', ids: [] },
-          ],
-        },
-        {
-          date: '2022-10-19',
-          states: [
-            { state: 'F', ids: [] },
-            { state: 'E', ids: [] },
-            { state: 'D', ids: [] },
-            { state: 'C', ids: [] },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'm2',
-      name: 'Pump Motor_B14. 7-2',
-      flag: false,
-      grade: 'E',
-      dates: [
-        {
-          date: '2022-11-10',
-          states: [
-            { state: 'E', ids: [{ id: 'ID=3-1H', bpfo: 70, bpfi: 80 }] },
-            { state: 'D', ids: [] },
-          ],
-        },
-      ],
-    },
-  ];
-
-  const item = MOCK_DATA[0];
   if (!item) return null;
 
   const colors = GRADE_BADGE_COLORS[item.grade] || { bg: '#ffe5e5', text: '#ef4444' };
 
   return (
     <div
-      className={`bg-white ml-4 mr-4 rounded-2xl border transition-colors duration-150 ${
-        open ? 'border-[#C8D6E5]' : 'border-[#EEEEF2] hover:border-[#C8D6E5]'
-      }`}
+      className={`bg-white ml-6 mr-4 rounded-2xl border transition-colors duration-150 ${open ? 'border-[#C8D6E5]' : 'border-[#EEEEF2] hover:border-[#C8D6E5]'
+        }`}
     >
       {/* Machine header */}
       <div
-        className={`flex items-center justify-between gap-3 px-4 py-3.5 cursor-pointer rounded-2xl transition-colors ${
-          open ? 'bg-[#F3F6FB] rounded-b-none' : 'hover:bg-[#F3F6FB]'
-        }`}
+        className={`flex items-center justify-between gap-3 px-4 py-3.5 cursor-pointer rounded-2xl transition-colors ${open ? 'bg-[#F3F6FB] rounded-b-none' : 'hover:bg-[#F3F6FB]'
+          }`}
         onClick={() => setOpen((v) => !v)}
       >
         <div className="flex items-center gap-2">

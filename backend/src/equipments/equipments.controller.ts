@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query, ParseIntPipe, Post } from '@nestjs/common';
 import { EquipmentsService } from './equipments.service';
 import { QueryEquipmentDto } from './dto/query-equipment.dto';
+import { QueryEquipmentTreeDto } from './dto/query-equipment-tree.dto';
 
 @Controller('equipments')
 export class EquipmentsController {
@@ -19,19 +20,25 @@ export class EquipmentsController {
   // }
 
 
-  // GET /api/v1/equipment?site=xxx&grade=F,E&sort=days_since_check&order=desc
+  // GET /api/v1/equipments?site=xxx&grade=F,E&sort=days_since_check&order=desc
   @Get()
   findAll(@Query() query: QueryEquipmentDto) {
     return this.equipmentsService.findAll(query);
   }
 
-  // GET /api/v1/equipment/123
+    // GET /api/v1/equipments
+  @Get('machine-index')
+  findMachineTree(@Query() dto: QueryEquipmentTreeDto){
+    return this.equipmentsService.findMachineTree(dto)
+  }
+
+  // GET /api/v1/equipments/123
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.equipmentsService.findOne(id);
   }
 
-  // GET /api/v1/equipment/123/history?page=1&limit=20
+  // GET /api/v1/equipments/123/history?page=1&limit=20
   @Get(':id/history')
   findHistory(
     @Param('id', ParseIntPipe) id: number,
@@ -41,9 +48,11 @@ export class EquipmentsController {
     return this.equipmentsService.findHistory(id, page, limit);
   }
 
-  // POST /equipment/sync-typesense
+  // POST /equipments/sync-typesense
   @Post('sync-typesense')
   syncToTypesense() {
     return this.equipmentsService.syncAllToTypesense();
   }
+
+  
 }

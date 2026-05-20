@@ -1,5 +1,6 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { equipmentApi } from '../api/dashboard';
+import { SatelliteDish } from 'lucide-react';
 
 // export function useEquipmentList(filters = {}) {
 //   return useInfiniteQuery({
@@ -55,5 +56,21 @@ export function useEquipmentList(filters = {}) {
       return meta.page < meta.totalPages ? meta.page + 1 : undefined;
     },
     placeholderData: (prev) => prev,
+  });
+}
+
+export function useEquipmentIndex(site, search) {
+  return useQuery({
+    queryKey: ['equipment', 'tree', site, search],
+    queryFn: async () => {
+      const res = await equipmentApi.getTree({ 
+        site, 
+        search: search || undefined 
+
+      });
+      // console.log('อะไรอ่าา', res)
+      return res?.data || [];
+    },
+    enabled: !!site,  
   });
 }
