@@ -135,20 +135,13 @@ const MachineIndexPage = () => {
                             />
                             <Search size={15} className="text-[#546A81]" />
                         </div>
-                        <button onClick={() => setSortOrder(p => p === 'desc' ? 'asc' : 'desc')} className="flex items-center gap-1 cursor-pointer text-[#546A81] hover:text-blue-600">
+                        {/* <button onClick={() => setSortOrder(p => p === 'desc' ? 'asc' : 'desc')} className="flex items-center gap-1 cursor-pointer text-[#546A81] hover:text-blue-600">
                             <ArrowDownNarrowWide size={15} className={sortOrder === 'asc' ? '' : 'rotate-180'} />
                             <span className="text-xs font-semibold uppercase">{sortOrder}</span>
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
-                {/* Row count */}
-                {/* <div className="px-4 mt-3 mb-8 ml-4 text-sm text-[#546A81]">
-                    {isLoading
-                        ? 'Loading...'
-                        : <><span>Showing </span><span className="font-semibold">{filtered.length}</span> of <span className='font-semibold'> {machines.length} </span>machines</>
-                    }
-                </div> */}
                 {/* Row count */}
                 <div className="px-4 mt-3 mb-8 ml-4 text-sm text-[#546A81]">
                     {isLoading

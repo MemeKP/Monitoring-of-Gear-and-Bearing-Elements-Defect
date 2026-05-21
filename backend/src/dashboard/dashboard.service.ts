@@ -258,18 +258,15 @@ export class DashboardService {
     const normalizedFilter = filter?.toLowerCase() || 'all';
     const siteKey = site || 'all';
     const cacheKey = `attention:${siteKey}:${normalizedFilter}:${page}:${limit}`;
-
     const cachedData = await this.cache.get(cacheKey);
     if (cachedData) {
       return cachedData;
     }
-
     const skip = (page - 1) * limit;
-
+    // !!!! TIME BOMB (JSON_EXTRACT)
     const fMotorCondition = `
     (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
     FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
-
     const baseQb = this.repo.createQueryBuilder('m')
       .innerJoin(
         (subQuery) => {
