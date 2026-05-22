@@ -132,7 +132,7 @@ export default function Navbar({
         </nav>
 
         {/* Logout */}
-        <div className="absolute px-2 w-full mt-5">
+        {/* <div className="absolute px-2 w-full mt-5">
           <button
             // onClick={handleLogout}
             className="group relative overflow-hidden w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 text-red-500"
@@ -148,7 +148,7 @@ export default function Navbar({
               <span className="relative z-10 text-sm font-normal">Logout</span>
             )}
           </button>
-        </div>
+        </div> */}
 
         {/* Collapse toggle */}
         <button

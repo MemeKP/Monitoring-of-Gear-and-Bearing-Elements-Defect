@@ -5,7 +5,7 @@ import mmm from '../assets/img/mmm.jpg'
 import mmm2 from '../assets/img/mmm2.jpg'
 import mmm3 from '../assets/img/view4.webp'
 import clock from '../assets/clock.png'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDashboardAttention, useDashboardOverdue, useDashboardStats } from '../hooks/useDashboardStats.js';
 import { StatisticOverview } from '../components/StatisticOverview.jsx';
 import { GRADE_COLORS } from '../constant/gradeConfig.js';
@@ -22,10 +22,12 @@ const Dashboard = () => {
   const site = siteId ?? 'all';
 
   // STATES
-  const [attentionFilter, setAttentionFilter] = useState('critical');
+  // const [attentionFilter, setAttentionFilter] = useState('critical');
   const [overdueFilter, setOverdueFilter] = useState('all');
   const [activeMobileTab, setActiveMobileTab] = useState('attention');
   const siteName = siteId ?? 'All sites';
+  const [searchParams, setSearchParams] = useSearchParams()
+  const attentionFilter = searchParams.get('filter') || 'critical'
 
   // infinite scroll
   const { ref, inView } = useInView({ threshold: 0 });
@@ -47,7 +49,7 @@ const Dashboard = () => {
   const warningCount = overdueStats?.warning_count ?? 0;
   const overdueCount = overdueStats?.overdue_count ?? 0;
   const overdueItems = overdue.data?.pages?.flatMap(page => Array.isArray(page) ? page : (page.data ?? [])) ?? [];
-  
+
   // ATTENTION 
   const attention = useDashboardAttention({ site, filter: attentionFilter });
   const attentionItems = attention.data?.pages?.flatMap((page) => page.data || []) ?? [];
@@ -97,6 +99,16 @@ const Dashboard = () => {
       overdue.fetchNextPage();
     }
   }, [overdueInView, overdue.hasNextPage, overdue.isFetchingNextPage]);
+
+  const handleSetFilter = (newFilter) => {
+    const newParams = new URLSearchParams(searchParams)
+    if (newFilter === 'all') {
+      newParams.delete('filter')
+    } else {
+      newParams.set('filter', newFilter)
+    }
+    setSearchParams(newParams)
+  }
 
   return (
     <>
@@ -218,8 +230,8 @@ const Dashboard = () => {
                 }`}>
                 {/* {overdueItems?.overdue_count ?? 0} */}
                 {overdue.isLoading
-                      ? '...'
-                      : `${overdueCount}`}
+                  ? '...'
+                  : `${overdueCount}`}
               </span>
             </button>
           </div>
@@ -244,7 +256,7 @@ const Dashboard = () => {
                 {/* Desktop: Toggle Buttons */}
                 <div className="hidden sm:flex items-center gap-3">
                   <button
-                    onClick={() => setAttentionFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
+                    onClick={() => handleSetFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
                     className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'Critical'
                       ? 'bg-[#ff7a7a] text-white'
                       : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
@@ -252,10 +264,8 @@ const Dashboard = () => {
                   >
                     F
                   </button>
-
-                  {/* F motor -> peak === 100 */}
                   <button
-                    onClick={() => setAttentionFilter(attentionFilter === 'f_motor' ? 'all' : 'f_motor')}
+                    onClick={() => handleSetFilter(attentionFilter === 'f_motor' ? 'all' : 'f_motor')}
                     className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'f_motor'
                       ? 'bg-[#ff7a7a] text-white'
                       : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
@@ -263,9 +273,8 @@ const Dashboard = () => {
                   >
                     F Motor
                   </button>
-
                   <button
-                    onClick={() => setAttentionFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
+                    onClick={() => handleSetFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
                     className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'Warning'
                       ? 'bg-yellow-400 text-white'
                       : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
@@ -279,7 +288,7 @@ const Dashboard = () => {
                 <div className="block sm:hidden w-full relative">
                   <select
                     value={attentionFilter}
-                    onChange={(e) => setAttentionFilter(e.target.value)}
+                    onChange={(e) => handleSetFilter(e.target.value)}
                     className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#546A81] font-semibold hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none transition-all duration-200 cursor-pointer"
                   >
                     <option value="all">All</option>

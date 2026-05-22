@@ -275,6 +275,7 @@ export class DashboardService {
             .from((sq) => {
               return sq
                 .select('sub.id', 'id')
+                // !!!! MySQL v8+
                 .addSelect(
                   'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
                   'rn'
@@ -289,7 +290,6 @@ export class DashboardService {
         'm.id = latest.id'
       )
       .where("m.indicator != 'I'");
-
     if (site && site !== 'all') {
       baseQb.andWhere('m.site = :site', { site });
     }
