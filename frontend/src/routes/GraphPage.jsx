@@ -6,13 +6,12 @@ import * as echarts from 'echarts';
 import { useParams } from 'react-router-dom'
 import { useMeasurement } from '../hooks/useMeasurement.js'
 import { ErrorBox, HeaderSkeleton } from '../components/SkeletonLoader.jsx';
+import { GRADE_BADGE_COLORS } from '../constant/gradeConfig.js';
 
 const GraphPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { siteId, equipmentId } = useParams();
-  // console.log("PARAMS:", { siteId, equipmentId });
-
   const { data, isLoading, isError, error } = useMeasurement(equipmentId);
   // console.log("MEASUREMENT:", data);
   // console.log("STATE RAW:", data?.state, typeof data?.state);
@@ -20,51 +19,89 @@ const GraphPage = () => {
   const envelopedFftData = data?.envelopedFft || [];
   const peaksData = data?.peakData || [];
   const detailPeakData = data?.detailPeak || [];
-  
+  console.log('PEAK', detailPeakData)
+
   const allAmp = envelopedFftData.map(p => p[1]);
-  // let maxHz = 0;
-  const maxHz = Math.max(...envelopedFftData.map(p => p[0] || 0));
 
-  // envelopedFftData.forEach(point => {
-  //   if (point[1] > maxAmp) {
-  //     maxAmp = point[1];
-  //     maxHz = point[0];
-  //   }
-  // });
+  const grade = data?.grade || 'F'
+  const gradeColor = GRADE_BADGE_COLORS[grade] ?? GRADE_BADGE_COLORS['F']
+
+  const maxHz = envelopedFftData.length > 0
+    ? Math.max(...envelopedFftData.map(p => p[0] || 0))
+    : 1000;
+
+  const peakPoints = peaksData.map(index => {
+    const point = envelopedFftData[index];
+    if (!point) return null;
+    return {
+      coord: [point[0], point[1]],
+      value: point[1]
+    };
+  }).filter(Boolean);
+
+  const harmonicPoints = detailPeakData.map(index => {
+    const point = envelopedFftData[index];
+    if (!point) return null;
+    return {
+      coord: [point[0], point[1]],
+      value: point[1]
+    };
+  }).filter(Boolean);
 
   // Use in markline
-  const peakLines = peaksData.map(hz => ({
-    xAxis: hz,
-    lineStyle: {
-      color: '#ef4444',
-      type: 'solid',
-      width: 1,
-      opacity: 0.8
-    },
-    label: {
-      show: true,
-      position: 'top',
-      formatter: '{c} Hz',
-      color: '#ef4444',
-      fontSize: 10
+  const peakLines = peaksData.map(index => {
+    const point = envelopedFftData[index];
+    if (!point) return null;
+
+    const hz = point[0];
+    const amp = point[1];
+
+    return {
+      xAxis: hz,
+      lineStyle: { color: '#ef4444', type: 'solid', width: 1, opacity: 0.8 },
+      label: {
+        show: true,
+        position: 'end',
+        formatter: `f: ${hz.toFixed(2)} Hz\nA: ${amp.toFixed(2)}`,
+        color: '#ffffff',
+        backgroundColor: '#ef4444',
+        padding: [4, 8],
+        borderRadius: 4,
+        fontSize: 10,
+        lineHeight: 14,
+        align: 'center'
+      }
     }
-  }));
+  }).filter(Boolean);
 
-  // Use in markline
-  const harmonicLines = detailPeakData.map(hz => ({
-    xAxis: hz,
-    lineStyle: { color: '#c084fc', type: 'dashed', opacity: 0.6 },
-    label: { show: false }
-  }));
+  const harmonicLines = detailPeakData.map(index => {
+    const point = envelopedFftData[index];
+    if (!point) return null;
+    const hz = point[0];
+    const amp = point[1];
+
+    return {
+      xAxis: hz,
+      lineStyle: { color: '#c084fc', type: 'dashed', opacity: 0.6 },
+      label: {
+        show: false,
+        formatter: `f:${hz.toFixed(1)}\nA:${amp.toFixed(1)}`,
+        color: '#ffff',
+        fontSize: 10,
+        backgroundColor: '#1e1e2d',
+        padding: [3, 5],
+        borderRadius: 4,
+      }
+    };
+  }).filter(Boolean);
 
   const chartOption = {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: '#1e1e2d',
+      backgroundColor: 'rgb(168, 85, 247)',
       borderColor: 'transparent',
       textStyle: { color: '#fff', fontSize: 12 },
       formatter: function (params) {
-        // X (Hz) and Y (Amp) from real database
         const hz = params[0].value[0].toFixed(2);
         const amp = params[0].value[1].toFixed(2);
         return `f = ${hz}<br/>A = ${amp}`;
@@ -119,19 +156,42 @@ const GraphPage = () => {
           ])
         },
         data: envelopedFftData,
-
-        // NOT SURE!!!!!
-        // markLine for showing both Peak and Harmonic line
-        // markLine: {
-        //   symbol: ['none', 'none'],
-        //   silent: true,
-        //   data: [
-        //     ...harmonicLines, // เส้น Harmonic (55, 111, 166)
-        //     ...peakLines,
-        //     // { xAxis: maxHz, lineStyle: { color: '#a855f7', type: 'dashed' } },
-        //     // { yAxis: maxAmp, lineStyle: { color: '#a855f7', type: 'dashed' } }
-        //   ]
-        // }
+        markPoint: {
+          symbol: 'circle',
+          symbolSize: 8,
+          data: [
+            // peak 
+            ...peakPoints.map(p => ({
+              coord: [p.xAxis, p.yAxis],
+              value: p.yAxis,
+              itemStyle: { color: '#ef4444' }
+            })),
+            // harmonic peaks 
+            ...harmonicPoints.map(p => ({
+              coord: [p.coord[0], p.coord[1]],
+              value: p.coord[1],
+              itemStyle: { color: '#c084fc' }
+            }))
+          ],
+          label: {
+            show: true,
+            position: 'top',
+            fontSize: 12,
+            lineHeight: 18,
+            color: '#fff',
+            backgroundColor: 'rgba(30,30,45,0.85)',
+            padding: [4, 8],
+            borderRadius: 4,
+            formatter: function (params) {
+              const [hz, amp] = params.data.coord;
+              return `f:${hz.toFixed(1)}\nA:${amp.toFixed(1)}`;
+            }
+          }
+        },
+        markLine: {
+          symbol: ['none', 'none'],
+          data: [...peakLines, ...harmonicLines],
+        }
       }
     ]
   };
@@ -150,7 +210,9 @@ const GraphPage = () => {
           {/* HEADER CARD */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center gap-4 mb-4">
-              <span className="bg-[#ffe5e5] text-red-500 font-bold px-3 py-1 rounded-lg text-sm">
+              <span
+                style={{ backgroundColor: gradeColor.bg, color: gradeColor.text }}
+                className="font-bold px-3 py-1 rounded-lg text-sm">
                 [{data?.grade}] Spectrum
               </span>
               <h1 className="text-xl font-bold text-[#546A81]">
@@ -170,10 +232,14 @@ const GraphPage = () => {
               </span></p>
             </div>
             <div className="flex gap-2 text-xs">
-              <span className="bg-[#7f1d1d] text-white px-4 py-1.5 rounded-full font-medium tracking-wide">
+              <span
+                style={{ backgroundColor: gradeColor.text }}
+                className="text-white py-1.5 px-2 rounded-full font-medium tracking-wide">
                 {data?.measDate}
               </span>
-              <span className="bg-[#7f1d1d] text-white px-4 py-1.5 rounded-full font-medium tracking-wide">
+              <span
+                style={{ backgroundColor: gradeColor.text }}
+                className="text-white py-1.5 px-2 rounded-full font-medium tracking-wide">
                 {data?.measTime}
               </span>
             </div>
