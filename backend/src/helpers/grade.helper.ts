@@ -34,3 +34,4 @@ export function daysSinceCheck(measDate: string): number {
     const diffMs = today.getTime() - measured.getTime();
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
+

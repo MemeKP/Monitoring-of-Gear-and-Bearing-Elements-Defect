@@ -16,6 +16,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
+import MachineIndexPage from './routes/MachineIndexPage.jsx'
 
 const queryClient = new QueryClient()
 
@@ -30,7 +31,7 @@ const router = createBrowserRouter([
     element: <Dashboard />,
   },
   {
-    path: '/equipment/test123',
+    path: '/equipment/:equipmentId',
     element: <GraphPage/>,
   },
   {
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
   {
     path: '/dashboard/:siteId/equipment/:equipmentId',
     element: <GraphPage />,
+  },
+  {
+    path: '/dashboard/:siteId/machine-index',
+    element: <MachineIndexPage />
   },
 
 ])

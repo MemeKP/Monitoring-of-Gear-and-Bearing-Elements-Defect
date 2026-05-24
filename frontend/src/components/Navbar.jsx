@@ -9,6 +9,8 @@ import equipment from "../assets/equipment.png";
 import equipmentActive from "../assets/equipment-active.png";
 import logout from "../assets/logout.png";
 import leftArrow from "../assets/left-arrow.png";
+import folder from "../assets/folder.png";
+import folderActive from "../assets/folderActive.png"
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 export default function Navbar({
@@ -58,6 +60,12 @@ export default function Navbar({
       iconActive: equipmentActive,
       label: "Equipment Folder",
       path: `/dashboard/${currentSite}/equipment`,
+    },
+    {
+      icon: folder,
+      iconActive: folderActive,
+      label: "Machine Index",
+      path: `/dashboard/${currentSite}/machine-index`,
     },
   ];
 
@@ -124,7 +132,7 @@ export default function Navbar({
         </nav>
 
         {/* Logout */}
-        <div className="absolute px-2 w-full mt-5">
+        {/* <div className="absolute px-2 w-full mt-5">
           <button
             // onClick={handleLogout}
             className="group relative overflow-hidden w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 text-red-500"
@@ -140,7 +148,7 @@ export default function Navbar({
               <span className="relative z-10 text-sm font-normal">Logout</span>
             )}
           </button>
-        </div>
+        </div> */}
 
         {/* Collapse toggle */}
         <button

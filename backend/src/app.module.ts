@@ -11,6 +11,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { SharedModule } from './shared/typesense.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { SharedModule } from './shared/typesense.module';
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false, // never true in production
+        synchronize: false, // never true in production!!!!!
       }),
     }),
     CacheModule.registerAsync({
@@ -45,6 +46,7 @@ import { SharedModule } from './shared/typesense.module';
     EquipmentsModule,
     DashboardModule,
     SharedModule,
+    RedisModule,
 
     // GraphQLModule.forRoot<ApolloDriverConfig>({
     //   driver: ApolloDriver,

@@ -128,72 +128,72 @@ export class MeasurementsService {
     return { success: true, data: this.enrich(m) };
   }
 
-  // POST /measurements 
-  async create(dto: CreateMeasurementDto) {
-    const measurement: Measurement = this.repo.create({
-      site:             dto.site,
-      equipment:        dto.equipment,
-      measPoint:        dto.meas_point,
-      measDate:         dto.meas_date,
-      measTime:         dto.meas_time     ?? null,
-      ampType:          dto.amp_type      ?? null,
-      df:               dto.df            ?? null,
-      bpfo:             dto.bpfo          ?? null,
-      f0:               dto.f0            ?? null,
-      ibeta:            dto.ibeta         ?? null,
-      envelopedFft:     dto.enveloped_fft ?? null,
-      detailPeak:       dto.detail_peak   ?? null,
-      optPointValue:    dto.opt_point_value     ?? null,
-      adjOptPointValue: dto.adj_opt_point_value,
-      state:            dto.state         ?? null,
-      peakData:         dto.peak_data     ?? null,
-      pic:              dto.pic           ?? null,
-      seqId:            dto.seq_id        ?? null,
-      scales:            dto.scales         ?? null,
-      whenAction:       dto.when_action ? new Date(dto.when_action) : null,
-    });
+  // // POST /measurements 
+  // async create(dto: CreateMeasurementDto) {
+  //   const measurement: Measurement = this.repo.create({
+  //     site:             dto.site,
+  //     equipment:        dto.equipment,
+  //     measPoint:        dto.meas_point,
+  //     measDate:         dto.meas_date,
+  //     measTime:         dto.meas_time     ?? null,
+  //     ampType:          dto.amp_type      ?? null,
+  //     df:               dto.df            ?? null,
+  //     bpfo:             dto.bpfo          ?? null,
+  //     f0:               dto.f0            ?? null,
+  //     ibeta:            dto.ibeta         ?? null,
+  //     envelopedFft:     dto.enveloped_fft ?? null,
+  //     detailPeak:       dto.detail_peak   ?? null,
+  //     optPointValue:    dto.opt_point_value     ?? null,
+  //     adjOptPointValue: dto.adj_opt_point_value,
+  //     state:            dto.state         ?? null,
+  //     peakData:         dto.peak_data     ?? null,
+  //     pic:              dto.pic           ?? null,
+  //     seqId:            dto.seq_id        ?? null,
+  //     scales:            dto.scales         ?? null,
+  //     whenAction:       dto.when_action ? new Date(dto.when_action) : null,
+  //   });
 
-    const saved = await this.repo.save(measurement);
-    return { success: true, data: this.enrich(saved) };
-  }
+  //   const saved = await this.repo.save(measurement);
+  //   return { success: true, data: this.enrich(saved) };
+  // }
 
-  //  PATCH /measurements/:id 
-  async update(id: number, dto: UpdateMeasurementDto) {
-    const existing = await this.repo.findOne({ where: { id } });
-    if (!existing) throw new NotFoundException(`Measurement #${id} not found`);
+  // //  PATCH /measurements/:id 
+  // async update(id: number, dto: UpdateMeasurementDto) {
+  //   const existing = await this.repo.findOne({ where: { id } });
+  //   if (!existing) throw new NotFoundException(`Measurement #${id} not found`);
 
-    // Map DTO snake_case → entity camelCase, only for fields that were sent
-    const patch: Partial<Measurement> = {};
-    if (dto.site             !== undefined) patch.site             = dto.site;
-    if (dto.equipment        !== undefined) patch.equipment        = dto.equipment;
-    if (dto.meas_point       !== undefined) patch.measPoint        = dto.meas_point;
-    if (dto.meas_date        !== undefined) patch.measDate         = dto.meas_date;
-    if (dto.meas_time        !== undefined) patch.measTime         = dto.meas_time;
-    if (dto.amp_type         !== undefined) patch.ampType          = dto.amp_type;
-    if (dto.df               !== undefined) patch.df               = dto.df;
-    if (dto.bpfo             !== undefined) patch.bpfo             = dto.bpfo;
-    if (dto.f0               !== undefined) patch.f0               = dto.f0;
-    if (dto.ibeta            !== undefined) patch.ibeta            = dto.ibeta;
-    if (dto.enveloped_fft    !== undefined) patch.envelopedFft     = dto.enveloped_fft;
-    if (dto.detail_peak      !== undefined) patch.detailPeak       = dto.detail_peak;
-    if (dto.opt_point_value  !== undefined) patch.optPointValue    = dto.opt_point_value;
-    if (dto.adj_opt_point_value !== undefined) patch.adjOptPointValue = dto.adj_opt_point_value;
-    if (dto.state            !== undefined) patch.state            = dto.state;
-    if (dto.peak_data        !== undefined) patch.peakData         = dto.peak_data;
-    if (dto.pic              !== undefined) patch.pic              = dto.pic;
-    if (dto.seq_id           !== undefined) patch.seqId            = dto.seq_id;
-    if (dto.scales            !== undefined) patch.scales            = dto.scales;
-    if (dto.when_action      !== undefined) patch.whenAction       = new Date(dto.when_action);
+  //   // Map DTO snake_case → entity camelCase, only for fields that were sent
+  //   const patch: Partial<Measurement> = {};
+  //   if (dto.site             !== undefined) patch.site             = dto.site;
+  //   if (dto.equipment        !== undefined) patch.equipment        = dto.equipment;
+  //   if (dto.meas_point       !== undefined) patch.measPoint        = dto.meas_point;
+  //   if (dto.meas_date        !== undefined) patch.measDate         = dto.meas_date;
+  //   if (dto.meas_time        !== undefined) patch.measTime         = dto.meas_time;
+  //   if (dto.amp_type         !== undefined) patch.ampType          = dto.amp_type;
+  //   if (dto.df               !== undefined) patch.df               = dto.df;
+  //   if (dto.bpfo             !== undefined) patch.bpfo             = dto.bpfo;
+  //   if (dto.f0               !== undefined) patch.f0               = dto.f0;
+  //   if (dto.ibeta            !== undefined) patch.ibeta            = dto.ibeta;
+  //   if (dto.enveloped_fft    !== undefined) patch.envelopedFft     = dto.enveloped_fft;
+  //   if (dto.detail_peak      !== undefined) patch.detailPeak       = dto.detail_peak;
+  //   if (dto.opt_point_value  !== undefined) patch.optPointValue    = dto.opt_point_value;
+  //   if (dto.adj_opt_point_value !== undefined) patch.adjOptPointValue = dto.adj_opt_point_value;
+  //   if (dto.state            !== undefined) patch.state            = dto.state;
+  //   if (dto.peak_data        !== undefined) patch.peakData         = dto.peak_data;
+  //   if (dto.pic              !== undefined) patch.pic              = dto.pic;
+  //   if (dto.seq_id           !== undefined) patch.seqId            = dto.seq_id;
+  //   if (dto.scales            !== undefined) patch.scales            = dto.scales;
+  //   if (dto.when_action      !== undefined) patch.whenAction       = new Date(dto.when_action);
 
-    const updated = await this.repo.save({ ...existing, ...patch });
-    return { success: true, data: this.enrich(updated) };
-  }
+  //   const updated = await this.repo.save({ ...existing, ...patch });
+  //   return { success: true, data: this.enrich(updated) };
+  // }
 
-  // DELETE /measurements/:id 
-  async remove(id: number) {
-    const existing = await this.repo.findOne({ where: { id } });
-    if (!existing) throw new NotFoundException(`Measurement #${id} not found`);
-    await this.repo.remove(existing);
-    return { success: true, data: null, message: `Measurement #${id} deleted` };
-  }
+  // // DELETE /measurements/:id 
+  // async remove(id: number) {
+  //   const existing = await this.repo.findOne({ where: { id } });
+  //   if (!existing) throw new NotFoundException(`Measurement #${id} not found`);
+  //   await this.repo.remove(existing);
+  //   return { success: true, data: null, message: `Measurement #${id} deleted` };
+  // }
 }

@@ -5,7 +5,7 @@ import mmm from '../assets/img/mmm.jpg'
 import mmm2 from '../assets/img/mmm2.jpg'
 import mmm3 from '../assets/img/view4.webp'
 import clock from '../assets/clock.png'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDashboardAttention, useDashboardOverdue, useDashboardStats } from '../hooks/useDashboardStats.js';
 import { StatisticOverview } from '../components/StatisticOverview.jsx';
 import { GRADE_COLORS } from '../constant/gradeConfig.js';
@@ -20,35 +20,61 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { siteId } = useParams();
   const site = siteId ?? 'all';
-  const [attentionFilter, setAttentionFilter] = useState('Critical');
-  const stats = useDashboardStats(site);
 
-  const overdue = useDashboardOverdue(site);
-  const stageBreakdown = stats.data?.stage_breakdown ?? [];
-  //const attentionItems = attention.data?.items ?? [];
-  const attention = useDashboardAttention({ site, filter: attentionFilter });
-  //  const attentionItems =
-  //   attention.data?.pages.flatMap((page) => page || []) ?? [];
-  //  console.log('ATTENTION', attentionItems)
-  const attentionItems =
-    attention.data?.pages.flatMap((page) => page.data || []) ?? [];
-  const attentionTotal = attention.data?.length ?? 0;
-  const overdueData = overdue.data;
-  const overdueItems = overdueData?.items ?? [];
-  const criticalCount = overdueData?.critical_count ?? 0;
-  const warningCount = overdueData?.warning_count ?? 0;
-  const maxDelayLabel = overdueData?.max_delay_label ?? '--';
-  // console.log("OVERDUE COUNT", overdueData)
-  // console.log('ATTENTION', attention?.data)
-  const [activeMobileTab, setActiveMobileTab] = useState('attention')
+  // STATES
+  // const [attentionFilter, setAttentionFilter] = useState('critical');
+  const [overdueFilter, setOverdueFilter] = useState('all');
+  const [activeMobileTab, setActiveMobileTab] = useState('attention');
   const siteName = siteId ?? 'All sites';
-  const { ref, inView } = useInView({
-    threshold: 0,
-  });
+  const [searchParams, setSearchParams] = useSearchParams()
+  const attentionFilter = searchParams.get('filter') || 'critical'
 
-  const filteredCount =
-    attention.data?.pages?.[0]?.meta?.total ?? 0;
+  // infinite scroll
+  const { ref, inView } = useInView({ threshold: 0 });
 
+  // STATS
+  const stats = useDashboardStats(site);
+  const stageBreakdown = stats.data?.stage_breakdown ?? [];
+
+  // OVERDUE 
+  const overdue = useDashboardOverdue(site, overdueFilter);
+  const overdueData = overdue.data;
+  // const overdueItems = overdueData?.items ?? [];
+  // const maxDelayLabel = overdueData?.max_delay_label ?? '--';
+  // const criticalCount = overdueData?.critical_count ?? 0;
+  // const warningCount = overdueData?.warning_count ?? 0;
+  const overdueStats = overdue.data?.pages?.[0]?.stats;
+  const maxDelayLabel = overdueStats?.max_delay_label ?? '--';
+  const criticalCount = overdueStats?.critical_count ?? 0;
+  const warningCount = overdueStats?.warning_count ?? 0;
+  const overdueCount = overdueStats?.overdue_count ?? 0;
+  const overdueItems = overdue.data?.pages?.flatMap(page => Array.isArray(page) ? page : (page.data ?? [])) ?? [];
+
+  // ATTENTION 
+  const attention = useDashboardAttention({ site, filter: attentionFilter });
+  const attentionItems = attention.data?.pages?.flatMap((page) => page.data || []) ?? [];
+  const attentionStats = attention.data?.pages?.[0]?.stats || {
+    allStats: 0,
+    criticalStats: 0,
+    warningStats: 0,
+    fMotorStats: 0
+  };
+
+  const attentionTotalAll = attentionStats.allStats;
+  const criticalAttentionCount = attentionStats.criticalStats;
+  const warningAttentionCount = attentionStats.warningStats;
+  const fMotorCount = attentionStats.fMotorStats;
+  const filteredCount = attention.data?.pages?.[0]?.meta?.total ?? 0;
+
+  // console.log('ATTENTION_PAGES', attention.data?.pages);
+  // console.log('ATTENTION_STATS', attentionStats);
+
+  // console.log("OVERDUE COUNT", overdueData)
+  // console.log('OVERDUE DATA', overdueData)
+  // console.log('OVERDUE ITEMS', overdueItems)
+  // console.log('PAGE 0', overdue.data?.pages?.[0]);
+
+  // console.log('ATTENTION', attention?.data)
   // console.log("ATTENTION DATA", attention.data);
   // console.log("FIRST PAGE", attention.data?.pages?.[0]);
 
@@ -65,6 +91,24 @@ const Dashboard = () => {
     attention.hasNextPage,
     attention.isFetchingNextPage,
   ]);
+
+  const { ref: overdueRef, inView: overdueInView } = useInView({ threshold: 0 });
+
+  useEffect(() => {
+    if (overdueInView && overdue.hasNextPage && !overdue.isFetchingNextPage) {
+      overdue.fetchNextPage();
+    }
+  }, [overdueInView, overdue.hasNextPage, overdue.isFetchingNextPage]);
+
+  const handleSetFilter = (newFilter) => {
+    const newParams = new URLSearchParams(searchParams)
+    if (newFilter === 'all') {
+      newParams.delete('filter')
+    } else {
+      newParams.set('filter', newFilter)
+    }
+    setSearchParams(newParams)
+  }
 
   return (
     <>
@@ -141,7 +185,7 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
-            {/* Images — 2 on top, 1 full width on bottom */}
+            {/* Images 2 on top, 1 full width on bottom */}
             <div className="grid grid-cols-2 gap-3 h-full">
               {(SITE_IMAGES[siteId] ?? FALLBACK_IMAGES).map((img, i) => (
                 <div
@@ -184,7 +228,10 @@ const Dashboard = () => {
               Overdue
               <span className={`text-xs px-2 py-0.5 rounded-full transition-colors ${activeMobileTab === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-gray-200 text-gray-500'
                 }`}>
-                {overdueData?.overdue_count ?? 0}
+                {/* {overdueItems?.overdue_count ?? 0} */}
+                {overdue.isLoading
+                  ? '...'
+                  : `${overdueCount}`}
               </span>
             </button>
           </div>
@@ -199,34 +246,41 @@ const Dashboard = () => {
                   <h3 className="text-[#546A81] font-bold text-xl">
                     Machines requiring attention
                   </h3>
-                  <p className="text-xs text-gray-400 mt-1">
+                  {/* <p className="text-xs text-gray-400 mt-1">
                     {attention.isLoading
                       ? 'Loading...'
                       : `Showing ${filteredCount.toLocaleString()} machines`}
-                  </p>
+                  </p> */}
                 </div>
 
                 {/* Desktop: Toggle Buttons */}
                 <div className="hidden sm:flex items-center gap-3">
                   <button
-                    onClick={() => setAttentionFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
+                    onClick={() => handleSetFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
                     className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'Critical'
                       ? 'bg-[#ff7a7a] text-white'
                       : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
                       }`}
                   >
-                    Critical
+                    F
                   </button>
                   <button
-                    onClick={() => setAttentionFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
-                    className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'Warning'
-                      ? 'bg-yellow-400 text-white'
-                      : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
+                    onClick={() => handleSetFilter(attentionFilter === 'f_motor' ? 'all' : 'f_motor')}
+                    className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'f_motor'
+                      ? 'bg-[#ff7a7a] text-white'
+                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
                       }`}
                   >
-                    <TriangleAlert className={`w-[18px] h-[18px] transition-colors ${attentionFilter === 'Warning' ? 'text-white' : 'text-[#FFCB05]'
-                      }`} />
-                    Warning
+                    F Motor
+                  </button>
+                  <button
+                    onClick={() => handleSetFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
+                    className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'Warning'
+                      ? 'bg-yellow-400 text-white'
+                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
+                      }`}
+                  >
+                    E
                   </button>
                 </div>
 
@@ -234,16 +288,33 @@ const Dashboard = () => {
                 <div className="block sm:hidden w-full relative">
                   <select
                     value={attentionFilter}
-                    onChange={(e) => setAttentionFilter(e.target.value)}
+                    onChange={(e) => handleSetFilter(e.target.value)}
                     className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#546A81] font-semibold hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none transition-all duration-200 cursor-pointer"
                   >
                     <option value="all">All</option>
                     <option value="Critical">Critical (F)</option>
+                    <option value="f_motor">F Motor</option>
                     <option value="Warning">Warning (E)</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
                     <ChevronDown className='w-5' color="#b5b5b5" />
                   </div>
+                </div>
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                  <span className="text-[#990000] font-bold text-2xl">{criticalAttentionCount}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical (F)</span>
+                </div>
+                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                  <span className="text-[#546A81] font-bold text-2xl">{fMotorCount}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">F Motor</span>
+                </div>
+                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                  <span className="text-[#FFCB05] font-bold text-2xl">{warningAttentionCount}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">Warning (E)</span>
                 </div>
               </div>
 
@@ -292,7 +363,7 @@ const Dashboard = () => {
                   <p className="text-[11px] text-gray-400 mt-0.5">
                     {overdue.isLoading
                       ? 'Loading...'
-                      : `Showing ${overdueData?.overdue_count ?? 0} machines overdue.`}
+                      : `Showing ${overdueCount} machines overdue.`}
                   </p>
                 </div>
               </div>
@@ -307,11 +378,11 @@ const Dashboard = () => {
                   <div className="grid grid-cols-3 gap-2 mb-6">
                     <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                       <span className="text-[#990000] font-bold text-2xl">{criticalCount}</span>
-                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical</span>
+                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical (F)</span>
                     </div>
                     <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                       <span className="text-[#FFCB05] font-bold text-2xl">{warningCount}</span>
-                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Warning</span>
+                      <span className="text-[10px] text-gray-400 mt-1 font-semibold">Warning (E)</span>
                     </div>
                     <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                       <span className="text-[#546A81] font-bold text-2xl">{maxDelayLabel}</span>
@@ -319,18 +390,45 @@ const Dashboard = () => {
                     </div>
                   </div>
 
+                  {/* Dropdown */}
+                  <div className="w-full relative mb-6 sm:mb-4">
+                    <select
+                      value={overdueFilter}
+                      onChange={(e) => setOverdueFilter(e.target.value)}
+                      className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#546A81] font-semibold hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none transition-all duration-200 cursor-pointer"
+                    >
+                      <option value="all">All</option>
+                      <option value="f">F</option>
+                      <option value="f_motor">F(Motor)</option>
+                      <option value="e">E</option>
+                      <option value="d">D</option>
+                      <option value="c">C</option>
+                      <option value="b">B</option>
+                      <option value="a">A</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
+                      <ChevronDown className="w-5" color="#b5b5b5" />
+                    </div>
+                  </div>
+
+                  {/* Overdue list */}
+                  {/* <p className="text-[11px] text-gray-400 mt-0.5">
+                    {overdue.isLoading
+                      ? 'Loading...'
+                      : `Showing ${overdueCount} machines overdue.`}
+                  </p> */}
+
                   {/* Overdue list */}
                   <div className="space-y-4">
                     {overdueItems.map((item, i) => {
-                      const gradeColor = item.grade === 'F' ? 'text-[#FF3B3B]' : 'text-[#C1D343]';
+                      const gradeTextColor = GRADE_COLORS[item.grade]?.text || 'text-gray-500';
                       return (
-                        <div key={item.id ?? i}
-                          className="flex items-start justify-between border-b border-gray-100 pb-3 last:border-0">
+                        <div key={item.id ?? i} className="flex items-start justify-between border-b border-gray-100 pb-3 last:border-0">
                           <div>
                             <h4 className="text-sm font-bold text-[#546A81]">{item.equipment}</h4>
                             <p className="text-[10px] text-[#A2ADB6] font-medium mt-1">
                               {item.site} · {item.meas_point} ·{' '}
-                              <span className={`font-bold ${gradeColor}`}>{item.grade}</span>
+                              <span className={`font-bold ${gradeTextColor}`}>{item.grade}</span>
                             </p>
                           </div>
                           <div className="text-right">
@@ -340,6 +438,18 @@ const Dashboard = () => {
                         </div>
                       );
                     })}
+
+                    {/* Infinite scroll trigger */}
+                    <div ref={overdueRef} className="h-1" />
+                    {overdue.isFetchingNextPage && (
+                      <p className="text-center text-xs text-gray-400 py-2">Loading more...</p>
+                    )}
+                    {!overdue.hasNextPage && overdueItems.length > 0 && (
+                      <p className="text-center text-xs text-gray-400 py-2">All machines loaded</p>
+                    )}
+                    {overdueItems.length === 0 && (
+                      <p className="text-center text-xs text-gray-400 py-2">No machines found</p>
+                    )}
                   </div>
                 </>
               )}
@@ -354,7 +464,7 @@ const Dashboard = () => {
 
 export default Dashboard
 
-// DASHBOARD - SKELETON LOADER 
+// SKELETON LOADER 
 function StatsSkeleton() {
   return (
     <div className="flex gap-4 animate-pulse">

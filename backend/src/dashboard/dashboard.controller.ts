@@ -18,6 +18,8 @@ class DashboardOverdueQuery {
   @IsOptional() @IsString() site?: string;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(1) threshold_days?: number = 90;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(1) @Max(50) limit?: number = 8;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(1) page?:  number = 1;
+  @IsOptional() @IsString() filter?: string;
 }
 
 @Controller('dashboard')
@@ -39,7 +41,7 @@ export class DashboardController {
   // GET /api/v1/dashboard/overdue?site=all&threshold_days=90&limit=8
   @Get('overdue')
   getOverdue(@Query() q: DashboardOverdueQuery) {
-    return this.dashboardService.getOverdue(q.site, q.threshold_days, q.limit);
+    return this.dashboardService.getOverdue(q.site, q.threshold_days, q.page,q.limit, q.filter);
   }
 
   @Get()
