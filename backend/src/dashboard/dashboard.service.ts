@@ -30,11 +30,11 @@ export class DashboardService {
   async getStats(site?: string) {
     const key = this.cacheKey(site);
 
-    // Cache hit → return
+    // Cache hit: return
     const cached = await this.cache.get(key);
     if (cached) return cached;
 
-    // Cache miss → query DB
+    // Cache miss: query DB
     const qb = this.repo.manager.createQueryBuilder()
       .select('ranked.site', 'site')
       .addSelect('ranked.state', 'state')
