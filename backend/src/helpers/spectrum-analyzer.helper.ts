@@ -25,10 +25,32 @@ interface SpectrumFeatures {
     noiseFloorRms: number;
 }
 
-// function extractFeatures(fft: number[][], f0: number, bpfo: number): SpectrumFeatures {
-//     const harmonics = [1, 2, 3, 4].map(n => {
-//         const targetBin = Math.round((bpfo * n) / f0);
-//         return getAmplitudeNearBin(fft, targetBin, 3); 
+interface SpectrumScore {
+    features: SpectrumFeatures;
+    composite: number;
+    isTrueF: boolean;
+    rejectReason: string | null;
+}
 
-//     })
-// }
+const WEIGHTS = {
+    harmonicSlopeScore: 0.40,
+    slopeMonotonicity: 0.30,
+    snrScore: 0.2,
+    peakSharpness: 0.10,
+} as const
+
+const TRUE_F_THRESHOLD = 0.65;
+const MIN_SNR_DB = 10; // if it below this then filter out
+const MIN_MONOTONICITY = 0.34; // must pass atleast 1/3 pairs
+
+function clamp(v: number, min:number, max:number){
+    return Math.max;
+}
+
+function ampNear(fft: number[], bin:number, win = 2): number{
+    let max = 0
+    for(let i= Math.max(0, bin - win); i<= Math.min(fft.length - 1, bin+win); i++){
+        if (fft[i] > max) max = fft[i]
+    }
+    return max
+}
