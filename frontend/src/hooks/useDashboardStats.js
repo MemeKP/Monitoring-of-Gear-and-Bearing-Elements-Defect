@@ -7,7 +7,7 @@
  * 1. useDashboardStats
  *    Fetch dashboard summary/statistics data
  * Cache Key: ['dashboard', 'stats', site]
- * Params:
+ * Params: 
  * @param {string} site
  * Current selected site filter.
  * Default = 'all'
