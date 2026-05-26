@@ -14,6 +14,17 @@ pnpm run start:dev
 ```bash
 cp .env.example .env
 ```
+There're 2 .env files that must considered
+- In frontend directory change VITE_API_URL to your domain
+```bash 
+VITE_API_URL=http://<YOUR_SERVER_IP>/api 
+```
+- In backend directory replace `localhost` with that server's actual IP address or domain name.
+```bash
+DB_HOST=<YOUR_SERVER_IP> 
+REDIS_URL=redis://<YOUR_SERVER_IP>:6379
+```
+
 2. Start Container (using Docker)
 ```bash
 docker-compose up -d 
