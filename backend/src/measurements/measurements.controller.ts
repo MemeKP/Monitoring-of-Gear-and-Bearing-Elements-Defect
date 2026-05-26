@@ -11,13 +11,20 @@ import { QueryMeasurementDto } from './dto/query-measurement.dto';
 
 @Controller('measurements')
 export class MeasurementsController {
-  constructor(private readonly service: MeasurementsService) {}
+  constructor(private readonly service: MeasurementsService) { }
 
   // GET /api/v1/measurements?site=xxx&grade=F,E&page=1&limit=20
   @Get()
   findAll(@Query() query: QueryMeasurementDto) {
     return this.service.findAll(query);
   }
+
+  @Get('debug-scores')
+  debugScores() {
+    return this.service.debugScores();
+  }
+
+  
 
   // GET /api/v1/measurements/123
   @Get(':id')
