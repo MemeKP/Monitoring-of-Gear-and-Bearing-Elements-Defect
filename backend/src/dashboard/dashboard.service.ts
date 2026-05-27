@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Measurement } from 'src/measurements/entities/measurement.entity';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { computeGrade, daysSinceCheck, gradeToStatus } from 'src/helpers/grade.helper';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
@@ -131,6 +131,30 @@ export class DashboardService {
     return result;
   }
 
+  async getCriticalAndUglyCounts(
+    baseQb: SelectQueryBuilder<Measurement>,
+    fMotorCondition: string,
+  ): Promise<{ criticalCount: number; uglyCount: number }> {
+    const items = await baseQb.clone()
+      .andWhere('m.state = :state', { state: 6 })
+      .andWhere(`NOT ${fMotorCondition}`)
+      .select(['m.envelopedFft', 'm.detailPeak', 'm.bpfo', 'm.df'])
+      .getMany();
+
+    let criticalCount = 0;
+    let uglyCount = 0;
+    for (const m of items) {
+      const isTrueF = analyzeSpectrum(
+        m.envelopedFft, m.detailPeak,
+        m.bpfo ? parseFloat(m.bpfo as any) : null,
+        m.df ? parseFloat(m.df as any) : null,
+      ).isTrueF;
+      if (isTrueF) criticalCount++;
+      else uglyCount++;
+    }
+    return { criticalCount, uglyCount };
+  }
+
   async getAttention(
     site?: string,
     filter?: string,
@@ -179,7 +203,7 @@ export class DashboardService {
     const statsQb = baseQb.clone()
       .andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] })
       .select([
-        `SUM(CASE WHEN m.state = 6 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS critical_count`,
+        `SUM(CASE WHEN m.state = 6 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS critical_raw_count`,
         `SUM(CASE WHEN m.state = 5 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS warning_count`,
         `SUM(CASE WHEN ${fMotorCondition} THEN 1 ELSE 0 END) AS f_motor_count`,
         `COUNT(m.id) AS all_count`,
@@ -189,68 +213,113 @@ export class DashboardService {
     const qb = baseQb.clone()
       .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue']);
 
+    // critical 
     // if (normalizedFilter === 'critical') {
-    //   qb.andWhere('m.state = :state', { state: 6 });
-    //   qb.andWhere(`NOT ${fMotorCondition}`);
-    // } else if (normalizedFilter === 'warning') {
-    //   qb.andWhere('m.state = :state', { state: 5 });
-    //   qb.andWhere(`NOT ${fMotorCondition}`);
-    // } else if (normalizedFilter === 'f_motor') {
-    //   qb.andWhere(fMotorCondition);
-    // } else {
-    //   qb.andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] });
-    // }
+    //   const criticalItems = await baseQb.clone()
+    //     .andWhere('m.state = :state', { state: 6 })
+    //     .andWhere(`NOT ${fMotorCondition}`)
+    //     .select([
+    //       'm.id', 'm.equipment', 'm.site', 'm.measPoint',
+    //       'm.measDate', 'm.state', 'm.adjOptPointValue',
+    //       'm.envelopedFft', 'm.detailPeak', 'm.bpfo', 'm.df'
+    //     ])
+    //     .orderBy('m.adjOptPointValue', 'DESC')
+    //     .getMany();
 
-    // newwww
+    //   const scores = criticalItems.map(m => ({
+    //     m,
+    //     isTrueF: analyzeSpectrum(
+    //       m.envelopedFft, m.detailPeak,
+    //       m.bpfo ? parseFloat(m.bpfo as any) : null,
+    //       m.df ? parseFloat(m.df as any) : null,
+    //     ).isTrueF,
+    //   }));
     if (normalizedFilter === 'critical') {
+      const [criticalItems, rawStats, { criticalCount, uglyCount }] = await Promise.all([
+        baseQb.clone()
+          .andWhere('m.state = :state', { state: 6 })
+          .andWhere(`NOT ${fMotorCondition}`)
+          .orderBy('m.adjOptPointValue', 'DESC')
+          .getMany(),
+        statsQb.getRawOne(),
+        this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
+      ]);
+
+      const trueFItems = criticalItems.filter(m =>
+        analyzeSpectrum(
+          m.envelopedFft, m.detailPeak,
+          m.bpfo ? parseFloat(m.bpfo as any) : null,
+          m.df ? parseFloat(m.df as any) : null,
+        ).isTrueF
+      );
+
+      // const trueFItems = scores.filter(s => s.isTrueF).map(s => s.m);
+      // const uglyFItems = scores.filter(s => !s.isTrueF).map(s => s.m);
+      const total = trueFItems.length;
+      const paginatedItems = trueFItems.slice(skip, skip + limit);
+     // const rawStats = await statsQb.getRawOne();
+
+      const responseData = {
+        success: true,
+        data: paginatedItems.map(m => {
+          const grade = computeGrade(m.state);
+          return {
+            id: m.id,
+            equipment: m.equipment,
+            site: m.site,
+            meas_point: m.measPoint,
+            meas_date: m.measDate,
+            point_value: m.adjOptPointValue,
+            grade,
+            days_since_check: daysSinceCheck(m.measDate),
+            status_label: gradeToStatus(grade),
+          };
+        }),
+        meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        stats: {
+          allStats: Number(rawStats?.all_count ?? 0),
+          criticalStats: Number(criticalCount ?? 0),  // analyzer
+          fUglyStats: Number(uglyCount ?? 0),
+          warningStats: Number(rawStats?.warning_count ?? 0),
+          fMotorStats: Number(rawStats?.f_motor_count ?? 0),
+        },
+      };
+
+      await this.cache.set(cacheKey, responseData, 300);
+      return responseData;
+    }
+
+    if (normalizedFilter === 'f_ugly') {
       qb.andWhere('m.state = :state', { state: 6 })
       qb.andWhere(`NOT ${fMotorCondition}`)
-      qb.select([
-        'm.id', 'm.equipment', 'm.site', 'm.measPoint',
-        'm.measDate', 'm.state', 'm.adjOptPointValue',
-        'm.envelopedFft', 'm.detailPeak', 'm.bpfo', 'm.df'
-      ])
-    } else if(normalizedFilter === 'f_ugly'){
-      qb.andWhere('')
-    } else if(normalizedFilter === 'warning') {
-      qb.andWhere('m.state = :state', { state: 5 })
+    }
+    else if (normalizedFilter === 'warning') {
+      qb.andWhere('m.state = :state', { state: 5 });
       qb.andWhere(`NOT ${fMotorCondition}`);
-    } else if(normalizedFilter === 'f_motor') {
-       qb.andWhere(fMotorCondition);
+    } else if (normalizedFilter === 'f_motor') {
+      qb.andWhere(fMotorCondition);
     } else {
       qb.andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] });
     }
-
-    const allCritical = await qb.getMany()
-
-    const trueFItems = allCritical.filter(m => {
-      const score = analyzeSpectrum(m.envelopedFft, m.detailPeak, m.bpfo, m.df)
-      return score.isTrueF
-    })
-
-    // own paginate ของ f-ugly algorithm
-    const total = trueFItems.length
-    const paginatedItems = trueFItems.slice(skip, skip + limit)
 
     qb.orderBy('m.state', 'DESC')
       .addOrderBy('m.adjOptPointValue', 'DESC')
       .skip(skip)
       .take(limit);
 
-    const [[items], rawStats] = await Promise.all([
-      qb.getManyAndCount(),
-      statsQb.getRawOne(),
-    ]);
-    
     // const [[items, total], rawStats] = await Promise.all([
     //   qb.getManyAndCount(),
     //   statsQb.getRawOne(),
     // ]);
+    const [[items, total], rawStats, { criticalCount, uglyCount }] = await Promise.all([
+      qb.getManyAndCount(),        // ← กลับมา
+      statsQb.getRawOne(),
+      this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
+    ]);
 
     const responseData = {
       success: true,
-      // from items
-      data: paginatedItems.map(m => {
+      data: items.map(m => {
         const grade = computeGrade(m.state);
         return {
           id: m.id,
@@ -264,19 +333,15 @@ export class DashboardService {
           status_label: gradeToStatus(grade),
         };
       }),
-      meta: {
-        page, limit, total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
       stats: {
         allStats: Number(rawStats?.all_count ?? 0),
-     //   criticalStats: Number(rawStats?.critical_count ?? 0),
-         criticalStats: total, // from analyzer
+        criticalStats: Number(criticalCount ?? 0),
+        fUglyStats: Number(uglyCount ?? 0),
         warningStats: Number(rawStats?.warning_count ?? 0),
         fMotorStats: Number(rawStats?.f_motor_count ?? 0),
       },
     };
-
     await this.cache.set(cacheKey, responseData, 300);
     return responseData;
   }
