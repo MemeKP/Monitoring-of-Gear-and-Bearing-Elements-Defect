@@ -1,0 +1,279 @@
+{
+    "summary": {
+        "total": 753,
+        "passed": 53,
+        "rejected": 700,
+        "pass_rate": "7.0%",
+        "buckets": {
+            "high": 506,
+            "mid": 246,
+            "low": 1
+        },
+        "reject_reasons": {
+            "slope_too_flat": 636,
+            "noise_floor_too_high": 53,
+            "composite_score_low": 11
+        },
+        "top5": [
+            {
+                "id": 171415,
+                "site": "MMP",
+                "equipment": "FGD#11(Route)_WFC. Pump 11-1",
+                "meas_point": "4H-G",
+                "meas_date": "2025-08-08",
+                "composite": 0.915,
+                "is_true_f": true,
+                "reject_reason": null,
+                "features": {
+                    "harmonicSlopeScore": 0.9467319294528802,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 0.681425009892701,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.7491598605786425
+                }
+            },
+            {
+                "id": 184333,
+                "site": "MMP",
+                "equipment": "FGD#08(Route)_Quen Pump 08-1",
+                "meas_point": "4H-G",
+                "meas_date": "2026-03-06",
+                "composite": 0.9017,
+                "is_true_f": true,
+                "reject_reason": null,
+                "features": {
+                    "harmonicSlopeScore": 0.9432099726939185,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 0.6219831307903176,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.7192013364866381
+                }
+            },
+            {
+                "id": 184332,
+                "site": "MMP",
+                "equipment": "FGD#08(Route)_Quen Pump 08-1",
+                "meas_point": "4H-G",
+                "meas_date": "2026-03-06",
+                "composite": 0.9001,
+                "is_true_f": true,
+                "reject_reason": null,
+                "features": {
+                    "harmonicSlopeScore": 0.9480393891138568,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 0.6042990400772335,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.7132787086117003
+                }
+            },
+            {
+                "id": 186569,
+                "site": "MMP",
+                "equipment": "FGD#08(Route)_WFC. Pump 08-1",
+                "meas_point": "2H-G",
+                "meas_date": "2026-04-17",
+                "composite": 0.8988,
+                "is_true_f": true,
+                "reject_reason": null,
+                "features": {
+                    "harmonicSlopeScore": 0.9468464625193007,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 0.6001311229285171,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.7078173646470328
+                }
+            },
+            {
+                "id": 172692,
+                "site": "MMP",
+                "equipment": "FGD#12(Route)_OAB. 12-2",
+                "meas_point": "6H-G",
+                "meas_date": "2025-08-13",
+                "composite": 0.8948,
+                "is_true_f": true,
+                "reject_reason": null,
+                "features": {
+                    "harmonicSlopeScore": 0.9646786483002937,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 0.5444344295917527,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.566666763184789
+                }
+            }
+        ],
+        "border5": [
+            {
+                "id": 186428,
+                "site": "MMP",
+                "equipment": "FGD#08(Route)_OAB. 08-1",
+                "meas_point": "6H-G",
+                "meas_date": "2026-04-17",
+                "composite": 0.6999,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.5933622078208673,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 0.3683998171275162,
+                    "peakSharpness": 0.8888888888888888,
+                    "noiseFloorRatio": 0.3140470740094724
+                }
+            },
+            {
+                "id": 185586,
+                "site": "MMP",
+                "equipment": "MM#14 (Route)_CTF.No.25",
+                "meas_point": "2H-G",
+                "meas_date": "2026-01-26",
+                "composite": 0.6999,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.2775341497950394,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 1,
+                    "peakSharpness": 0.8888888888888888,
+                    "noiseFloorRatio": 0.9125399477379249
+                }
+            },
+            {
+                "id": 174080,
+                "site": "MMP",
+                "equipment": "MM#14 (Route)_CTF.No.12",
+                "meas_point": "2H-G",
+                "meas_date": "2025-08-19",
+                "composite": 0.6997,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.2492659625030803,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 1,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.932513939562419
+                }
+            },
+            {
+                "id": 186470,
+                "site": "MMP",
+                "equipment": "FGD#08(Route)_OAB. 08-3",
+                "meas_point": "4H-G",
+                "meas_date": "2026-04-17",
+                "composite": 0.6991,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.6023886336227535,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 0.40182684065643703,
+                    "peakSharpness": 0.7777777777777778,
+                    "noiseFloorRatio": 0.15056233073619985
+                }
+            },
+            {
+                "id": 185587,
+                "site": "MMP",
+                "equipment": "MM#14 (Route)_CTF.No.25",
+                "meas_point": "2H-G",
+                "meas_date": "2026-01-26",
+                "composite": 0.699,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.2752425256183813,
+                    "slopeMonotonicity": 1,
+                    "snrScore": 1,
+                    "peakSharpness": 0.8888888888888888,
+                    "noiseFloorRatio": 0.9176241067142621
+                }
+            }
+        ],
+        "rejected5": [
+            {
+                "id": 180221,
+                "site": "MMP",
+                "equipment": "MM#11(Route)_CTF. No.11-7",
+                "meas_point": "1H-G",
+                "meas_date": "2025-09-09",
+                "composite": 0.4475,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.20644952721888288,
+                    "slopeMonotonicity": 0.6666666666666666,
+                    "snrScore": 0.37992928764725364,
+                    "peakSharpness": 0.8888888888888888,
+                    "noiseFloorRatio": 0.06309301025081226
+                }
+            },
+            {
+                "id": 179727,
+                "site": "MMP",
+                "equipment": "MM#11(Route)_Pulverizer No.11-4",
+                "meas_point": "1H-G",
+                "meas_date": "2025-09-09",
+                "composite": 0.4384,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.09233759974778805,
+                    "slopeMonotonicity": 0.6666666666666666,
+                    "snrScore": 0.5071208083126603,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.45666035934152616
+                }
+            },
+            {
+                "id": 181330,
+                "site": "MMP",
+                "equipment": "MM#13(Route)_CTF. No.13-9",
+                "meas_point": "1H-G",
+                "meas_date": "2025-12-26",
+                "composite": 0.4339,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.07026896229237228,
+                    "slopeMonotonicity": 0.6666666666666666,
+                    "snrScore": 0.5290862933649102,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.6133911065007491
+                }
+            },
+            {
+                "id": 181331,
+                "site": "MMP",
+                "equipment": "MM#13(Route)_CTF. No.13-9",
+                "meas_point": "1H-G",
+                "meas_date": "2025-12-26",
+                "composite": 0.4336,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.06847453720509436,
+                    "slopeMonotonicity": 0.6666666666666666,
+                    "snrScore": 0.5310089738435676,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.6153893732409424
+                }
+            },
+            {
+                "id": 182065,
+                "site": "MMP",
+                "equipment": "MM#12(Route)_CTF. No.12-5",
+                "meas_point": "1H-G",
+                "meas_date": "2025-12-02",
+                "composite": 0.3075,
+                "is_true_f": false,
+                "reject_reason": "slope_too_flat",
+                "features": {
+                    "harmonicSlopeScore": 0.09367941493928701,
+                    "slopeMonotonicity": 0.3333333333333333,
+                    "snrScore": 0.35023356355518576,
+                    "peakSharpness": 1,
+                    "noiseFloorRatio": 0.10943936721353764
+                }
+            }
+        ]
+    }
+}

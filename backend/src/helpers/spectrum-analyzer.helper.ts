@@ -2,9 +2,9 @@
  * Main Responsibility:
  *  This file will calculate all 5 rules
  * 1. Harmonic Slope Score (35%)
- * 2. Slope Monotonicity (25%)
+ * 2. Slope Monotonicity (30%)
  * 3. SNR Db (20%)
- * 4. Side Band Symmetry (10%)
+ * 4. Noise Floor Ratio (15%)
  * 5. Peak Sharpness (10%)
  */
 
@@ -42,7 +42,7 @@ interface SpectrumScore {
 }
 
 const WEIGHTS = {
-    harmonicSlopeScore: 0.40,
+    harmonicSlopeScore: 0.35,
     slopeMonotonicity: 0.30,
     snrScore: 0.2,
     peakSharpness: 0.10,
@@ -50,9 +50,12 @@ const WEIGHTS = {
     noiseFloorRatio: 0.15,
 } as const
 
-const TRUE_F_THRESHOLD = 0.65;
+// gate
+const TRUE_F_THRESHOLD = 0.80;
 const MIN_SNR_DB = 10; // if it below this then filter out
-const MIN_MONOTONICITY = 0.34; // must pass atleast 1/3 pairs
+const MIN_MONOTONICITY = 0.34;  // must pass atleast 3/4 pairs
+const MIN_HARMONIC_SLOPE = 0.85;
+const MIN_NOISE_FLOOR_RATIO = 0.35;
 
 function clamp(v: number, min: number, max: number) {
     return Math.max(min, Math.min(max, v));
@@ -76,30 +79,37 @@ function median(arr: number[]): number {
 }
 
 function calcSlopeScore(a1: number, a2: number, a3: number, a4: number): number {
-    const ratios = [
-        a2 / (a1 + 1e-9),
-        a3 / (a1 + 1e-9),
-        a4 / (a1 + 1e-9),
-    ];
+  const ratios = [
+    a2 / (a1 + 1e-9),
+    a3 / (a1 + 1e-9),
+    a4 / (a1 + 1e-9),
+  ];
 
-    // from report: ratio ในช่วง 0.35 - 0.90
-    // lower than 0.35 = ลดผิดปกติ penalty
-    // higher than 0.90 = แทบไม่ลด penalty
-    // in range = score สูง
-    const IDEAL_MIN = 0.35;
-    const IDEAL_MAX = 0.90;
+  const IDEAL_MIN = 0.35;
+  const IDEAL_MAX = 0.90;
 
-    const scores = ratios.map(r => {
-        if (r >= IDEAL_MIN && r <= IDEAL_MAX) {
-            return 1.0;
-        } else if (r < IDEAL_MIN) {
-            return clamp(r / IDEAL_MIN, 0, 1);
-        } else {
-            return clamp(1 - (r - IDEAL_MAX) / (1 - IDEAL_MAX), 0, 1);
-        }
-    });
+  // 1. range score 
+  const rangeScores = ratios.map(r => {
+    if (r >= IDEAL_MIN && r <= IDEAL_MAX) return 1.0;
+    if (r < IDEAL_MIN) return clamp(r / IDEAL_MIN, 0, 1);
+    return clamp(1 - (r - IDEAL_MAX) / (1 - IDEAL_MAX), 0, 1);
+  });
+  const rangeScore = rangeScores.reduce((s, v) => s + v, 0) / rangeScores.length;
 
-    return scores.reduce((s, v) => s + v, 0) / scores.length;
+  // 2. progression score — ratio they must decrease between each other.
+  // r[0] > r[1] > r[2] = F real
+  // r[0] ≈ r[1] ≈ r[2] = plateau = not
+  const progressionScores = [
+    ratios[0] - ratios[1],  // should positive
+    ratios[1] - ratios[2],  // should positive
+  ].map(diff => clamp(diff / 0.20, 0, 1));
+  // diff=0.20 = good decrease (score=1.0)
+  // diff=0.0  = not decrease (score=0.0)
+  // diff<0    = up = clamp to 0
+  const progressionScore = progressionScores.reduce((s, v) => s + v, 0) / progressionScores.length;
+
+  // combine two part: range 40%, progression 60%
+  return rangeScore * 0.40 + progressionScore * 0.60;
 }
 
 function calcMonotonicity(a1: number, a2: number, a3: number, a4: number): number {
@@ -127,9 +137,6 @@ function calcNoiseFloorRatio(
     const p75 = sorted[Math.floor(sorted.length * 0.75)];
 
     const ratio = p75 / (peakAmp + 1e-9);
-
-    // console.log({ p75, peakAmp, ratio }); 
-
     return clamp(1 - (ratio / 0.12), 0, 1);
 }
 
@@ -201,9 +208,10 @@ export function analyzeSpectrum(
 
     let rejectReason: string | null = null;
     if (features.snrScore < 0.01) rejectReason = 'snr_too_low';
+    else if (features.harmonicSlopeScore < MIN_HARMONIC_SLOPE) rejectReason = 'slope_too_flat'
     else if (features.slopeMonotonicity < MIN_MONOTONICITY) rejectReason = 'slope_not_monotonic';
     else if (composite < TRUE_F_THRESHOLD) rejectReason = 'composite_score_low';
-    else if (features.noiseFloorRatio < 0.20) {
+    else if (features.noiseFloorRatio < MIN_NOISE_FLOOR_RATIO) {
         rejectReason = 'noise_floor_too_high';
     }
 
