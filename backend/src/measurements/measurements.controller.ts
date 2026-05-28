@@ -1,12 +1,7 @@
-// src/measurements/measurements.controller.ts
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, Query, ParseIntPipe,
-  HttpCode, HttpStatus,
-} from '@nestjs/common';
+  Controller, Get,
+  Param, Query, ParseIntPipe,} from '@nestjs/common';
 import { MeasurementsService } from './measurements.service';
-import { CreateMeasurementDto } from './dto/create-measurement.dto';
-import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 import { QueryMeasurementDto } from './dto/query-measurement.dto';
 
 @Controller('measurements')
@@ -19,12 +14,11 @@ export class MeasurementsController {
     return this.service.findAll(query);
   }
 
+  // GET /api/v1/measurements/debug-scores
   @Get('debug-scores')
   debugScores() {
     return this.service.debugScores();
   }
-
-  
 
   // GET /api/v1/measurements/123
   @Get(':id')

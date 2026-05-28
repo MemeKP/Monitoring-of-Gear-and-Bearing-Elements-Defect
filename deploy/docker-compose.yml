@@ -23,7 +23,6 @@ services:
     networks:
       - vibration-network
 
-# For search engine
   typesense:
     image: typesense/typesense:26.0 
     container_name: typesense_search
@@ -42,9 +41,9 @@ services:
   #     dockerfile: Dockerfile
   #   container_name: backend
   #   environment:
-  #     DB_HOST: mysql
-  #     DB_PORT: 3306
-  #     DB_USERNAME: root
+  #     DB_HOST: ${DB_HOST}
+  #     DB_PORT: ${DB_PORT}
+  #     DB_USERNAME: ${DB_USERNAME}
   #     DB_PASSWORD: ${DB_PASSWORD}
   #     DB_DATABASE: ${DB_DATABASE}
   #   depends_on:
@@ -57,7 +56,6 @@ services:
   #     context: ../frontend
   #     dockerfile: Dockerfile
   #   container_name: frontend
-  #   restart: unless-stopped
   #   depends_on:
   #     - backend
   #   networks:

@@ -149,7 +149,7 @@ export class MeasurementsService {
   }
 
   async debugScores() {
-    const F_GOOD_IDS = ['172736', '184495', '135548']
+    // const F_GOOD_IDS = ['172736', '184495', '135548']
     const TARGET_SITE = 'MMP';
     const fMotorCondition = `
     (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
@@ -168,10 +168,9 @@ export class MeasurementsService {
       .orderBy('m.id', 'DESC')
       .getMany();
 
-    const fGood = await this.repo.find({
-      where: { id: In(F_GOOD_IDS) }
-    })
-
+    // const fGood = await this.repo.find({
+    //   where: { id: In(F_GOOD_IDS) }
+    // })
 
     const results = samples.map(m => {
       const score = analyzeSpectrum(m.envelopedFft, m.detailPeak, m.bpfo, m.df);
@@ -197,7 +196,6 @@ export class MeasurementsService {
     };
 
     //const rejected = results.filter(r => !r.is_true_f);
-
 
     const rejectReasons = results.reduce((acc, r) => {
       if (r.reject_reason) acc[r.reject_reason] = (acc[r.reject_reason] ?? 0) + 1;
