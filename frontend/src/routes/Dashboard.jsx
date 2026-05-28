@@ -63,6 +63,7 @@ const Dashboard = () => {
   const attentionTotalAll = attentionStats.allStats;
   const criticalAttentionCount = attentionStats.criticalStats;
   const warningAttentionCount = attentionStats.warningStats;
+  const fUglyAttentionCount = attentionStats.fUglyStats || 0;
   const fMotorCount = attentionStats.fMotorStats;
   const filteredCount = attention.data?.pages?.[0]?.meta?.total ?? 0;
 
@@ -253,60 +254,34 @@ const Dashboard = () => {
                   </p> */}
                 </div>
 
-                {/* Desktop: Toggle Buttons */}
-                <div className="hidden sm:flex items-center gap-3">
-                  <button
-                    onClick={() => handleSetFilter(attentionFilter === 'Critical' ? 'all' : 'Critical')}
-                    className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'Critical'
-                      ? 'bg-[#ff7a7a] text-white'
-                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
-                      }`}
-                  >
-                    F
-                  </button>
-                  <button
-                    onClick={() => handleSetFilter(attentionFilter === 'f_motor' ? 'all' : 'f_motor')}
-                    className={`px-5 py-1.5 font-medium rounded-full text-sm shadow-sm transition ${attentionFilter === 'f_motor'
-                      ? 'bg-[#ff7a7a] text-white'
-                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
-                      }`}
-                  >
-                    F Motor
-                  </button>
-                  <button
-                    onClick={() => handleSetFilter(attentionFilter === 'Warning' ? 'all' : 'Warning')}
-                    className={`px-5 py-1.5 font-medium rounded-full text-sm flex items-center gap-2 transition ${attentionFilter === 'Warning'
-                      ? 'bg-yellow-400 text-white'
-                      : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
-                      }`}
-                  >
-                    E
-                  </button>
-                </div>
-
-                {/* Mobile: Dropdown */}
-                <div className="block sm:hidden w-full relative">
+                <div className="w-full sm:w-auto relative flex items-center">
                   <select
                     value={attentionFilter}
                     onChange={(e) => handleSetFilter(e.target.value)}
                     className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#546A81] font-semibold hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none transition-all duration-200 cursor-pointer"
                   >
                     <option value="all">All</option>
-                    <option value="Critical">Critical (F)</option>
+                    <option value="Critical">F (Critical)</option>
+                    <option value="f_ugly">F Ugly</option>
                     <option value="f_motor">F Motor</option>
-                    <option value="Warning">Warning (E)</option>
+                    <option value="Warning">E (Warning)</option>
                   </select>
+
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
-                    <ChevronDown className='w-5' color="#b5b5b5" />
+                    <ChevronDown className="w-5" color="#b5b5b5" />
                   </div>
                 </div>
               </div>
 
               {/* Stats row */}
-              <div className="grid grid-cols-3 gap-2 mb-6">
+              <div className="grid grid-cols-2 gap-2 mb-6">
                 <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                   <span className="text-[#990000] font-bold text-2xl">{criticalAttentionCount}</span>
-                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">Critical (F)</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">F (Critical)</span>
+                </div>
+                <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
+                  <span className="text-[#ED1A3B] font-bold text-2xl">{fUglyAttentionCount}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">F Ugly</span>
                 </div>
                 <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                   <span className="text-[#546A81] font-bold text-2xl">{fMotorCount}</span>
@@ -314,7 +289,7 @@ const Dashboard = () => {
                 </div>
                 <div className="bg-[#E6F3FF] rounded-xl py-3 flex flex-col items-center">
                   <span className="text-[#FFCB05] font-bold text-2xl">{warningAttentionCount}</span>
-                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">Warning (E)</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-semibold">E (Warning)</span>
                 </div>
               </div>
 
@@ -410,13 +385,6 @@ const Dashboard = () => {
                       <ChevronDown className="w-5" color="#b5b5b5" />
                     </div>
                   </div>
-
-                  {/* Overdue list */}
-                  {/* <p className="text-[11px] text-gray-400 mt-0.5">
-                    {overdue.isLoading
-                      ? 'Loading...'
-                      : `Showing ${overdueCount} machines overdue.`}
-                  </p> */}
 
                   {/* Overdue list */}
                   <div className="space-y-4">

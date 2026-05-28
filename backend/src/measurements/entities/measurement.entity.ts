@@ -38,7 +38,7 @@ export class Measurement {
     ibeta: number | null;
 
     @Column({ type: 'json', name: 'enveloped_fft', nullable: true })
-    envelopedFft: number[] | null;
+    envelopedFft: number[][] | null;
 
     @Column({
         type: 'varchar',

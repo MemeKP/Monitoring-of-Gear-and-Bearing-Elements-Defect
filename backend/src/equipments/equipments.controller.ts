@@ -38,6 +38,7 @@ export class EquipmentsController {
   }
 
   // GET /api/v1/equipments/123/history?page=1&limit=20
+  // NOT IN USE
   @Get(':id/history')
   findHistory(
     @Param('id', ParseIntPipe) id: number,
