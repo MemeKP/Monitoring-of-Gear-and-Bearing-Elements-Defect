@@ -39,15 +39,12 @@ import { SatelliteDish } from 'lucide-react';
 //     placeholderData: (prev) => prev,
 //   });
 // }
-
-// ในไฟล์ที่เก็บ Hook
-
 export function useEquipmentList(filters = {}) {
   return useInfiniteQuery({
     queryKey: ['equipment', 'infinite', filters],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await equipmentApi.getList({ ...filters, page: pageParam });
-      console.log('EQUIPLT', res)
+      // console.log('EQUIPLT', res)
       return res; 
     },
     initialPageParam: 1,

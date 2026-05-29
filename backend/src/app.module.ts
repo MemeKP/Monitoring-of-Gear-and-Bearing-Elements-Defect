@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -12,6 +12,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { SharedModule } from './shared/typesense.module';
 import { RedisModule } from './redis/redis.module';
+import { SpectrumCacheService } from './helpers/spectrum-cache.service';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { RedisModule } from './redis/redis.module';
     DashboardModule,
     SharedModule,
     RedisModule,
+    
 
     // GraphQLModule.forRoot<ApolloDriverConfig>({
     //   driver: ApolloDriver,
@@ -56,4 +58,11 @@ import { RedisModule } from './redis/redis.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+ export class AppModule { }
+// export class AppModule implements OnModuleInit {
+//   constructor(private readonly spectrumCache: SpectrumCacheService) {}
+
+//   async onModuleInit() {
+//     await this.spectrumCache.warmUp();
+//   }
+// }

@@ -50,13 +50,16 @@ export const measurementApi = {
 };
 
 export const equipmentApi = {
-    getList: ({ site, grade, search, sort, order, page, limit } = {}) => {
+    getList: ({ site, grade, f_filter, search, sort, order, page, limit } = {}) => {
         const params = new URLSearchParams();
         if (site) {
             params.set('site', site);
         }
         if (grade) {
             params.set('grade', grade);
+        }
+        if (f_filter) {
+            params.set('f_filter', f_filter)
         }
         if (search) {
             params.set('search', search);

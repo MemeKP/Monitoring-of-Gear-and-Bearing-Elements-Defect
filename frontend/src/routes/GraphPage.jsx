@@ -107,7 +107,7 @@ const GraphPage = () => {
         return `f = ${hz}<br/>A = ${amp}`;
       },
       axisPointer: {
-        type: 'cross',
+        type: 'line', // cross
         lineStyle: { color: '#a855f7', type: 'dashed' },
         label: {
           backgroundColor: '#a855f7',

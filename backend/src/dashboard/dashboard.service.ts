@@ -312,7 +312,7 @@ export class DashboardService {
     //   statsQb.getRawOne(),
     // ]);
     const [[items, total], rawStats, { criticalCount, uglyCount }] = await Promise.all([
-      qb.getManyAndCount(),        // ← กลับมา
+      qb.getManyAndCount(),       
       statsQb.getRawOne(),
       this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
     ]);

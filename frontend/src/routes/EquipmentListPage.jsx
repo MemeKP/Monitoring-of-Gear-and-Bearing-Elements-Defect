@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ChevronRight, Funnel, X, Plus, Search, RefreshCcw, ArrowDownNarrowWide, Check } from 'lucide-react';
 import { useEquipmentList } from '../hooks/useEquipment';
 import SidePanel from '../components/SidePanel'
@@ -20,9 +20,19 @@ export default function EquipmentListPage() {
 
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeGrades, setActiveGrades] = useState([]);
+
+  ///const [activeGrades, setActiveGrades] = useState([]);
+  //const [activeFilter, setActiveFilter] = useState(null);
+
+  
   const [sortOrder, setSortOrder] = useState('desc');
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentGrade = searchParams.get('grade');
   const LIMIT = 20;
+const activeFilter = useMemo(() => {
+    if (!currentGrade) return null;
+    return GRADE_FILTERS.find(item => item.value === currentGrade) || null;
+  }, [currentGrade]);
 
   useEffect(() => {
     if (!filterOpen) return;
@@ -42,13 +52,23 @@ export default function EquipmentListPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  // const searchFilter = useMemo(() => ({
+  //   site: siteId ?? undefined,
+  //   grade: activeGrades.length ? activeGrades.join(',') : undefined,
+  //   f_filter: activeGrades?.type === 'f_filter' ? activeGrades.f_filter : undefined,
+  //   search: searchQuery || undefined,
+  //   limit: LIMIT,
+  //   order: sortOrder,
+  // }), [siteId, activeGrades, searchQuery, sortOrder]);
+
   const searchFilter = useMemo(() => ({
     site: siteId ?? undefined,
-    grade: activeGrades.length ? activeGrades.join(',') : undefined,
+    grade: activeFilter?.type === 'grade' ? activeFilter.value : undefined,
+    f_filter: activeFilter?.type === 'f_filter' ? activeFilter.f_filter : undefined,
     search: searchQuery || undefined,
     limit: LIMIT,
     order: sortOrder,
-  }), [siteId, activeGrades, searchQuery, sortOrder]);
+  }), [siteId, activeFilter, searchQuery, sortOrder]);
 
   const {
     data,
@@ -61,7 +81,7 @@ export default function EquipmentListPage() {
     refetch
   } = useEquipmentList(searchFilter);
 
-  // console.log('EP DATA', data)
+  //console.log('EP DATA', data)
 
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page?.data || []) ?? [];
@@ -84,11 +104,34 @@ export default function EquipmentListPage() {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const toggleGrade = (grade) => {
-    setActiveGrades(prev =>
-      prev.includes(grade) ? prev.filter(g => g !== grade) : [...prev, grade]
-    );
-  };
+  // function selectFilter(item) {
+  //   setActiveFilter(prev => prev?.value === item.value ? null : item);
+  //   setFilterOpen(false);
+  // }
+
+  function selectFilter(item) {
+    const newParams = new URLSearchParams(searchParams);
+    if (currentGrade === item.value) {
+      newParams.delete('grade');
+    } else {
+      newParams.set('grade', item.value);
+    }
+    setSearchParams(newParams);
+    setFilterOpen(false);
+  }
+
+  function clearAllFilters() {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('grade');
+    setSearchParams(newParams);
+    setFilterOpen(false);
+  }
+
+  // const toggleGrade = (grade) => {
+  //   setActiveGrades(prev =>
+  //     prev.includes(grade) ? prev.filter(g => g !== grade) : [...prev, grade]
+  //   );
+  // };
 
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
@@ -112,14 +155,14 @@ export default function EquipmentListPage() {
       />
 
       <div className={`transition-all duration-300 pt-14 md:pt-0 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
-        
-        {/* HEADER */} 
+
+        {/* HEADER */}
         <div className="p-4 md:p-6 pb-0">
           <div className="text-[#546A81] text-4xl font-bold leading-[66px]">Equipment Health</div>
           <div className="flex font-medium items-center gap-2 text-base text-[#546A81]">
             <span className="hover:cursor-pointer" onClick={() => navigate('/')}>All sites</span>
             <ChevronRight size={16} />
-            <span className='hover:cursor-pointer' onClick={()=>navigate(`/dashboard/${siteId}`)}>{siteName}</span>
+            <span className='hover:cursor-pointer' onClick={() => navigate(`/dashboard/${siteId}`)}>{siteName}</span>
             <ChevronRight size={16} />
             <span>Equipment Health</span>
           </div>
@@ -130,7 +173,7 @@ export default function EquipmentListPage() {
               <Funnel className="w-4 text-[#546A81]" />
 
               {/* Active grade chips — clicking removes the filter */}
-              {activeGrades.map(grade => {
+              {/* {activeGrades.map(grade => {
                 const colors = GRADE_BADGE_COLORS[grade] ?? {};
                 return (
                   <button
@@ -142,7 +185,23 @@ export default function EquipmentListPage() {
                     Grade {grade} <X size={11} />
                   </button>
                 );
-              })}
+              })} */}
+              {activeFilter && (
+                <button
+                  onClick={() => {
+                    const newParams = new URLSearchParams(searchParams);
+                    newParams.delete('grade');
+                    setSearchParams(newParams);
+                  }}
+                  className="flex items-center font-semibold text-sm py-1 px-3 gap-1.5 rounded-full"
+                  style={{
+                    background: GRADE_BADGE_COLORS[activeFilter.value]?.bg ?? '#FEE2E2',
+                    color: GRADE_BADGE_COLORS[activeFilter.value]?.text ?? '#DC2626',
+                  }}
+                >
+                  {activeFilter.label} <X size={11} />
+                </button>
+              )}
 
               {/* Filter picker */}
               <div id="grade-filter-dropdown" className="relative">
@@ -155,37 +214,27 @@ export default function EquipmentListPage() {
 
                 {filterOpen && (
                   <div className="absolute left-0 top-8 flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20 min-w-[130px]">
-                    {GRADE_FILTERS.map(grade => {
-                      const isActive = activeGrades.includes(grade);
-                      const colors = GRADE_BADGE_COLORS[grade] ?? {};
+                    {GRADE_FILTERS.map(item => {
+                      const isActive = activeFilter?.value === item.value;
+                      const colors = GRADE_BADGE_COLORS[item.value] ?? {};
                       return (
                         <button
-                          key={grade}
-                          onClick={() => {
-                            toggleGrade(grade);
-                            // Keep dropdown open so user can pick multiple grades
-                          }}
+                          key={item.value}
+                          onClick={() => selectFilter(item)}
                           className="px-4 py-2 text-sm text-left hover:bg-gray-50 flex items-center justify-between gap-4"
-                          style={isActive ? { color: colors.text, fontWeight: 700 } : { color: '#6b7280' }}
+                          style={isActive ? { color: colors.text ?? '#DC2626', fontWeight: 700 } : { color: '#6b7280' }}
                         >
-                          <span>Grade {grade}</span>
-                          {isActive && (
-                            <span
-                              className="text-xs px-1 py-0.5 rounded-full"
-                              style={{ background: colors.bg, color: colors.text }}
-                            >
-                              <Check className='w-3 h-4 font-bold'/>
-                            </span>
-                          )}
+                          <span>{item.label}</span>
+                          {isActive && <Check className='w-3 h-4 font-bold' />}
                         </button>
                       );
-                    })} 
+                    })}
 
                     {/* Clear all only shown when at least 1 active */}
-                    {activeGrades.length > 0 && (
+                    {activeFilter > 0 && (
                       <>
                         <div className="h-px bg-gray-100 my-1" />
-                        <button
+                        {/* <button
                           onClick={() => {
                             setActiveGrades([]);
                             // setPage(1);
@@ -193,6 +242,9 @@ export default function EquipmentListPage() {
                           }}
                           className="px-4 py-2 text-xs text-left text-red-400 hover:bg-red-50 hover:text-red-500"
                         >
+                          Clear all filters
+                        </button> */}
+                        <button onClick={clearAllFilters}>
                           Clear all filters
                         </button>
                       </>
@@ -240,14 +292,14 @@ export default function EquipmentListPage() {
                 const totalCount = data?.pages?.[0]?.meta?.total || 0;
                 return (
                   <>
-                  Showing {' '} 
-                  <span className='font-semibold'>
-                    {loadedCount.toLocaleString()}
-                  </span> of  {' '}
-                  <span className='font-semibold'>
-                  {totalCount.toLocaleString()} 
-                  </span> results
-                </>);
+                    Showing {' '}
+                    <span className='font-semibold'>
+                      {loadedCount.toLocaleString()}
+                    </span> of  {' '}
+                    <span className='font-semibold'>
+                      {totalCount.toLocaleString()}
+                    </span> results
+                  </>);
               })()
             }
           </div>

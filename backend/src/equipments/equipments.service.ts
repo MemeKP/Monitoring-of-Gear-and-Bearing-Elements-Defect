@@ -7,6 +7,7 @@ import { QueryEquipmentDto } from './dto/query-equipment.dto';
 import { TypesenseService } from 'src/shared/typesense.service';
 import { QueryEquipmentTreeDto } from './dto/query-equipment-tree.dto';
 import { RedisService } from 'src/redis/redis.service';
+import { SpectrumCacheService } from 'src/helpers/spectrum-cache.service';
 
 interface RawMachineData {
   id: number;
@@ -44,6 +45,7 @@ export class EquipmentsService {
     private readonly repo: Repository<Measurement>,
     private readonly typesenseService: TypesenseService,
     private readonly redisService: RedisService,
+    private readonly spectrumCache: SpectrumCacheService,
   ) { }
 
   async syncAllToTypesense() {
@@ -116,7 +118,7 @@ export class EquipmentsService {
       const statusMap: Record<string, string> = {
         critical: 'F',
         warning: 'E',
-        careful: 'D', //!!!!
+        careful: 'D', //!!!! 
         normal: 'A,B,C',
       };
       const gradeStr = statusMap[dto.status.toLowerCase()];
@@ -160,6 +162,44 @@ export class EquipmentsService {
       if (states.length) {
         qb.andWhere('m.state IN (:...states)', { states });
       }
+    }
+
+    const fMotorCondition = `
+  (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
+  FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
+
+    if (dto.f_filter === 'f_motor') {
+      qb.andWhere('m.state = :state', { state: 6 })
+        .andWhere(fMotorCondition);
+
+      const [items, total] = await qb
+        .withDeleted().skip(skip).take(limit).getManyAndCount();
+
+      return {
+        success: true,
+        data: items.map(m => this.enrich(m)),
+        meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      };
+    }
+
+    if (dto.f_filter === 'f_true' || dto.f_filter === 'f_ugly') {
+      const { trueFIds, uglyIds } = await this.spectrumCache.getTrueFIds();
+      const targetIds = dto.f_filter === 'f_true' ? trueFIds : uglyIds;
+
+      if (!targetIds.length) {
+        return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
+      }
+
+      qb.andWhere('m.id IN (:...ids)', { ids: targetIds });
+
+      const [items, total] = await qb
+        .withDeleted().skip(skip).take(limit).getManyAndCount();
+
+      return {
+        success: true,
+        data: items.map(m => this.enrich(m)),
+        meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      };
     }
 
     const sortMap: Record<string, string> = {
