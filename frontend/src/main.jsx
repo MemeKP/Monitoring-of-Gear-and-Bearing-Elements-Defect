@@ -17,6 +17,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import MachineIndexPage from './routes/MachineIndexPage.jsx'
+import ReportModal from './components/ReportModal.jsx'
 
 const queryClient = new QueryClient()
 
@@ -46,7 +47,10 @@ const router = createBrowserRouter([
     path: '/dashboard/:siteId/machine-index',
     element: <MachineIndexPage />
   },
-
+  {
+    path: '/dashboard/:siteId/equipment/:equipmentId/report',
+    element: <ReportModal />
+  },
 ])
 
 createRoot(document.getElementById('root')).render(

@@ -27,7 +27,7 @@ const Dashboard = () => {
   const [activeMobileTab, setActiveMobileTab] = useState('attention');
   const siteName = siteId ?? 'All sites';
   const [searchParams, setSearchParams] = useSearchParams()
-  const attentionFilter = searchParams.get('filter') || 'critical'
+  const attentionFilter = searchParams.get('filter') || 'all'
 
   // infinite scroll
   const { ref, inView } = useInView({ threshold: 0 });

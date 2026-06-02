@@ -21,10 +21,6 @@ export default function EquipmentListPage() {
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  ///const [activeGrades, setActiveGrades] = useState([]);
-  //const [activeFilter, setActiveFilter] = useState(null);
-
-  
   const [sortOrder, setSortOrder] = useState('desc');
   const [searchParams, setSearchParams] = useSearchParams()
   const currentGrade = searchParams.get('grade');
@@ -52,15 +48,6 @@ const activeFilter = useMemo(() => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // const searchFilter = useMemo(() => ({
-  //   site: siteId ?? undefined,
-  //   grade: activeGrades.length ? activeGrades.join(',') : undefined,
-  //   f_filter: activeGrades?.type === 'f_filter' ? activeGrades.f_filter : undefined,
-  //   search: searchQuery || undefined,
-  //   limit: LIMIT,
-  //   order: sortOrder,
-  // }), [siteId, activeGrades, searchQuery, sortOrder]);
-
   const searchFilter = useMemo(() => ({
     site: siteId ?? undefined,
     grade: activeFilter?.type === 'grade' ? activeFilter.value : undefined,
@@ -80,8 +67,6 @@ const activeFilter = useMemo(() => {
     error,
     refetch
   } = useEquipmentList(searchFilter);
-
-  //console.log('EP DATA', data)
 
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page?.data || []) ?? [];
@@ -104,11 +89,6 @@ const activeFilter = useMemo(() => {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // function selectFilter(item) {
-  //   setActiveFilter(prev => prev?.value === item.value ? null : item);
-  //   setFilterOpen(false);
-  // }
-
   function selectFilter(item) {
     const newParams = new URLSearchParams(searchParams);
     if (currentGrade === item.value) {
@@ -126,12 +106,6 @@ const activeFilter = useMemo(() => {
     setSearchParams(newParams);
     setFilterOpen(false);
   }
-
-  // const toggleGrade = (grade) => {
-  //   setActiveGrades(prev =>
-  //     prev.includes(grade) ? prev.filter(g => g !== grade) : [...prev, grade]
-  //   );
-  // };
 
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
@@ -173,19 +147,6 @@ const activeFilter = useMemo(() => {
               <Funnel className="w-4 text-[#546A81]" />
 
               {/* Active grade chips — clicking removes the filter */}
-              {/* {activeGrades.map(grade => {
-                const colors = GRADE_BADGE_COLORS[grade] ?? {};
-                return (
-                  <button
-                    key={grade}
-                    onClick={() => toggleGrade(grade)}
-                    className="flex items-center font-semibold text-sm py-1 px-3 gap-1.5 rounded-full"
-                    style={{ background: colors.bg, color: colors.text }}
-                  >
-                    Grade {grade} <X size={11} />
-                  </button>
-                );
-              })} */}
               {activeFilter && (
                 <button
                   onClick={() => {
@@ -234,16 +195,6 @@ const activeFilter = useMemo(() => {
                     {activeFilter > 0 && (
                       <>
                         <div className="h-px bg-gray-100 my-1" />
-                        {/* <button
-                          onClick={() => {
-                            setActiveGrades([]);
-                            // setPage(1);
-                            setFilterOpen(false);
-                          }}
-                          className="px-4 py-2 text-xs text-left text-red-400 hover:bg-red-50 hover:text-red-500"
-                        >
-                          Clear all filters
-                        </button> */}
                         <button onClick={clearAllFilters}>
                           Clear all filters
                         </button>

@@ -155,6 +155,269 @@ export class DashboardService {
     return { criticalCount, uglyCount };
   }
 
+  // async getAttention(
+  //   site?: string,
+  //   filter?: string,
+  //   page = 1,
+  //   limit = 20,
+  // ) {
+  //   const normalizedFilter = filter?.toLowerCase() || 'all';
+  //   const siteKey = site || 'all';
+  //   const cacheKey = `attention:${siteKey}:${normalizedFilter}:${page}:${limit}`;
+  //   const cachedData = await this.cache.get(cacheKey);
+  //   if (cachedData) {
+  //     return cachedData;
+  //   }
+  //   const skip = (page - 1) * limit;
+  //   // !!!! TIME BOMB (JSON_EXTRACT)
+  //   const fMotorCondition = `
+  //   (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
+  //   FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
+  //   const baseQb = this.repo.createQueryBuilder('m')
+  //     .innerJoin(
+  //       (subQuery) => {
+  //         return subQuery
+  //           .select('ranked.id', 'id')
+  //           .from((sq) => {
+  //             return sq
+  //               .select('sub.id', 'id')
+  //               // !!!! MySQL v8+
+  //               .addSelect(
+  //                 'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
+  //                 'rn'
+  //               )
+  //               .from('enveloped_fft', 'sub')
+  //               .where("sub.indicator != 'I'")
+  //               .andWhere('sub.state IS NOT NULL');
+  //           }, 'ranked')
+  //           .where('ranked.rn = 1');
+  //       },
+  //       'latest',
+  //       'm.id = latest.id'
+  //     )
+  //     .where("m.indicator != 'I'");
+  //   if (site && site !== 'all') {
+  //     baseQb.andWhere('m.site = :site', { site });
+  //   }
+
+  //   const statsQb = baseQb.clone()
+  //     .andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] })
+  //     .select([
+  //       `SUM(CASE WHEN m.state = 6 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS critical_raw_count`,
+  //       `SUM(CASE WHEN m.state = 5 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS warning_count`,
+  //       `SUM(CASE WHEN ${fMotorCondition} THEN 1 ELSE 0 END) AS f_motor_count`,
+  //       `COUNT(m.id) AS all_count`,
+  //     ]);
+
+  //   // filter QB 
+  //   const qb = baseQb.clone()
+  //     .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue']);
+
+  //   // if (normalizedFilter === 'critical') {
+  //   //   const [criticalItems, rawStats, { criticalCount, uglyCount }] = await Promise.all([
+  //   //     baseQb.clone()
+  //   //       .andWhere('m.state = :state', { state: 6 })
+  //   //       .andWhere(`NOT ${fMotorCondition}`)
+  //   //       .orderBy('m.adjOptPointValue', 'DESC')
+  //   //       .getMany(),
+  //   //     statsQb.getRawOne(),
+  //   //     this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
+  //   //   ]);
+
+  //   //   const trueFItems = criticalItems.filter(m =>
+  //   //     analyzeSpectrum(
+  //   //       m.envelopedFft, m.detailPeak,
+  //   //       m.bpfo ? parseFloat(m.bpfo as any) : null,
+  //   //       m.df ? parseFloat(m.df as any) : null,
+  //   //     ).isTrueF
+  //   //   );
+
+  //   //   const total = trueFItems.length;
+  //   //   const paginatedItems = trueFItems.slice(skip, skip + limit);
+
+  //   //   const responseData = {
+  //   //     success: true,
+  //   //     data: paginatedItems.map(m => {
+  //   //       const grade = computeGrade(m.state);
+  //   //       return {
+  //   //         id: m.id,
+  //   //         equipment: m.equipment,
+  //   //         site: m.site,
+  //   //         meas_point: m.measPoint,
+  //   //         meas_date: m.measDate,
+  //   //         point_value: m.adjOptPointValue,
+  //   //         grade,
+  //   //         days_since_check: daysSinceCheck(m.measDate),
+  //   //         status_label: gradeToStatus(grade),
+  //   //       };
+  //   //     }),
+  //   //     meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  //   //     stats: {
+  //   //       allStats: Number(rawStats?.all_count ?? 0),
+  //   //       criticalStats: Number(criticalCount ?? 0),  // analyzer
+  //   //       fUglyStats: Number(uglyCount ?? 0),
+  //   //       warningStats: Number(rawStats?.warning_count ?? 0),
+  //   //       fMotorStats: Number(rawStats?.f_motor_count ?? 0),
+  //   //     },
+  //   //   };
+
+  //   //   await this.cache.set(cacheKey, responseData, 300);
+  //   //   return responseData;
+  //   // }
+
+  //   if (normalizedFilter === 'critical' || normalizedFilter === 'f_ugly') {
+  //     const [rawItems, rawStats, { criticalCount, uglyCount }] = await Promise.all([
+  //       baseQb.clone()
+  //         .andWhere('m.state = :state', { state: 6 })
+  //         .andWhere(`NOT ${fMotorCondition}`)
+  //        // .orderBy('m.adjOptPointValue', 'DESC')
+  //         .getMany(),
+  //       statsQb.getRawOne(),
+  //       this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
+  //     ]);
+
+  //     const filteredItems = rawItems.filter(m => {
+  //       const spectrumScore = analyzeSpectrum(
+  //         m.envelopedFft, m.detailPeak,
+  //         m.bpfo ? parseFloat(m.bpfo as any) : null,
+  //         m.df ? parseFloat(m.df as any) : null,
+  //       );
+
+  //       return {m, spectrumScore};
+  //     });
+
+  //     const total = filteredItems.length;
+  //     const paginatedItems = filteredItems.slice(skip, skip + limit);
+
+  //     const responseData = {
+  //       success: true,
+  //       data: paginatedItems.map(m => ({
+  //         id: m.id,
+  //         equipment: m.equipment,
+  //         site: m.site,
+  //         meas_point: m.measPoint,
+  //         meas_date: m.measDate,
+  //         point_value: m.adjOptPointValue,
+  //         grade: computeGrade(m.state),
+  //         days_since_check: daysSinceCheck(m.measDate),
+  //         status_label: normalizedFilter === 'critical' ? 'Critical' : 'F Ugly', // แปะป้ายตรงตัวไปเลย
+  //       })),
+  //       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  //       stats: {
+  //         allStats: Number(rawStats?.all_count ?? 0),
+  //         criticalStats: Number(criticalCount ?? 0),
+  //         fUglyStats: Number(uglyCount ?? 0),
+  //         warningStats: Number(rawStats?.warning_count ?? 0),
+  //         fMotorStats: Number(rawStats?.f_motor_count ?? 0),
+  //       },
+  //     };
+
+  //     await this.cache.set(cacheKey, responseData, 300);
+  //     return responseData;
+  //   }
+
+  //   // if (normalizedFilter === 'f_ugly') {
+  //   //   qb.andWhere('m.state = :state', { state: 6 })
+  //   //   qb.andWhere(`NOT ${fMotorCondition}`)
+  //   // }
+  //   // else if (normalizedFilter === 'warning') {
+  //   //   qb.andWhere('m.state = :state', { state: 5 });
+  //   //   qb.andWhere(`NOT ${fMotorCondition}`);
+  //   // } else if (normalizedFilter === 'f_motor') {
+  //   //   qb.andWhere(fMotorCondition);
+  //   // } else {
+  //   //   qb.andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] });
+  //   // }
+  //   // qb.orderBy('m.state', 'DESC')
+  //   //   .addOrderBy('m.adjOptPointValue', 'DESC')
+  //   //   .skip(skip)
+  //   //   .take(limit);
+  //   // const [[items, total], rawStats, { criticalCount, uglyCount }] = await Promise.all([
+  //   //   qb.getManyAndCount(),
+  //   //   statsQb.getRawOne(),
+  //   //   this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
+  //   // ]);
+  //   if (normalizedFilter === 'warning') {
+  //     qb.andWhere('m.state = :state', { state: 5 });
+  //     qb.andWhere(`NOT ${fMotorCondition}`);
+  //   } else if (normalizedFilter === 'f_motor') {
+  //     qb.andWhere(fMotorCondition);
+  //   } else {
+  //     qb.andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] });
+  //   }
+
+  //   qb.orderBy('m.state', 'DESC')
+  //     .addOrderBy('m.adjOptPointValue', 'DESC')
+  //     .skip(skip)
+  //     .take(limit);
+
+  //   const [[items, total], rawStats, { criticalCount, uglyCount }] = await Promise.all([
+  //     qb.getManyAndCount(),
+  //     statsQb.getRawOne(),
+  //     this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
+  //   ]);
+
+  //   const responseData = {
+  //     success: true,
+  //     data: items.map(m => {
+  //       const grade = computeGrade(m.state);
+        
+  //       let finalStatusLabel: string = gradeToStatus(grade);
+
+  //       if (m.state === 6) {
+  //         let isFMotor = false;
+  //         try {
+  //           if (m.detailPeak && m.envelopedFft) {
+  //             const peakFirstVal = Array.isArray(m.detailPeak) 
+  //               ? m.detailPeak[0] 
+  //               : String(m.detailPeak).split(',')[0];
+  //             const index = parseInt(String(peakFirstVal), 10);
+              
+  //             const fftData = typeof m.envelopedFft === 'string' ? JSON.parse(m.envelopedFft) : m.envelopedFft;
+  //             isFMotor = Math.floor(fftData[index][0]) === 100;
+  //           }
+  //         } catch (e) { /* ignore parse error */ }
+
+  //         if (isFMotor) {
+  //           finalStatusLabel = 'F Motor';
+  //         } else {
+  //           const isTrueF = analyzeSpectrum(
+  //             m.envelopedFft, m.detailPeak,
+  //             m.bpfo ? parseFloat(m.bpfo as any) : null,
+  //             m.df ? parseFloat(m.df as any) : null,
+  //           ).isTrueF;
+  //           finalStatusLabel = isTrueF ? 'Critical' : 'F Ugly';
+  //         }
+  //       } else if (m.state === 5) {
+  //         finalStatusLabel = 'Warning';
+  //       }
+
+  //       return {
+  //         id: m.id,
+  //         equipment: m.equipment,
+  //         site: m.site,
+  //         meas_point: m.measPoint,
+  //         meas_date: m.measDate,
+  //         point_value: m.adjOptPointValue,
+  //         grade,
+  //         days_since_check: daysSinceCheck(m.measDate),
+  //         status_label: finalStatusLabel, 
+  //       };
+  //     }),
+  //     meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  //     stats: {
+  //       allStats: Number(rawStats?.all_count ?? 0),
+  //       criticalStats: Number(criticalCount ?? 0),
+  //       fUglyStats: Number(uglyCount ?? 0),
+  //       warningStats: Number(rawStats?.warning_count ?? 0),
+  //       fMotorStats: Number(rawStats?.f_motor_count ?? 0),
+  //     },
+  //   };
+
+  //   await this.cache.set(cacheKey, responseData, 300);
+  //   return responseData;
+  // }
+
   async getAttention(
     site?: string,
     filter?: string,
@@ -165,14 +428,17 @@ export class DashboardService {
     const siteKey = site || 'all';
     const cacheKey = `attention:${siteKey}:${normalizedFilter}:${page}:${limit}`;
     const cachedData = await this.cache.get(cacheKey);
+    
     if (cachedData) {
       return cachedData;
     }
+    
     const skip = (page - 1) * limit;
-    // !!!! TIME BOMB (JSON_EXTRACT)
+
     const fMotorCondition = `
     (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
     FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
+    
     const baseQb = this.repo.createQueryBuilder('m')
       .innerJoin(
         (subQuery) => {
@@ -181,7 +447,6 @@ export class DashboardService {
             .from((sq) => {
               return sq
                 .select('sub.id', 'id')
-                // !!!! MySQL v8+
                 .addSelect(
                   'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
                   'rn'
@@ -196,6 +461,7 @@ export class DashboardService {
         'm.id = latest.id'
       )
       .where("m.indicator != 'I'");
+      
     if (site && site !== 'all') {
       baseQb.andWhere('m.site = :site', { site });
     }
@@ -209,76 +475,58 @@ export class DashboardService {
         `COUNT(m.id) AS all_count`,
       ]);
 
-    // filter QB 
     const qb = baseQb.clone()
-      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue']);
+      .select([
+        'm.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue',
+        'm.envelopedFft', 'm.detailPeak', 'm.bpfo', 'm.df'
+      ]);
 
-    // critical 
-    // if (normalizedFilter === 'critical') {
-    //   const criticalItems = await baseQb.clone()
-    //     .andWhere('m.state = :state', { state: 6 })
-    //     .andWhere(`NOT ${fMotorCondition}`)
-    //     .select([
-    //       'm.id', 'm.equipment', 'm.site', 'm.measPoint',
-    //       'm.measDate', 'm.state', 'm.adjOptPointValue',
-    //       'm.envelopedFft', 'm.detailPeak', 'm.bpfo', 'm.df'
-    //     ])
-    //     .orderBy('m.adjOptPointValue', 'DESC')
-    //     .getMany();
-
-    //   const scores = criticalItems.map(m => ({
-    //     m,
-    //     isTrueF: analyzeSpectrum(
-    //       m.envelopedFft, m.detailPeak,
-    //       m.bpfo ? parseFloat(m.bpfo as any) : null,
-    //       m.df ? parseFloat(m.df as any) : null,
-    //     ).isTrueF,
-    //   }));
-    if (normalizedFilter === 'critical') {
-      const [criticalItems, rawStats, { criticalCount, uglyCount }] = await Promise.all([
+    //  1 Critical F Ugly ( Memory)
+    if (normalizedFilter === 'critical' || normalizedFilter === 'f_ugly') {
+      const [rawItems, rawStats, { criticalCount, uglyCount }] = await Promise.all([
         baseQb.clone()
           .andWhere('m.state = :state', { state: 6 })
           .andWhere(`NOT ${fMotorCondition}`)
-          .orderBy('m.adjOptPointValue', 'DESC')
-          .getMany(),
+          .getMany(), 
         statsQb.getRawOne(),
         this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
       ]);
 
-      const trueFItems = criticalItems.filter(m =>
-        analyzeSpectrum(
+      const enrichedItems = rawItems.map(m => {
+        const spectrumScore = analyzeSpectrum(
           m.envelopedFft, m.detailPeak,
           m.bpfo ? parseFloat(m.bpfo as any) : null,
           m.df ? parseFloat(m.df as any) : null,
-        ).isTrueF
-      );
+        );
+        return { m, spectrumScore };
+      });
 
-      // const trueFItems = scores.filter(s => s.isTrueF).map(s => s.m);
-      // const uglyFItems = scores.filter(s => !s.isTrueF).map(s => s.m);
-      const total = trueFItems.length;
-      const paginatedItems = trueFItems.slice(skip, skip + limit);
-     // const rawStats = await statsQb.getRawOne();
+      const filteredItems = enrichedItems.filter(({ spectrumScore }) => {
+        return normalizedFilter === 'critical' ? spectrumScore.isTrueF : !spectrumScore.isTrueF;
+      });
+
+      filteredItems.sort((a, b) => (b.spectrumScore.composite ?? 0) - (a.spectrumScore.composite ?? 0));
+
+      const total = filteredItems.length;
+      const paginatedItems = filteredItems.slice(skip, skip + limit);
 
       const responseData = {
         success: true,
-        data: paginatedItems.map(m => {
-          const grade = computeGrade(m.state);
-          return {
-            id: m.id,
-            equipment: m.equipment,
-            site: m.site,
-            meas_point: m.measPoint,
-            meas_date: m.measDate,
-            point_value: m.adjOptPointValue,
-            grade,
-            days_since_check: daysSinceCheck(m.measDate),
-            status_label: gradeToStatus(grade),
-          };
-        }),
+        data: paginatedItems.map(({ m, spectrumScore }) => ({
+          id: m.id,
+          equipment: m.equipment,
+          site: m.site,
+          meas_point: m.measPoint,
+          meas_date: m.measDate,
+          point_value: spectrumScore.composite ?? m.adjOptPointValue,
+          grade: computeGrade(m.state),
+          days_since_check: daysSinceCheck(m.measDate),
+          status_label: normalizedFilter === 'critical' ? 'Critical' : 'F Ugly', 
+        })),
         meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
         stats: {
           allStats: Number(rawStats?.all_count ?? 0),
-          criticalStats: Number(criticalCount ?? 0),  // analyzer
+          criticalStats: Number(criticalCount ?? 0),
           fUglyStats: Number(uglyCount ?? 0),
           warningStats: Number(rawStats?.warning_count ?? 0),
           fMotorStats: Number(rawStats?.f_motor_count ?? 0),
@@ -289,11 +537,8 @@ export class DashboardService {
       return responseData;
     }
 
-    if (normalizedFilter === 'f_ugly') {
-      qb.andWhere('m.state = :state', { state: 6 })
-      qb.andWhere(`NOT ${fMotorCondition}`)
-    }
-    else if (normalizedFilter === 'warning') {
+    // 2 All, Warning, F Motor (SQL)
+    if (normalizedFilter === 'warning') {
       qb.andWhere('m.state = :state', { state: 5 });
       qb.andWhere(`NOT ${fMotorCondition}`);
     } else if (normalizedFilter === 'f_motor') {
@@ -307,12 +552,8 @@ export class DashboardService {
       .skip(skip)
       .take(limit);
 
-    // const [[items, total], rawStats] = await Promise.all([
-    //   qb.getManyAndCount(),
-    //   statsQb.getRawOne(),
-    // ]);
     const [[items, total], rawStats, { criticalCount, uglyCount }] = await Promise.all([
-      qb.getManyAndCount(),       
+      qb.getManyAndCount(),
       statsQb.getRawOne(),
       this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
     ]);
@@ -321,16 +562,49 @@ export class DashboardService {
       success: true,
       data: items.map(m => {
         const grade = computeGrade(m.state);
+        
+        let finalStatusLabel: string = gradeToStatus(grade);
+        let compositeScore: number | null = null; 
+
+        if (m.state === 6) {
+          let isFMotor = false;
+          try {
+            if (m.detailPeak && m.envelopedFft) {
+              const peakFirstVal = Array.isArray(m.detailPeak) 
+                ? m.detailPeak[0] 
+                : String(m.detailPeak).split(',')[0];
+              const index = parseInt(String(peakFirstVal), 10);
+              
+              const fftData = typeof m.envelopedFft === 'string' ? JSON.parse(m.envelopedFft) : m.envelopedFft;
+              isFMotor = Math.floor(fftData[index][0]) === 100;
+            }
+          } catch (e) { /* ignore parse error */ }
+
+          if (isFMotor) {
+            finalStatusLabel = 'F Motor';
+          } else {
+            const spectrumScore = analyzeSpectrum(
+              m.envelopedFft, m.detailPeak,
+              m.bpfo ? parseFloat(m.bpfo as any) : null,
+              m.df ? parseFloat(m.df as any) : null,
+            );
+            finalStatusLabel = spectrumScore.isTrueF ? 'Critical' : 'F Ugly';
+            compositeScore = spectrumScore.composite;
+          }
+        } else if (m.state === 5) {
+          finalStatusLabel = 'Warning';
+        }
+
         return {
           id: m.id,
           equipment: m.equipment,
           site: m.site,
           meas_point: m.measPoint,
           meas_date: m.measDate,
-          point_value: m.adjOptPointValue,
+          point_value: compositeScore !== null ? compositeScore : m.adjOptPointValue, 
           grade,
           days_since_check: daysSinceCheck(m.measDate),
-          status_label: gradeToStatus(grade),
+          status_label: finalStatusLabel, 
         };
       }),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
@@ -342,6 +616,7 @@ export class DashboardService {
         fMotorStats: Number(rawStats?.f_motor_count ?? 0),
       },
     };
+
     await this.cache.set(cacheKey, responseData, 300);
     return responseData;
   }

@@ -8,3 +8,11 @@ export function useMeasurement(id){
     enabled: !!id,
   });
 }
+
+export function useDebugScore(){
+  return useQuery({
+    queryKey: ['measurements', 'debug-scores'],
+    queryFn: () => measurementApi.getDebugScore(),
+
+  })
+}

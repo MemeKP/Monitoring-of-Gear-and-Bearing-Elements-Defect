@@ -46,7 +46,10 @@ export const dashboardApi = {
 
 export const measurementApi = {
     getOne: (id) =>
-        apiClient.get(`/measurements/${id}`)
+        apiClient.get(`/measurements/${id}`),
+
+    getDebugScore: () =>
+        apiClient.get(`/measurements/debug-scores`),
 };
 
 export const equipmentApi = {

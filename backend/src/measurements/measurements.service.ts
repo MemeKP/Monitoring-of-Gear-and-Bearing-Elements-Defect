@@ -50,7 +50,8 @@ export class MeasurementsService {
     };
   }
 
-  // Shared: apply all filters to a query builder 
+  // Shared: apply all filters to a query builder -> No longer use
+  /*
   private applyFilters(
     qb: SelectQueryBuilder<Measurement>,
     dto: QueryMeasurementDto,
@@ -74,44 +75,29 @@ export class MeasurementsService {
       qb.andWhere('m.ampType = :at', { at: dto.amp_type });
     }
 
-    // Grade filter — e.g. "F,E" → filter by adj_opt_point_value ranges
     // We translate grade letters back to numeric ranges in SQL
     if (dto.grade && dto.grade !== 'all') {
       const grades = dto.grade.split(',').map(g => g.trim().toUpperCase());
       const conditions: string[] = [];
       const params: Record<string, number> = {};
 
-      if (grades.includes('F')) {
-        conditions.push('m.adjOptPointValue > :gradeF');
-        params.gradeF = 30;
-      }
-      if (grades.includes('E')) {
-        conditions.push('(m.adjOptPointValue > :gradeELow AND m.adjOptPointValue <= :gradeEHigh)');
-        params.gradeELow = 20; params.gradeEHigh = 30;
-      }
-      if (grades.includes('D')) {
-        conditions.push('(m.adjOptPointValue > :gradeDLow AND m.adjOptPointValue <= :gradeDHigh)');
-        params.gradeDLow = 15; params.gradeDHigh = 20;
-      }
-      if (grades.includes('C')) {
-        conditions.push('(m.adjOptPointValue > :gradeCLow AND m.adjOptPointValue <= :gradeCHigh)');
-        params.gradeCLow = 10; params.gradeCHigh = 15;
-      }
-      if (grades.includes('B')) {
-        conditions.push('(m.adjOptPointValue > :gradeBLow AND m.adjOptPointValue <= :gradeBHigh)');
-        params.gradeBLow = 5; params.gradeBHigh = 10;
-      }
-      if (grades.includes('A')) {
-        conditions.push('m.adjOptPointValue <= :gradeA');
-        params.gradeA = 5;
-      }
+      if (dto.grade && dto.grade !== 'all') {
+        const grades = dto.grade.split(',').map(g => g.trim().toUpperCase());
+        const statesInNumbers: number[] = [];
 
-      if (conditions.length > 0) {
-        qb.andWhere(`(${conditions.join(' OR ')})`, params);
+        if (grades.includes('A')) statesInNumbers.push(1);
+        if (grades.includes('B')) statesInNumbers.push(2);
+        if (grades.includes('C')) statesInNumbers.push(3);
+        if (grades.includes('D')) statesInNumbers.push(4);
+        if (grades.includes('E')) statesInNumbers.push(5);
+        if (grades.includes('F')) statesInNumbers.push(6);
+
+        if (statesInNumbers.length > 0) {
+          qb.andWhere('m.state IN (:...states)', { states: statesInNumbers });
+        }
       }
+      return qb;
     }
-
-    return qb;
   }
 
   async findAll(dto: QueryMeasurementDto) {
@@ -140,7 +126,7 @@ export class MeasurementsService {
         totalPages: Math.ceil(total / limit),
       },
     };
-  }
+  }*/
 
   async findOne(id: number) {
     const m = await this.repo.findOne({ where: { id } });
@@ -196,7 +182,6 @@ export class MeasurementsService {
     };
 
     //const rejected = results.filter(r => !r.is_true_f);
-
     const rejectReasons = results.reduce((acc, r) => {
       if (r.reject_reason) acc[r.reject_reason] = (acc[r.reject_reason] ?? 0) + 1;
       return acc;
@@ -215,15 +200,15 @@ export class MeasurementsService {
       summary: {
         total: results.length,
         passed,
-      //  borderline_pass: passed
+        //  borderline_pass: passed
         //  .slice(5)
-       //   .map(r => ({ id: r.id, ...r.features, composite: r.composite })),
-       // borderline_fail: rejected
+        //   .map(r => ({ id: r.id, ...r.features, composite: r.composite })),
+        // borderline_fail: rejected
         //  .slice(0, 5)
         //  .map(r => ({ id: r.id, ...r.features, composite: r.composite, reason: r.reject_reason })),
         rejected: results.length - passed,
         pass_rate: `${((passed / results.length) * 100).toFixed(1)}%`,
-         buckets,
+        buckets,
         reject_reasons: rejectReasons,
         top5: results.slice(0, 5),
         border5: results.filter(r => r.composite >= 0.60 && r.composite <= 0.70).slice(0, 5),

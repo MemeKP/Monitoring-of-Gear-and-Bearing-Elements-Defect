@@ -54,6 +54,7 @@ export function useDashboardAttention({ site = 'all', filter = 'all' } = {}) {
     initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {
       const response = await dashboardApi.getAttention({ site, filter, page: pageParam });
+      
       return response; 
     },
     getNextPageParam: (lastPage) => {
@@ -72,7 +73,7 @@ export function useDashboardOverdue(site = 'all', filter='all') {
     initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {
       const response = await dashboardApi.getOverdue({ site, page: pageParam, filter });
-      console.log('RAW OVERDUE RESPONSE', response)
+      // console.log('RAW OVERDUE RESPONSE', response)
       return response;
     },
     getNextPageParam: (lastPage) => {

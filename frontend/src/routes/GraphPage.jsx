@@ -19,7 +19,7 @@ const GraphPage = () => {
   const envelopedFftData = data?.envelopedFft || [];
   const peaksData = data?.peakData || [];
   const detailPeakData = data?.detailPeak || [];
-  console.log('PEAK', detailPeakData)
+ // console.log('PEAK', detailPeakData)
 
   const allAmp = envelopedFftData.map(p => p[1]);
 
@@ -201,9 +201,7 @@ const GraphPage = () => {
       <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
 
       <div className={`transition-all duration-300 pt-14 md:pt-0 ${sidebarOpen ? "md:ml-64" : "md:ml-20"} relative`}>
-
         <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6 mt-4">
-
           {isLoading && <HeaderSkeleton />}
           {isError && <ErrorBox message={error.message} />}
 
