@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar.jsx';
 import { X } from 'lucide-react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useMeasurement } from '../hooks/useMeasurement.js'
 import { ErrorBox, HeaderSkeleton } from '../components/SkeletonLoader.jsx';
 import { GRADE_BADGE_COLORS } from '../constant/gradeConfig.js';
@@ -15,16 +15,20 @@ const GraphPage = () => {
   const { data, isLoading, isError, error } = useMeasurement(equipmentId);
   // console.log("MEASUREMENT:", data);
   // console.log("STATE RAW:", data?.state, typeof data?.state);
+  const navigate = useNavigate()
 
   const envelopedFftData = data?.envelopedFft || [];
   const peaksData = data?.peakData || [];
   const detailPeakData = data?.detailPeak || [];
- // console.log('PEAK', detailPeakData)
+  // console.log('PEAK', detailPeakData)
 
   const allAmp = envelopedFftData.map(p => p[1]);
 
   const grade = data?.grade || 'F'
+  const isGradeF = data?.grade === 'F'
   const gradeColor = GRADE_BADGE_COLORS[grade] ?? GRADE_BADGE_COLORS['F']
+
+  const hasReport = 'No Report'
 
   const maxHz = envelopedFftData.length > 0
     ? Math.max(...envelopedFftData.map(p => p[0] || 0))
@@ -207,16 +211,44 @@ const GraphPage = () => {
 
           {/* HEADER CARD */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-4 mb-4">
-              <span
-                style={{ backgroundColor: gradeColor.bg, color: gradeColor.text }}
-                className="font-bold px-3 py-1 rounded-lg text-sm">
-                [{data?.grade}] Spectrum
-              </span>
-              <h1 className="text-xl font-bold text-[#546A81]">
-                {data?.equipment}
-              </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+              <div className="flex items-center gap-4">
+                <span
+                  style={{ backgroundColor: gradeColor.bg, color: gradeColor.text }}
+                  className="font-bold px-3 py-1 rounded-lg text-sm">
+                  [{data?.grade}] Spectrum
+                </span>
+                <h1 className="text-xl font-bold text-[#546A81]">
+                  {data?.equipment}
+                </h1>
+              </div>
+              {/* Create Report F grade only */}
+              <div className="flex items-center gap-3">
+                {/* Status badge */}
+                <span className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border
+        ${hasReport
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${hasReport ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  {hasReport ? 'Report Created' : 'No Report'}
+                </span>
+
+                {isGradeF && (
+                  <button
+                    onClick={() => navigate(`/dashboard/${siteId}/equipment/${equipmentId}/report`, { state: { data } })}
+                    className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8]
+              text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Create Report
+                  </button>
+                )}
+              </div>
             </div>
+
+
             <div className="flex items-center gap-4 text-sm text-[#A2ADB6] mb-4">
               <span>{data?.site}</span>
               <span>{data?.measPoint}</span>
@@ -267,7 +299,7 @@ const GraphPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
