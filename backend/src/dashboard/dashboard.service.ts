@@ -448,7 +448,7 @@ export class DashboardService {
               return sq
                 .select('sub.id', 'id')
                 .addSelect(
-                  'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
+                  'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.meas_time DESC, sub.state DESC, sub.id DESC)',
                   'rn'
                 )
                 .from('enveloped_fft', 'sub')

@@ -13,6 +13,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { SharedModule } from './shared/typesense.module';
 import { RedisModule } from './redis/redis.module';
 import { SpectrumCacheService } from './helpers/spectrum-cache.service';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { SpectrumCacheService } from './helpers/spectrum-cache.service';
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false, // never true in production!!!!!
+        synchronize: false, // if u want to touch this, think again
       }),
     }),
     CacheModule.registerAsync({
@@ -48,21 +49,10 @@ import { SpectrumCacheService } from './helpers/spectrum-cache.service';
     DashboardModule,
     SharedModule,
     RedisModule,
-    
+    ReportModule,
 
-    // GraphQLModule.forRoot<ApolloDriverConfig>({
-    //   driver: ApolloDriver,
-    //   autoSchemaFile: true,
-    // }),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
  export class AppModule { }
-// export class AppModule implements OnModuleInit {
-//   constructor(private readonly spectrumCache: SpectrumCacheService) {}
-
-//   async onModuleInit() {
-//     await this.spectrumCache.warmUp();
-//   }
-// }

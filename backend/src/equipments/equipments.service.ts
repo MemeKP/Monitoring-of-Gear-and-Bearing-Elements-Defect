@@ -48,6 +48,17 @@ export class EquipmentsService {
     private readonly spectrumCache: SpectrumCacheService,
   ) { }
 
+  async onModuleInit() {
+    const typesenseCount = await this.typesenseService.getEquipmentCount();
+    const mysqlCount = await this.repo.count(); 
+    if (typesenseCount !== mysqlCount) {
+      console.log(`[Auto-Sync] Data mismatch! MySQL has ${mysqlCount}, but Typesense has ${typesenseCount}. Starting sync...`);
+      await this.syncAllToTypesense();
+    } else {
+      console.log(`[Auto-Sync] Data is fully in sync (Count: ${mysqlCount}). Skipping sync.`);
+    }
+  }
+
   async syncAllToTypesense() {
     const machines = await this.repo.createQueryBuilder('m')
       .select('m.id', 'id')

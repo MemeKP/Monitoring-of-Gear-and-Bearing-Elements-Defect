@@ -87,12 +87,20 @@ export const equipmentApi = {
         params,
         reqFullData: true
     }),
+}
 
-    // search: ({ q, site = 'all' }) => {
-    //   return apiClient.get('/equipments/search', {
-    //     params: { q, site },
-    //     reqFullData: true 
-    //   });
-    // },
+export const reportApi = {
+    getAll: () => apiClient.get('/reports'),
 
+    getOne: (id) => apiClient.get(`/reports/${id}`),
+
+    getByFftId: (fftId) =>
+    apiClient.get(`/reports/by-fft/${fftId}`, { reqFullData: true }),
+
+
+    create: (data) => apiClient.post('/reports', data),
+
+    update: (id, data) => apiClient.patch(`/reports/${id}`, data),
+
+    remove: (id) => apiClient.delete(`/reports/${id}`),
 }

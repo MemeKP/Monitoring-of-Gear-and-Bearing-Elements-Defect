@@ -80,6 +80,18 @@ export class TypesenseService implements OnModuleInit {
     }
   }
 
+  async getEquipmentCount(): Promise<number> {
+    try {
+      const result = await this.client.collections('equipment').documents().search({
+        q: '*',
+        per_page: 0, 
+      });
+      return result.found ?? 0;
+    } catch (error) {
+      return 0; 
+    }
+  }
+
   async upsertEquipment(data: { id: number; equipment: string; site: string }) {
     try {
       await this.client.collections<EquipmentDocument>('equipment').documents().upsert({

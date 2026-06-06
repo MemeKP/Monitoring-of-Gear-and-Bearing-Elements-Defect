@@ -11,6 +11,7 @@ import {
 import Landing from './routes/Landing.jsx'
 import Dashboard from './routes/Dashboard.jsx'
 import GraphPage from './routes/GraphPage.jsx'
+import Report from './routes/Report.jsx'
 import EquipmentListPage from './routes/EquipmentListPage.jsx'
 import {
   QueryClient,
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
   {
     path: '/dashboard/:siteId/equipment/:equipmentId/report',
     element: <CreateReportPage />
+  },
+  {
+    path: '/dashboard/:siteId/equipment/:equipmentId/report-view',
+    element: <Report />
   },
 ])
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar.jsx';
 import { X } from 'lucide-react';
 import ReactECharts from 'echarts-for-react';
@@ -28,7 +28,18 @@ const GraphPage = () => {
   const isGradeF = data?.grade === 'F'
   const gradeColor = GRADE_BADGE_COLORS[grade] ?? GRADE_BADGE_COLORS['F']
 
-  const hasReport = 'No Report'
+  const [hasReport, setHasReport] = useState(false);
+
+  useEffect(() => {
+    if (data?.id) {
+      fetch(`${import.meta.env.VITE_API_URL}/reports/check/${data.id}`)
+        .then((res) => res.json())
+        .then((resData) => {
+          setHasReport(resData.hasReport);
+        })
+        .catch((err) => console.error("Error checking report:", err));
+    }
+  }, [data?.id]);
 
   const maxHz = envelopedFftData.length > 0
     ? Math.max(...envelopedFftData.map(p => p[0] || 0))
@@ -225,25 +236,62 @@ const GraphPage = () => {
               </div>
               {/* Create Report F grade only */}
               <div className="flex items-center gap-3">
-                {/* Status badge */}
-                <span className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border
-        ${hasReport
-                    ? 'bg-green-50 text-green-700 border-green-200'
-                    : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${hasReport ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  {hasReport ? 'Report Created' : 'No Report'}
-                </span>
-
                 {isGradeF && (
-                  <button
-                    onClick={() => navigate(`/dashboard/${siteId}/equipment/${equipmentId}/report`, { state: { data } })}
-                    className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8]
-              text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Create Report
-                  </button>
+                  hasReport ? (
+                    <button
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/${siteId}/equipment/${equipmentId}/report-view`,
+                          { state: { data } }
+                        )
+                      }
+                      className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700
+      text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12H9m12 0A9 9 0 1112 3a9 9 0 019 9z"
+                        />
+                      </svg>
+
+                      View Report
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/${siteId}/equipment/${equipmentId}/report`,
+                          { state: { data } }
+                        )
+                      }
+                      className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8]
+      text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+
+                      Create Report
+                    </button>
+                  )
                 )}
               </div>
             </div>
