@@ -8,6 +8,7 @@ import { TypesenseService } from 'src/shared/typesense.service';
 import { QueryEquipmentTreeDto } from './dto/query-equipment-tree.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { SpectrumCacheService } from 'src/helpers/spectrum-cache.service';
+import { SelectQueryBuilder } from 'typeorm';
 
 interface RawMachineData {
   id: number;
@@ -48,14 +49,26 @@ export class EquipmentsService {
     private readonly spectrumCache: SpectrumCacheService,
   ) { }
 
-  async onModuleInit() {
-    const typesenseCount = await this.typesenseService.getEquipmentCount();
-    const mysqlCount = await this.repo.count(); 
-    if (typesenseCount !== mysqlCount) {
-      console.log(`[Auto-Sync] Data mismatch! MySQL has ${mysqlCount}, but Typesense has ${typesenseCount}. Starting sync...`);
-      await this.syncAllToTypesense();
-    } else {
-      console.log(`[Auto-Sync] Data is fully in sync (Count: ${mysqlCount}). Skipping sync.`);
+  onModuleInit() {
+    // run as background task
+    this.runAutoSyncInBackground().catch((err) => {
+      console.error('[Auto-Sync] Background task failed:', err);
+    });
+  }
+
+  private async runAutoSyncInBackground() {
+    try {
+      const typesenseCount = await this.typesenseService.getEquipmentCount();
+      const mysqlCount = await this.repo.count(); 
+
+      if (typesenseCount !== mysqlCount) {
+        console.log(`[Auto-Sync] Data mismatch! MySQL: ${mysqlCount}, Typesense: ${typesenseCount}. Syncing in background...`);
+        await this.syncAllToTypesense();
+      } else {
+        console.log(`[Auto-Sync] Data is fully in sync (Count: ${mysqlCount}).`);
+      }
+    } catch (error) {
+      console.error('[Auto-Sync] Error checking data:', error);
     }
   }
 
@@ -287,6 +300,147 @@ export class EquipmentsService {
     };
   }
 
+  // async findMachineTree(dto: QueryEquipmentTreeDto) {
+  //   const page = Number(dto.page) || 1;
+  //   const limit = Number(dto.limit) || 20;
+  //   const isSearching = dto.search && dto.search.trim() !== '';
+
+  //   let equipmentNames: string[] = [];
+  //   let totalMachines = 0;
+
+  //   if (isSearching) {
+  //     if (!dto.search?.trim()) return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
+  //     const matchedNames = await this.typesenseService.searchEquipment(dto.search, dto.site);
+  //     totalMachines = matchedNames.length;
+
+  //     if (totalMachines === 0) {
+  //       return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
+  //     }
+  //     equipmentNames = matchedNames.slice((page - 1) * limit, page * limit);
+  //   } else {
+  //     const cacheKey = `machine_index:site_${dto.site || 'all'}:page_${page}:limit_${limit}`;
+  //     const cachedData = await this.redisService.get(cacheKey);
+  //     if (cachedData) {
+  //       return JSON.parse(cachedData);
+  //     }
+
+  //     const equipmentQb = this.repo.createQueryBuilder('m')
+  //       .select('m.equipment', 'equipment')
+  //       .groupBy('m.equipment')
+  //       .orderBy('m.equipment', 'ASC');
+
+  //     const countQuery = this.repo.createQueryBuilder('m')
+  //       .select('COUNT(DISTINCT m.equipment)', 'count');
+
+  //     if (dto.site && dto.site !== 'all') {
+  //       equipmentQb.andWhere('m.site = :site', { site: dto.site });
+  //       countQuery.andWhere('m.site = :site', { site: dto.site });
+  //     }
+
+  //     const countResult = await countQuery.getRawOne();
+  //     totalMachines = Number(countResult?.count) || 0;
+
+  //     if (totalMachines === 0) {
+  //       return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
+  //     }
+
+  //     const paginatedEquipments = await equipmentQb
+  //       .offset((page - 1) * limit)
+  //       .limit(limit)
+  //       .getRawMany();
+
+  //     equipmentNames = paginatedEquipments.map((e) => e.equipment);
+  //   }
+
+  //   if (equipmentNames.length === 0) {
+  //     return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
+  //   }
+
+  //   const qb = this.repo.createQueryBuilder('m')
+  //     .select([
+  //       'm.id', 'm.site', 'm.equipment', 'm.measDate', 'm.state', 'm.bpfo'
+  //     ])
+  //     .where('m.equipment IN (:...equipmentNames)', { equipmentNames })
+  //     .orderBy('m.equipment', 'ASC')
+  //     .addOrderBy('m.measDate', 'DESC');
+
+  //   if (dto.site && dto.site !== 'all') {
+  //     qb.andWhere('m.site = :site', { site: dto.site });
+  //   }
+
+  //   const items = (await qb.getMany()) as EquipmentRaw[];
+
+  //   const stateToGrade: Record<number, string> = {
+  //     1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F',
+  //   };
+
+  //   const machineMap = new Map<string, MachineNode>();
+
+  //   for (const item of items) {
+  //     const machineName = item.equipment;
+  //     const dateStr = item.measDate ? String(item.measDate).substring(0, 10) : 'Unknown Date';
+  //     const grade = stateToGrade[item.state] || 'A';
+
+  //     if (!machineMap.has(machineName)) {
+  //       machineMap.set(machineName, {
+  //         id: `m_${item.id}`,
+  //         name: machineName,
+  //         highestState: 0,
+  //         grade: 'A',
+  //         datesMap: new Map<string, Map<string, PointData[]>>(),
+  //       });
+  //     }
+
+  //     const machineNode = machineMap.get(machineName)!;
+  //     if (item.state > machineNode.highestState) {
+  //       machineNode.highestState = item.state;
+  //       machineNode.grade = grade;
+  //     }
+
+  //     if (!machineNode.datesMap.has(dateStr)) {
+  //       machineNode.datesMap.set(dateStr, new Map<string, PointData[]>());
+  //     }
+  //     const dateMap = machineNode.datesMap.get(dateStr)!;
+
+  //     if (!dateMap.has(grade)) {
+  //       dateMap.set(grade, []);
+  //     }
+
+  //     const bpfoNum = Number(item.bpfo) || 0;
+  //     const bpfiNum = bpfoNum + 10;
+  //     dateMap.get(grade)!.push({
+  //       id: `${item.id}`,
+  //       bpfo: bpfoNum,
+  //       bpfi: bpfiNum,
+  //     });
+  //   }
+
+  //   const result = Array.from(machineMap.values()).map((m: MachineNode) => {
+  //     const datesArray = Array.from(m.datesMap.entries()).map(([date, statesMap]: [string, Map<string, PointData[]>]) => {
+  //       const standardGrades = ['F', 'E', 'D', 'C', 'B', 'A'];
+  //       const statesArray = standardGrades.map((g: string) => ({
+  //         state: g,
+  //         ids: statesMap.get(g) || [],
+  //       }));
+  //       return { date, states: statesArray };
+  //     });
+
+  //     return { id: m.id, name: m.name, grade: m.grade, dates: datesArray };
+  //   });
+
+  //   const totalPages = Math.ceil(totalMachines / limit);
+  //   const finalResponse = {
+  //     success: true,
+  //     data: result,
+  //     meta: { page, limit, total: totalMachines, totalPages }
+  //   };
+  //   if (!isSearching) {
+  //     const cacheKey = `machine_index:site_${dto.site || 'all'}:page_${page}:limit_${limit}`;
+  //     await this.redisService.set(cacheKey, JSON.stringify(finalResponse), 'EX', 3600);
+  //   }
+  //   return finalResponse;
+  // }
+
   async findMachineTree(dto: QueryEquipmentTreeDto) {
     const page = Number(dto.page) || 1;
     const limit = Number(dto.limit) || 20;
@@ -304,59 +458,59 @@ export class EquipmentsService {
         return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
       }
       equipmentNames = matchedNames.slice((page - 1) * limit, page * limit);
+      
     } else {
-      const cacheKey = `machine_index:site_${dto.site || 'all'}:page_${page}:limit_${limit}`;
-      const cachedData = await this.redisService.get(cacheKey);
-      if (cachedData) {
-        return JSON.parse(cachedData);
+      const siteKey = dto.site || 'all';
+      const listCacheKey = `machine_list:site_${siteKey}`;
+      let allEquipmentsForSite: string[] = [];
+
+      const cachedList = await this.redisService.get(listCacheKey);
+      
+      if (cachedList) {
+        allEquipmentsForSite = JSON.parse(cachedList);
+      } else {
+        const equipmentQb = this.repo.createQueryBuilder('m')
+          .select('DISTINCT m.equipment', 'equipment')
+          .orderBy('m.equipment', 'ASC');
+
+        if (dto.site && dto.site !== 'all') {
+          equipmentQb.where('m.site = :site', { site: dto.site });
+        }
+
+        const distinctEquipments = await equipmentQb.getRawMany();
+        allEquipmentsForSite = distinctEquipments.map((e) => e.equipment);
+
+        if (allEquipmentsForSite.length > 0) {
+          await this.redisService.set(listCacheKey, JSON.stringify(allEquipmentsForSite), 'EX', 43200);
+        }
       }
-
-      const equipmentQb = this.repo.createQueryBuilder('m')
-        .select('m.equipment', 'equipment')
-        .groupBy('m.equipment')
-        .orderBy('m.equipment', 'ASC');
-
-      const countQuery = this.repo.createQueryBuilder('m')
-        .select('COUNT(DISTINCT m.equipment)', 'count');
-
-      if (dto.site && dto.site !== 'all') {
-        equipmentQb.andWhere('m.site = :site', { site: dto.site });
-        countQuery.andWhere('m.site = :site', { site: dto.site });
-      }
-
-      const countResult = await countQuery.getRawOne();
-      totalMachines = Number(countResult?.count) || 0;
-
+      totalMachines = allEquipmentsForSite.length;
       if (totalMachines === 0) {
         return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
       }
-
-      const paginatedEquipments = await equipmentQb
-        .offset((page - 1) * limit)
-        .limit(limit)
-        .getRawMany();
-
-      equipmentNames = paginatedEquipments.map((e) => e.equipment);
+      equipmentNames = allEquipmentsForSite.slice((page - 1) * limit, page * limit);
     }
 
     if (equipmentNames.length === 0) {
       return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
     }
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const qb = this.repo.createQueryBuilder('m')
-      .select([
-        'm.id', 'm.site', 'm.equipment', 'm.measDate', 'm.state', 'm.bpfo'
-      ])
-      .where('m.equipment IN (:...equipmentNames)', { equipmentNames })
-      .orderBy('m.equipment', 'ASC')
-      .addOrderBy('m.measDate', 'DESC');
+      .select('m.id', 'id')
+      .addSelect('m.equipment', 'equipment')
+      .addSelect('DATE_FORMAT(m.meas_date, "%Y-%m-%d")', 'dateStr')
+      .addSelect('m.state', 'state')
+      .addSelect('m.bpfo', 'bpfo')
+      .where('m.equipment IN (:...equipmentNames)', { equipmentNames });
 
     if (dto.site && dto.site !== 'all') {
       qb.andWhere('m.site = :site', { site: dto.site });
     }
 
-    const items = (await qb.getMany()) as EquipmentRaw[];
-
+    qb.orderBy('m.equipment', 'ASC').addOrderBy('m.meas_date', 'DESC');
+    const items = await qb.getRawMany();
     const stateToGrade: Record<number, string> = {
       1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F',
     };
@@ -365,7 +519,7 @@ export class EquipmentsService {
 
     for (const item of items) {
       const machineName = item.equipment;
-      const dateStr = item.measDate ? String(item.measDate).substring(0, 10) : 'Unknown Date';
+      const dateStr = item.dateStr || 'Unknown Date';
       const grade = stateToGrade[item.state] || 'A';
 
       if (!machineMap.has(machineName)) {
@@ -416,17 +570,12 @@ export class EquipmentsService {
     });
 
     const totalPages = Math.ceil(totalMachines / limit);
-    const finalResponse = {
+    return {
       success: true,
       data: result,
       meta: { page, limit, total: totalMachines, totalPages }
     };
-    if (!isSearching) {
-      const cacheKey = `machine_index:site_${dto.site || 'all'}:page_${page}:limit_${limit}`;
-      await this.redisService.set(cacheKey, JSON.stringify(finalResponse), 'EX', 3600);
-    }
-    return finalResponse;
-  }
+}
 
   // with worker build
   // async findMachineTree(dto: QueryEquipmentTreeDto) {
