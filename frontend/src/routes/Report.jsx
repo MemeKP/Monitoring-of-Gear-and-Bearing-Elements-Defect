@@ -14,25 +14,26 @@ const Report = () => {
   const envelopedFftData = equipment?.envelopedFft || [];
   const peaksData = equipment?.peakData || [];
   const detailPeakData = equipment?.detailPeak || [];
-
   const { report: rawReport, isLoading } = useReportByFftId(equipmentId);
-  const report = useMemo(() => {
+
+ const report = useMemo(() => {
     if (!rawReport) return null;
     const dateSource = rawReport.updatedAt ?? rawReport.createdAt;
     return {
       title: rawReport.equipmentName ?? '—',
       kks: rawReport.kks ?? '—',
       rpm: rawReport.rpm ?? '—',
-      date: dateSource
+       date: dateSource
         ? new Date(dateSource).toLocaleString('th-TH', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
+          // hour: '2-digit',
+          // minute: '2-digit',
+          // second: '2-digit',
         })
         : '—',
+
       bearings: rawReport.bearings ?? [],
       findings: rawReport.findings
         ? rawReport.findings.split('\n').filter(Boolean)
@@ -265,23 +266,23 @@ const Report = () => {
             </p>
 
             <h1 className="text-4xl font-extrabold text-[#546A81] tracking-wide uppercase">
-              {report.title}
+              {report?.title}
             </h1>
 
             <div className="flex flex-wrap justify-center items-center gap-4 mt-6 text-sm text-[#7B8794]">
               <div>
                 <span className="font-semibold text-[#546A81]">KKS</span>{" "}
-                <span className="text-[#CBD5E1]">•</span> {report.kks}
+                <span className="text-[#CBD5E1]">•</span> {report?.kks}
               </div>
               <div className="hidden sm:block w-px h-5 bg-gray-300" />
               <div>
                 <span className="font-semibold text-[#546A81]">RPM</span>{" "}
-                <span className="text-[#CBD5E1]">•</span> {report.rpm}
+                <span className="text-[#CBD5E1]">•</span> {report?.rpm}
               </div>
               <div className="hidden sm:block w-px h-5 bg-gray-300" />
               <div>
                 <span className="font-semibold text-[#546A81]">Date</span>{" "}
-                <span className="text-[#CBD5E1]">•</span> {report.date}
+                <span className="text-[#CBD5E1]">•</span> {report?.date}
               </div>
             </div>
           </div>
@@ -313,7 +314,7 @@ const Report = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {report.bearings.map((bearing, index) => (
+                    {report?.bearings.map((bearing, index) => (
                       <tr
                         key={index}
                         className="border-t border-gray-100 text-[#546A81]"
@@ -345,19 +346,19 @@ const Report = () => {
               {/* Title row with MMP / 4V badges */}
               <div className="flex items-center gap-3 mb-6 pl-3 border-l-2 border-[#546A81]">
                 <h3 className="text-sm font-semibold text-[#546A81]">
-                  {equipment.equipment}
+                  {equipment?.equipment}
                 </h3>
                 <div className="flex items-center gap-1 text-[#708DA8] text-xs font-semibold">
                   <span><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13.9997 21.7333C13.8219 21.7333 13.6663 21.6724 13.533 21.5506C13.3997 21.4288 13.333 21.2675 13.333 21.0666V10.9333C13.333 10.7333 13.3997 10.5724 13.533 10.4506C13.6663 10.3288 13.8219 10.2675 13.9997 10.2666C14.0441 10.2666 14.1997 10.3333 14.4663 10.4666L19.2997 15.2999C19.4108 15.411 19.4886 15.5222 19.533 15.6333C19.5775 15.7444 19.5997 15.8666 19.5997 15.9999C19.5997 16.1333 19.5775 16.2555 19.533 16.3666C19.4886 16.4777 19.4108 16.5888 19.2997 16.6999L14.4663 21.5333C14.3997 21.5999 14.3277 21.6502 14.2503 21.6839C14.173 21.7177 14.0895 21.7342 13.9997 21.7333Z" fill="#708DA8" />
                   </svg></span>
-                  <span>{equipment.site}</span>
+                  <span>{equipment?.site}</span>
                 </div>
                 <div className="flex items-center gap-1 text-[#708DA8] text-xs font-semibold">
                   <span><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13.9997 21.7333C13.8219 21.7333 13.6663 21.6724 13.533 21.5506C13.3997 21.4288 13.333 21.2675 13.333 21.0666V10.9333C13.333 10.7333 13.3997 10.5724 13.533 10.4506C13.6663 10.3288 13.8219 10.2675 13.9997 10.2666C14.0441 10.2666 14.1997 10.3333 14.4663 10.4666L19.2997 15.2999C19.4108 15.411 19.4886 15.5222 19.533 15.6333C19.5775 15.7444 19.5997 15.8666 19.5997 15.9999C19.5997 16.1333 19.5775 16.2555 19.533 16.3666C19.4886 16.4777 19.4108 16.5888 19.2997 16.6999L14.4663 21.5333C14.3997 21.5999 14.3277 21.6502 14.2503 21.6839C14.173 21.7177 14.0895 21.7342 13.9997 21.7333Z" fill="#708DA8" />
                   </svg></span>
-                  <span>{equipment.measPoint}</span>
+                  <span>{equipment?.measPoint}</span>
                 </div>
               </div>
 
@@ -365,23 +366,23 @@ const Report = () => {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 min-w-[90px]">
                   <p className="text-xs text-[#9AA5B1] mb-1">ID</p>
-                  <p className="font-bold text-[#546A81] text-base">{equipment.id}</p>
+                  <p className="font-bold text-[#546A81] text-base">{equipment?.id}</p>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 min-w-[90px]">
                   <p className="text-xs text-[#9AA5B1] mb-1">f0</p>
-                  <p className="font-bold text-[#546A81] text-base">{equipment.f0}</p>
+                  <p className="font-bold text-[#546A81] text-base">{equipment?.f0}</p>
                 </div>
                 <div className="border bg-white border-gray-200 rounded-lg px-4 py-3 min-w-[90px]">
                   <p className="text-xs text-[#9AA5B1] mb-1">iBeta</p>
-                  <p className="font-bold text-[#546A81] text-base">{equipment.ibeta}</p>
+                  <p className="font-bold text-[#546A81] text-base">{equipment?.ibeta}</p>
                 </div>
                 <div className="border bg-white border-gray-200 rounded-lg px-4 py-3 min-w-[110px]">
                   <p className="text-xs text-[#9AA5B1] mb-1">BPFO/BPFI</p>
-                  <p className="font-bold text-[#546A81] text-base"> {equipment?.bpfo || 'NaN'}/{Number(equipment.bpfo) + 10}</p>
+                  <p className="font-bold text-[#546A81] text-base"> {equipment?.bpfo || 'NaN'}/{Number(equipment?.bpfo) + 10}</p>
                 </div>
                 <div className="border bg-white border-gray-200 rounded-lg px-4 py-3 min-w-[100px]">
                   <p className="text-xs text-[#9AA5B1] mb-1">Point Value</p>
-                  <p className="font-bold text-[#546A81] text-base">{equipment.adjOptPointValue}</p>
+                  <p className="font-bold text-[#546A81] text-base">{equipment?.adjOptPointValue}</p>
                 </div>
               </div>
             </div>
