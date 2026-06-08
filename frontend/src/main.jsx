@@ -11,12 +11,15 @@ import {
 import Landing from './routes/Landing.jsx'
 import Dashboard from './routes/Dashboard.jsx'
 import GraphPage from './routes/GraphPage.jsx'
+import Report from './routes/Report.jsx'
 import EquipmentListPage from './routes/EquipmentListPage.jsx'
 import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
 import MachineIndexPage from './routes/MachineIndexPage.jsx'
+import ReportModal from './routes/CreateReportPage.jsx'
+import CreateReportPage from './routes/CreateReportPage.jsx'
 
 const queryClient = new QueryClient()
 
@@ -46,7 +49,14 @@ const router = createBrowserRouter([
     path: '/dashboard/:siteId/machine-index',
     element: <MachineIndexPage />
   },
-
+  {
+    path: '/dashboard/:siteId/equipment/:equipmentId/report',
+    element: <CreateReportPage />
+  },
+  {
+    path: '/dashboard/:siteId/equipment/:equipmentId/report-view',
+    element: <Report />
+  },
 ])
 
 createRoot(document.getElementById('root')).render(

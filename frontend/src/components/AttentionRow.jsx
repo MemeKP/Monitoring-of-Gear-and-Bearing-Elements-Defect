@@ -2,7 +2,13 @@ import { GRADE_BADGE_COLORS } from "../constant/gradeConfig";
 
 export function AttentionRow({ item, onClick }) {
   const gradeColor = GRADE_BADGE_COLORS[item.grade] || { bg: '#ffe5e5', text: '#ef4444' };
-
+  const isCompositeScore =
+    (item.status_label === 'Critical' || item.status_label === 'F Ugly' || item.composite != null)
+    && item.point_value <= 1;
+  const scorePercent = isCompositeScore ? Number(item.point_value) * 100 : null;
+  const normalPointValue = item.point_value != null && !isNaN(item.point_value) ? Number(item.point_value) : 0;
+  const barWidth = isCompositeScore ? scorePercent : Math.min(100, normalPointValue);
+  
   return (
     <div
       onClick={onClick}
@@ -21,7 +27,7 @@ export function AttentionRow({ item, onClick }) {
             {item.site} · {item.meas_point} · {item.meas_date}
           </p>
           <p className="text-[10px] mt-2 font-semibold text-[#546A81] transition-colors">
-            Point Value
+            {isCompositeScore ? 'Score' : 'Point value'}
           </p>
         </div>
 
@@ -36,16 +42,21 @@ export function AttentionRow({ item, onClick }) {
       {/* Progress bar */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex-1 h-1 rounded-full mr-4 bg-gray-100 group-hover:bg-white transition-colors">
-          {/* Width = point_value as a % of max (assumed 100) */}
           <div
-            className="h-full rounded-full bg-[var(--grade-text)] transition-colors"
-            style={{ width: `${Math.min(100, (item.point_value / 100) * 100)}%` }}
+            className="h-full rounded-full transition-colors"
+            style={{
+              backgroundColor: 'var(--grade-text)',
+              width: `${Math.max(0, barWidth)}%`
+            }}
           />
         </div>
-        <span className="text-xs font-bold text-[var(--grade-text)] transition-colors">
-          {item.point_value != null && !isNaN(item.point_value)
-            ? Number(item.point_value).toFixed(1)
-            : '--'}
+
+        <span className="text-xs font-bold transition-colors" style={{ color: 'var(--grade-text)' }}>
+          {isCompositeScore
+            ? `${scorePercent.toFixed(1)}%`
+            : normalPointValue
+              ? normalPointValue.toFixed(1)
+              : '--'}
         </span>
       </div>
 

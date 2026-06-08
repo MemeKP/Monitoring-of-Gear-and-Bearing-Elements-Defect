@@ -8,12 +8,6 @@ import { QueryMeasurementDto } from './dto/query-measurement.dto';
 export class MeasurementsController {
   constructor(private readonly service: MeasurementsService) { }
 
-  // GET /api/v1/measurements?site=xxx&grade=F,E&page=1&limit=20
-  @Get()
-  findAll(@Query() query: QueryMeasurementDto) {
-    return this.service.findAll(query);
-  }
-
   // GET /api/v1/measurements/debug-scores
   @Get('debug-scores')
   debugScores() {
@@ -25,27 +19,4 @@ export class MeasurementsController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.service.findOne(id);
   }
-
-  // // POST /api/v1/measurements
-  // @Post()
-  // @HttpCode(HttpStatus.CREATED)
-  // create(@Body() dto: CreateMeasurementDto) {
-  //   return this.service.create(dto);
-  // }
-
-  // // PATCH /api/v1/measurements/123
-  // @Patch(':id')
-  // update(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() dto: UpdateMeasurementDto,
-  // ) {
-  //   return this.service.update(id, dto);
-  // }
-
-  // // DELETE /api/v1/measurements/123
-  // @Delete(':id')
-  // @HttpCode(HttpStatus.OK)
-  // remove(@Param('id', ParseIntPipe) id: number) {
-  //   return this.service.remove(id);
-  // }
 }

@@ -46,17 +46,23 @@ export const dashboardApi = {
 
 export const measurementApi = {
     getOne: (id) =>
-        apiClient.get(`/measurements/${id}`)
+        apiClient.get(`/measurements/${id}`),
+
+    getDebugScore: () =>
+        apiClient.get(`/measurements/debug-scores`),
 };
 
 export const equipmentApi = {
-    getList: ({ site, grade, search, sort, order, page, limit } = {}) => {
+    getList: ({ site, grade, f_filter, search, sort, order, page, limit } = {}) => {
         const params = new URLSearchParams();
         if (site) {
             params.set('site', site);
         }
         if (grade) {
             params.set('grade', grade);
+        }
+        if (f_filter) {
+            params.set('f_filter', f_filter)
         }
         if (search) {
             params.set('search', search);
@@ -81,12 +87,19 @@ export const equipmentApi = {
         params,
         reqFullData: true
     }),
+}
 
-    // search: ({ q, site = 'all' }) => {
-    //   return apiClient.get('/equipments/search', {
-    //     params: { q, site },
-    //     reqFullData: true 
-    //   });
-    // },
+export const reportApi = {
+    getAll: () => apiClient.get('/reports'),
 
+    getOne: (id) => apiClient.get(`/reports/${id}`),
+
+    getByFftId: (fftId) =>
+    apiClient.get(`/reports/by-fft/${fftId}`, { reqFullData: true }),
+
+    create: (data) => apiClient.post('/reports', data),
+
+    update: (id, data) => apiClient.patch(`/reports/${id}`, data),
+
+    remove: (id) => apiClient.delete(`/reports/${id}`),
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -12,6 +12,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { SharedModule } from './shared/typesense.module';
 import { RedisModule } from './redis/redis.module';
+import { SpectrumCacheService } from './helpers/spectrum-cache.service';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { RedisModule } from './redis/redis.module';
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false, // never true in production!!!!!
+        synchronize: false, // if u want to touch this, think again
       }),
     }),
     CacheModule.registerAsync({
@@ -47,13 +49,10 @@ import { RedisModule } from './redis/redis.module';
     DashboardModule,
     SharedModule,
     RedisModule,
+    ReportModule,
 
-    // GraphQLModule.forRoot<ApolloDriverConfig>({
-    //   driver: ApolloDriver,
-    //   autoSchemaFile: true,
-    // }),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+ export class AppModule { }

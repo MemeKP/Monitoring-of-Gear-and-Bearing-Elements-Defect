@@ -31,37 +31,22 @@ export class DashboardService {
   async getStats(site?: string) {
     const key = this.cacheKey(site);
 
-    // Cache hit: return
+    // Cache hit
     const cached = await this.cache.get(key);
     if (cached) return cached;
 
-    // Cache miss: query DB
     const qb = this.repo.manager.createQueryBuilder()
-      .select('ranked.site', 'site')
-      .addSelect('ranked.state', 'state')
+      .select('e.site', 'site')
+      .addSelect('e.state', 'state')
       .addSelect('COUNT(*)', 'count')
-      .from((subQuery) => {
-        let sq = subQuery
-          .select('sub.site', 'site')
-          .addSelect('sub.equipment', 'equipment')
-          .addSelect('sub.state', 'state')
-          // !!!!
-          .addSelect(
-            'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
-            'rn'
-          )
-          .from('enveloped_fft', 'sub')
-          .where("sub.indicator != 'I'")
-          .andWhere('sub.state IS NOT NULL');
+      .from('equipment', 'e')
+      .where('e.state IS NOT NULL');
+    if (site && site !== 'all') {
+      qb.andWhere('e.site = :site', { site });
+    }
 
-        if (site && site !== 'all') {
-          sq = sq.andWhere('sub.site = :site', { site });
-        }
-        return sq;
-      }, 'ranked')
-      .where('ranked.rn = 1')
-      .groupBy('ranked.site')
-      .addGroupBy('ranked.state');
+    qb.groupBy('e.site')
+      .addGroupBy('e.state');
 
     const rawResults = await qb.getRawMany();
 
@@ -165,14 +150,17 @@ export class DashboardService {
     const siteKey = site || 'all';
     const cacheKey = `attention:${siteKey}:${normalizedFilter}:${page}:${limit}`;
     const cachedData = await this.cache.get(cacheKey);
+
     if (cachedData) {
       return cachedData;
     }
+
     const skip = (page - 1) * limit;
-    // !!!! TIME BOMB (JSON_EXTRACT)
+
     const fMotorCondition = `
     (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
     FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
+
     const baseQb = this.repo.createQueryBuilder('m')
       .innerJoin(
         (subQuery) => {
@@ -181,9 +169,8 @@ export class DashboardService {
             .from((sq) => {
               return sq
                 .select('sub.id', 'id')
-                // !!!! MySQL v8+
                 .addSelect(
-                  'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
+                  'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.meas_time DESC, sub.state DESC, sub.id DESC)',
                   'rn'
                 )
                 .from('enveloped_fft', 'sub')
@@ -196,6 +183,7 @@ export class DashboardService {
         'm.id = latest.id'
       )
       .where("m.indicator != 'I'");
+
     if (site && site !== 'all') {
       baseQb.andWhere('m.site = :site', { site });
     }
@@ -209,76 +197,58 @@ export class DashboardService {
         `COUNT(m.id) AS all_count`,
       ]);
 
-    // filter QB 
     const qb = baseQb.clone()
-      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue']);
+      .select([
+        'm.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue',
+        'm.envelopedFft', 'm.detailPeak', 'm.bpfo', 'm.df'
+      ]);
 
-    // critical 
-    // if (normalizedFilter === 'critical') {
-    //   const criticalItems = await baseQb.clone()
-    //     .andWhere('m.state = :state', { state: 6 })
-    //     .andWhere(`NOT ${fMotorCondition}`)
-    //     .select([
-    //       'm.id', 'm.equipment', 'm.site', 'm.measPoint',
-    //       'm.measDate', 'm.state', 'm.adjOptPointValue',
-    //       'm.envelopedFft', 'm.detailPeak', 'm.bpfo', 'm.df'
-    //     ])
-    //     .orderBy('m.adjOptPointValue', 'DESC')
-    //     .getMany();
-
-    //   const scores = criticalItems.map(m => ({
-    //     m,
-    //     isTrueF: analyzeSpectrum(
-    //       m.envelopedFft, m.detailPeak,
-    //       m.bpfo ? parseFloat(m.bpfo as any) : null,
-    //       m.df ? parseFloat(m.df as any) : null,
-    //     ).isTrueF,
-    //   }));
-    if (normalizedFilter === 'critical') {
-      const [criticalItems, rawStats, { criticalCount, uglyCount }] = await Promise.all([
+    //  1 Critical F Ugly ( Memory)
+    if (normalizedFilter === 'critical' || normalizedFilter === 'f_ugly') {
+      const [rawItems, rawStats, { criticalCount, uglyCount }] = await Promise.all([
         baseQb.clone()
           .andWhere('m.state = :state', { state: 6 })
           .andWhere(`NOT ${fMotorCondition}`)
-          .orderBy('m.adjOptPointValue', 'DESC')
           .getMany(),
         statsQb.getRawOne(),
         this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
       ]);
 
-      const trueFItems = criticalItems.filter(m =>
-        analyzeSpectrum(
+      const enrichedItems = rawItems.map(m => {
+        const spectrumScore = analyzeSpectrum(
           m.envelopedFft, m.detailPeak,
           m.bpfo ? parseFloat(m.bpfo as any) : null,
           m.df ? parseFloat(m.df as any) : null,
-        ).isTrueF
-      );
+        );
+        return { m, spectrumScore };
+      });
 
-      // const trueFItems = scores.filter(s => s.isTrueF).map(s => s.m);
-      // const uglyFItems = scores.filter(s => !s.isTrueF).map(s => s.m);
-      const total = trueFItems.length;
-      const paginatedItems = trueFItems.slice(skip, skip + limit);
-     // const rawStats = await statsQb.getRawOne();
+      const filteredItems = enrichedItems.filter(({ spectrumScore }) => {
+        return normalizedFilter === 'critical' ? spectrumScore.isTrueF : !spectrumScore.isTrueF;
+      });
+
+      filteredItems.sort((a, b) => (b.spectrumScore.composite ?? 0) - (a.spectrumScore.composite ?? 0));
+
+      const total = filteredItems.length;
+      const paginatedItems = filteredItems.slice(skip, skip + limit);
 
       const responseData = {
         success: true,
-        data: paginatedItems.map(m => {
-          const grade = computeGrade(m.state);
-          return {
-            id: m.id,
-            equipment: m.equipment,
-            site: m.site,
-            meas_point: m.measPoint,
-            meas_date: m.measDate,
-            point_value: m.adjOptPointValue,
-            grade,
-            days_since_check: daysSinceCheck(m.measDate),
-            status_label: gradeToStatus(grade),
-          };
-        }),
+        data: paginatedItems.map(({ m, spectrumScore }) => ({
+          id: m.id,
+          equipment: m.equipment,
+          site: m.site,
+          meas_point: m.measPoint,
+          meas_date: m.measDate,
+          point_value: spectrumScore.composite ?? m.adjOptPointValue,
+          grade: computeGrade(m.state),
+          days_since_check: daysSinceCheck(m.measDate),
+          status_label: normalizedFilter === 'critical' ? 'Critical' : 'F Ugly',
+        })),
         meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
         stats: {
           allStats: Number(rawStats?.all_count ?? 0),
-          criticalStats: Number(criticalCount ?? 0),  // analyzer
+          criticalStats: Number(criticalCount ?? 0),
           fUglyStats: Number(uglyCount ?? 0),
           warningStats: Number(rawStats?.warning_count ?? 0),
           fMotorStats: Number(rawStats?.f_motor_count ?? 0),
@@ -289,11 +259,8 @@ export class DashboardService {
       return responseData;
     }
 
-    if (normalizedFilter === 'f_ugly') {
-      qb.andWhere('m.state = :state', { state: 6 })
-      qb.andWhere(`NOT ${fMotorCondition}`)
-    }
-    else if (normalizedFilter === 'warning') {
+    // 2 All, Warning, F Motor (SQL)
+    if (normalizedFilter === 'warning') {
       qb.andWhere('m.state = :state', { state: 5 });
       qb.andWhere(`NOT ${fMotorCondition}`);
     } else if (normalizedFilter === 'f_motor') {
@@ -307,12 +274,8 @@ export class DashboardService {
       .skip(skip)
       .take(limit);
 
-    // const [[items, total], rawStats] = await Promise.all([
-    //   qb.getManyAndCount(),
-    //   statsQb.getRawOne(),
-    // ]);
     const [[items, total], rawStats, { criticalCount, uglyCount }] = await Promise.all([
-      qb.getManyAndCount(),        // ← กลับมา
+      qb.getManyAndCount(),
       statsQb.getRawOne(),
       this.getCriticalAndUglyCounts(baseQb, fMotorCondition),
     ]);
@@ -321,16 +284,49 @@ export class DashboardService {
       success: true,
       data: items.map(m => {
         const grade = computeGrade(m.state);
+
+        let finalStatusLabel: string = gradeToStatus(grade);
+        let compositeScore: number | null = null;
+
+        if (m.state === 6) {
+          let isFMotor = false;
+          try {
+            if (m.detailPeak && m.envelopedFft) {
+              const peakFirstVal = Array.isArray(m.detailPeak)
+                ? m.detailPeak[0]
+                : String(m.detailPeak).split(',')[0];
+              const index = parseInt(String(peakFirstVal), 10);
+
+              const fftData = typeof m.envelopedFft === 'string' ? JSON.parse(m.envelopedFft) : m.envelopedFft;
+              isFMotor = Math.floor(fftData[index][0]) === 100;
+            }
+          } catch (e) { /* ignore parse error */ }
+
+          if (isFMotor) {
+            finalStatusLabel = 'F Motor';
+          } else {
+            const spectrumScore = analyzeSpectrum(
+              m.envelopedFft, m.detailPeak,
+              m.bpfo ? parseFloat(m.bpfo as any) : null,
+              m.df ? parseFloat(m.df as any) : null,
+            );
+            finalStatusLabel = spectrumScore.isTrueF ? 'Critical' : 'F Ugly';
+            compositeScore = spectrumScore.composite;
+          }
+        } else if (m.state === 5) {
+          finalStatusLabel = 'Warning';
+        }
+
         return {
           id: m.id,
           equipment: m.equipment,
           site: m.site,
           meas_point: m.measPoint,
           meas_date: m.measDate,
-          point_value: m.adjOptPointValue,
+          point_value: compositeScore !== null ? compositeScore : m.adjOptPointValue,
           grade,
           days_since_check: daysSinceCheck(m.measDate),
-          status_label: gradeToStatus(grade),
+          status_label: finalStatusLabel,
         };
       }),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
@@ -342,6 +338,7 @@ export class DashboardService {
         fMotorStats: Number(rawStats?.f_motor_count ?? 0),
       },
     };
+
     await this.cache.set(cacheKey, responseData, 300);
     return responseData;
   }
@@ -358,68 +355,59 @@ export class DashboardService {
     targetDate.setDate(targetDate.getDate() - thresholdDays);
     const skip = (page - 1) * limit;
 
-    const peakCondition = `
-  (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
-   FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
-
-    const fMotorCondition = `(m.state = 6 AND ${peakCondition})`;
-    const FCondition = `(m.state = 6 AND NOT ${peakCondition})`;
-
-    const baseQb = this.repo.createQueryBuilder('m')
-      .innerJoin(
-        (subQuery) => {
-          return subQuery
-            .select('MAX(sub.id)', 'max_id')
-            .from('enveloped_fft', 'sub')
-            .groupBy('sub.site')
-            .addGroupBy('sub.equipment');
-        },
-        'latest',
-        'm.id = latest.max_id'
-      )
-      .where('m.measDate < :targetDate', { targetDate });
+    const baseQb = this.repo.manager.createQueryBuilder()
+      .from('equipment', 'e')
+      .where('e.meas_date < :targetDate', { targetDate });
 
     if (site && site !== 'all') {
-      baseQb.andWhere('m.site = :site', { site });
+      baseQb.andWhere('e.site = :site', { site });
     }
 
     const statsQb = baseQb.clone().select([
-      'COUNT(m.id) AS total',
-      `SUM(CASE WHEN ${FCondition} THEN 1 ELSE 0 END) AS criticalCount`,
-      'SUM(CASE WHEN m.state = 5 THEN 1 ELSE 0 END) AS warningCount',
-      'SUM(CASE WHEN m.state = 4 THEN 1 ELSE 0 END) AS dCount',
-      'SUM(CASE WHEN m.state = 3 THEN 1 ELSE 0 END) AS cCount',
-      'SUM(CASE WHEN m.state = 2 THEN 1 ELSE 0 END) AS bCount',
-      'SUM(CASE WHEN m.state = 1 THEN 1 ELSE 0 END) AS aCount',
-      `SUM(CASE WHEN ${fMotorCondition} THEN 1 ELSE 0 END) AS fMotorCount`,
-      'MIN(m.measDate) AS oldestDate',
+      'COUNT(e.meas_id) AS total',
+      'SUM(CASE WHEN e.state = 6 AND e.is_f_motor = 0 THEN 1 ELSE 0 END) AS criticalCount',
+      'SUM(CASE WHEN e.state = 5 THEN 1 ELSE 0 END) AS warningCount',
+      'SUM(CASE WHEN e.state = 4 THEN 1 ELSE 0 END) AS dCount',
+      'SUM(CASE WHEN e.state = 3 THEN 1 ELSE 0 END) AS cCount',
+      'SUM(CASE WHEN e.state = 2 THEN 1 ELSE 0 END) AS bCount',
+      'SUM(CASE WHEN e.state = 1 THEN 1 ELSE 0 END) AS aCount',
+      'SUM(CASE WHEN e.state = 6 AND e.is_f_motor = 1 THEN 1 ELSE 0 END) AS fMotorCount',
+      'MIN(e.meas_date) AS oldestDate',
     ]);
 
     const itemsQb = baseQb.clone()
-      .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state']);
+      .select([
+        'e.meas_id AS id',
+        'e.equipment AS equipment',
+        'e.site AS site',
+        'e.meas_point AS measPoint',
+        'e.meas_date AS measDate',
+        'e.state AS state'
+      ]);
 
     if (normalizedFilter === 'f') {
-      itemsQb.andWhere(FCondition);
-      // itemsQb.andWhere(`NOT ${fMotorCondition}`);
+      itemsQb.andWhere('e.state = 6 AND e.is_f_motor = 0');
     } else if (normalizedFilter === 'f_motor') {
-      itemsQb.andWhere(fMotorCondition);
+      itemsQb.andWhere('e.state = 6 AND e.is_f_motor = 1');
     } else if (normalizedFilter === 'e') {
-      itemsQb.andWhere('m.state = :state', { state: 5 });
+      itemsQb.andWhere('e.state = 5');
     } else if (normalizedFilter === 'd') {
-      itemsQb.andWhere('m.state = :state', { state: 4 });
+      itemsQb.andWhere('e.state = 4');
     } else if (normalizedFilter === 'c') {
-      itemsQb.andWhere('m.state = :state', { state: 3 });
+      itemsQb.andWhere('e.state = 3');
     } else if (normalizedFilter === 'b') {
-      itemsQb.andWhere('m.state = :state', { state: 2 });
+      itemsQb.andWhere('e.state = 2');
     } else if (normalizedFilter === 'a') {
-      itemsQb.andWhere('m.state = :state', { state: 1 });
+      itemsQb.andWhere('e.state = 1');
     }
 
-    itemsQb.orderBy('m.measDate', 'ASC').skip(skip).take(limit);
+    const total = await itemsQb.getCount();
 
-    const [stats, [items, total]] = await Promise.all([
+    itemsQb.orderBy('e.meas_date', 'ASC').offset(skip).limit(limit);
+
+    const [stats, items] = await Promise.all([
       statsQb.getRawOne(),
-      itemsQb.getManyAndCount(),
+      itemsQb.getRawMany(),
     ]);
 
     let maxDays = 0;
@@ -471,410 +459,3 @@ export class DashboardService {
     return `This action returns a #${id} dashboard`;
   }
 }
-
-//  async getStats(site?: string) {
-//     const qb = this.repo.createQueryBuilder('m')
-//       .select('m.site', 'site')
-//       .addSelect('m.state', 'state')
-//       .addSelect('COUNT(*)', 'count')
-//       .where('m.state IS NOT NULL')
-//       .groupBy('m.site')
-//       .addGroupBy('m.state');
-
-//     if (site && site !== 'all') {
-//       qb.andWhere('m.site = :site', { site });
-//     }
-
-//     const rawResults = await qb.getRawMany();
-
-//     let total = 0;
-//     const gradeCounts: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
-//     const siteDataMap: Record<string, { total: number, counts: Record<string, number> }> = {};
-
-//     for (const row of rawResults) {
-//       const rowSite = row.site;
-//       const rowState = Number(row.state);
-//       const count = Number(row.count);
-//       const grade = computeGrade(rowState);
-
-//       total += count;
-//       if (gradeCounts[grade] !== undefined) {
-//         gradeCounts[grade] += count;
-//       }
-
-//       if (!siteDataMap[rowSite]) {
-//         siteDataMap[rowSite] = {
-//           total: 0,
-//           counts: { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 }
-//         };
-//       }
-//       siteDataMap[rowSite].total += count;
-//       if (siteDataMap[rowSite].counts[grade] !== undefined) {
-//         siteDataMap[rowSite].counts[grade] += count;
-//       }
-//     }
-
-//     const pct = (n: number, divisor: number) =>
-//       divisor > 0 ? Math.round((n / divisor) * 1000) / 10 : 0;
-
-//     const bySite = Object.keys(siteDataMap).map(siteName => {
-//       const sData = siteDataMap[siteName];
-//       return {
-//         site: siteName,
-//         total_machines: sData.total,
-//         stage_breakdown: ['F', 'E', 'D', 'C', 'B', 'A'].map(g => ({
-//           grade: g,
-//           count: sData.counts[g],
-//           percentage: pct(sData.counts[g], sData.total),
-//         })),
-//       };
-//     });
-
-//     return {
-//       success: true,
-//       data: {
-//         total_machines: total,
-//         defective_pct: pct(gradeCounts['F'], total),
-//         careful_pct: pct(gradeCounts['E'], total),
-//         normal_pct: pct(
-//           gradeCounts['A'] + gradeCounts['B'] + gradeCounts['C'] + gradeCounts['D'],
-//           total
-//         ),
-//         stage_breakdown: ['F', 'E', 'D', 'C', 'B', 'A'].map(g => ({
-//           grade: g,
-//           count: gradeCounts[g],
-//           percentage: pct(gradeCounts[g], total),
-//         })),
-//         by_site: bySite,
-//       },
-//     };
-//   }
-
-//  async getAttention(
-//     site?: string,
-//     filter?: string,   
-//     page = 1,
-//     limit = 20,
-//   ) {
-//     const skip = (page - 1) * limit;
-//     const qb = this.repo.createQueryBuilder('m')
-//       .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue']);
-
-//     if (site && site !== 'all') {
-//       qb.andWhere('m.site = :site', { site });
-//     } else {
-//       qb.where('1=1');
-//     }
-
-//     const normalizedFilter = filter?.toLowerCase();
-
-//     if (normalizedFilter === 'critical') {
-//       qb.andWhere('m.state = :state', { state: 6 });
-//     } else if (normalizedFilter === 'warning') {
-//       qb.andWhere('m.state = :state', { state: 5 });
-//     } else {
-//       qb.andWhere('m.state IN (:...states)', { states: [5, 6] });
-//     }
-
-//     qb.orderBy('m.state', 'DESC')
-//       .addOrderBy('m.adjOptPointValue', 'DESC')
-//       .skip(skip)
-//       .take(limit);
-
-//     const [items, total] = await qb.getManyAndCount();
-
-//     return {
-//       success: true,
-//       data: items.map(m => {
-//         const grade = computeGrade(m.state);
-//         return {
-//           id: m.id,
-//           equipment: m.equipment,
-//           site: m.site,
-//           meas_point: m.measPoint,
-//           meas_date: m.measDate,
-//           point_value: m.adjOptPointValue,
-//           grade,
-//           days_since_check: daysSinceCheck(m.measDate),
-//           status_label: gradeToStatus(grade),
-//         };
-//       }),
-//       meta: {
-//         page, limit, total,
-//         totalPages: Math.ceil(total / limit),
-//       },
-//     };
-//   }
-
-// async getOverdue(
-//   site?: string,
-//   thresholdDays = 90, // overdue 3 months
-//   limit = 10,
-// ) {
-//   const targetDate = new Date();
-//   targetDate.setDate(targetDate.getDate() - thresholdDays);
-
-//   const qb = this.repo.createQueryBuilder('m')
-//     .where('m.measDate < :targetDate', { targetDate });
-
-//   if (site && site !== 'all') {
-//     qb.andWhere('m.site = :site', { site });
-//   }
-
-//   const statsQb = qb.clone()
-//     .select('COUNT(*)', 'total')
-//     .addSelect('SUM(CASE WHEN m.state = 6 THEN 1 ELSE 0 END)', 'criticalCount')
-//     .addSelect('SUM(CASE WHEN m.state = 5 THEN 1 ELSE 0 END)', 'warningCount')
-//     .addSelect('MIN(m.measDate)', 'oldestDate');
-
-//   const stats = await statsQb.getRawOne();
-
-//   const overdueCount = Number(stats.total) || 0;
-//   const criticalCount = Number(stats.criticalCount) || 0;
-//   const warningCount = Number(stats.warningCount) || 0;
-
-//   let maxDays = 0;
-//   if (stats.oldestDate) {
-//     maxDays = daysSinceCheck(String(stats.oldestDate));
-//   }
-
-//   const formatDelay = (days: number): string => {
-//     if (days >= 365) return `+${Math.floor(days / 365)}yr`;
-//     if (days >= 30) return `+${Math.floor(days / 30)}mo`;
-//     return `+${days}d`;
-//   };
-
-//   const itemsQb = qb.clone()
-//     .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state'])
-//     .orderBy('m.measDate', 'ASC')
-//     .take(limit);
-
-//   const allOverdue = await itemsQb.getMany();
-
-//   const items = allOverdue.map(m => {
-//     const grade = computeGrade(m.state);
-//     return {
-//       id: m.id,
-//       equipment: m.equipment,
-//       site: m.site,
-//       meas_point: m.measPoint,
-//       meas_date: m.measDate,
-//       grade,
-//       status_label: gradeToStatus(grade),
-//       days_since_check: daysSinceCheck(m.measDate),
-//     };
-//   });
-
-//   return {
-//     success: true,
-//     data: {
-//       overdue_count: overdueCount,
-//       critical_count: criticalCount,
-//       warning_count: warningCount,
-//       max_delay_label: formatDelay(maxDays),
-//       items,
-//     },
-//   };
-// }
-
-// async getOverdue(
-//   site?: string,
-//   thresholdDays = 90, // overdue 3 months
-//   limit = 10,
-// ) {
-//   const targetDate = new Date();
-//   targetDate.setDate(targetDate.getDate() - thresholdDays);
-
-//   const qb = this.repo.createQueryBuilder('m')
-//     .innerJoin(
-//       (subQuery) => {
-//         return subQuery
-//           .select('MAX(sub.id)', 'max_id')
-//           .from('enveloped_fft', 'sub')
-//           .groupBy('sub.site')
-//           .addGroupBy('sub.equipment');
-//       },
-//       'latest',
-//       'm.id = latest.max_id' // JOIN Primary Key
-//     )
-//     .where('m.measDate < :targetDate', { targetDate });
-
-//   if (site && site !== 'all') {
-//     qb.andWhere('m.site = :site', { site });
-//   }
-
-//   const statsQb = qb.clone()
-//     .select('COUNT(*)', 'total')
-//     .addSelect('SUM(CASE WHEN m.state = 6 THEN 1 ELSE 0 END)', 'criticalCount')
-//     .addSelect('SUM(CASE WHEN m.state = 5 THEN 1 ELSE 0 END)', 'warningCount')
-//     .addSelect('MIN(m.measDate)', 'oldestDate');
-
-//   const stats = await statsQb.getRawOne();
-
-//   const overdueCount = Number(stats.total) || 0;
-//   const criticalCount = Number(stats.criticalCount) || 0;
-//   const warningCount = Number(stats.warningCount) || 0;
-
-//   let maxDays = 0;
-//   if (stats.oldestDate) {
-//     maxDays = daysSinceCheck(String(stats.oldestDate));
-//   }
-
-//   const formatDelay = (days: number): string => {
-//     if (days >= 365) return `+${Math.floor(days / 365)}yr`;
-//     if (days >= 30) return `+${Math.floor(days / 30)}mo`;
-//     return `+${days}d`;
-//   };
-
-//   const itemsQb = qb.clone()
-//     .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state'])
-//     .orderBy('m.measDate', 'ASC')
-//     .take(limit);
-
-//   const allOverdue = await itemsQb.getMany();
-
-//   const items = allOverdue.map(m => {
-//     const grade = computeGrade(m.state);
-//     return {
-//       id: m.id,
-//       equipment: m.equipment,
-//       site: m.site,
-//       meas_point: m.measPoint,
-//       meas_date: m.measDate,
-//       grade,
-//       status_label: gradeToStatus(grade),
-//       days_since_check: daysSinceCheck(m.measDate),
-//     };
-//   });
-
-//   return {
-//     success: true,
-//     data: {
-//       overdue_count: overdueCount,
-//       critical_count: criticalCount,
-//       warning_count: warningCount,
-//       max_delay_label: formatDelay(maxDays),
-//       items,
-//     },
-//   };
-// }
-
-// async getAttention(
-//   site?: string,
-//   filter?: string,
-//   page = 1,
-//   limit = 20,
-// ) {
-//   // create Cache Key (Site, Filter, Page, Limit)
-//   const normalizedFilter = filter?.toLowerCase() || 'all';
-//   const siteKey = site || 'all';
-//   const cacheKey = `attention:${siteKey}:${normalizedFilter}:${page}:${limit}`;
-
-//   // check Cache
-//   const cachedData = await this.cache.get(cacheKey);
-//   if (cachedData) {
-//     return cachedData;
-//   }
-
-//   const skip = (page - 1) * limit;
-
-//   const qb = this.repo.createQueryBuilder('m')
-//     .innerJoin(
-//       (subQuery) => {
-//         return subQuery
-//           .select('ranked.id', 'id')
-//           .from((sq) => {
-//             return sq
-//               .select('sub.id', 'id')
-//               .addSelect(
-//                 'ROW_NUMBER() OVER(PARTITION BY sub.site, sub.equipment ORDER BY sub.meas_date DESC, sub.state DESC)',
-//                 'rn'
-//               )
-//               .from('enveloped_fft', 'sub')
-//               .where("sub.indicator != 'I'")
-//               .andWhere('sub.state IS NOT NULL');
-//           }, 'ranked')
-//           .where('ranked.rn = 1'); // ID 1st (latest + worst)
-//       },
-//       'latest',
-//       'm.id = latest.id' // JOIN ID
-//     )
-//     .select(['m.id', 'm.equipment', 'm.site', 'm.measPoint', 'm.measDate', 'm.state', 'm.adjOptPointValue'])
-//     .where("m.indicator != 'I'");
-
-//   // Site
-//   if (site && site !== 'all') {
-//     qb.andWhere('m.site = :site', { site });
-//   }
-
-//   const fMotorCondition = `
-// (m.detail_peak IS NOT NULL AND m.detail_peak != '' AND
-// FLOOR(JSON_EXTRACT(m.enveloped_fft, CONCAT('$[', SUBSTRING_INDEX(m.detail_peak, ',', 1), '][0]'))) = 100)`;
-//   if (normalizedFilter === 'critical') {
-//     // filter state 6 but cant be F-Motor
-//     qb.andWhere('m.state = :state', { state: 6 });
-//     qb.andWhere(`NOT ${fMotorCondition}`);
-//   } else if (normalizedFilter === 'warning') {
-//     // warning
-//     qb.andWhere('m.state = :state', { state: 5 });
-//     qb.andWhere(`NOT ${fMotorCondition}`);
-//   } else if (normalizedFilter === 'f_motor') {
-//     // f-motor
-//     qb.andWhere(fMotorCondition);
-//   } else {
-//     // all
-//     qb.andWhere(`(m.state IN (:...states) OR ${fMotorCondition})`, { states: [5, 6] });
-//   }
-
-//   qb.orderBy('m.state', 'DESC')
-//     .addOrderBy('m.adjOptPointValue', 'DESC')
-//     .skip(skip)
-//     .take(limit);
-
-//   const [items, total] = await qb.getManyAndCount();
-
-//   const statsQb = qb.clone().select([
-//     `SUM(CASE WHEN m.state = 6 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS critical_count`,
-//     `SUM(CASE WHEN m.state = 5 AND NOT (${fMotorCondition}) THEN 1 ELSE 0 END) AS warning_count`,
-//     `SUM(CASE WHEN ${fMotorCondition} THEN 1 ELSE 0 END) AS f_motor_count`,
-//     `COUNT(m.id) AS all_count`
-//   ])
-
-
-//   const rawStats = await statsQb.getRawOne();
-
-//   const allStats = Number(rawStats?.all_count)
-//   const criticalStats = Number(rawStats?.critical_count)
-//   const warningStats = Number(rawStats?.warning_count)
-//   const fMotorStats = Number(rawStats?.f_motor_count)
-
-//   const responseData = {
-//     success: true,
-//     data: items.map(m => {
-//       const grade = computeGrade(m.state);
-//       return {
-//         id: m.id,
-//         equipment: m.equipment,
-//         site: m.site,
-//         meas_point: m.measPoint,
-//         meas_date: m.measDate,
-//         point_value: m.adjOptPointValue,
-//         grade,
-//         days_since_check: daysSinceCheck(m.measDate),
-//         status_label: gradeToStatus(grade),
-//       };
-//     }),
-//     meta: {
-//       page, limit, total,
-//       totalPages: Math.ceil(total / limit),
-//     },
-//     stats: {
-//       allStats: allStats,
-//       criticalStats: criticalStats,
-//       warningStats: warningStats,
-//       fMotorStats: fMotorStats,
-//     },
-//   };
-//   await this.cache.set(cacheKey, responseData, 300); // 5 mins
-//   return responseData;
-// }

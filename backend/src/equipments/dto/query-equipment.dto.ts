@@ -38,4 +38,8 @@ export class QueryEquipmentDto {
     @Min(1)
     @Max(100)
     limit?: number = 20;
+
+    @IsOptional()
+    @IsString()
+    f_filter?: 'f_true' | 'f_ugly' | 'f_motor';
 }

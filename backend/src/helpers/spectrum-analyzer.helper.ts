@@ -220,8 +220,6 @@ export function analyzeSpectrum(
         composite: parseFloat(composite.toFixed(4)),
         isTrueF: rejectReason === null,
         rejectReason,
-    };
-
-    
+    };    
 }
 
