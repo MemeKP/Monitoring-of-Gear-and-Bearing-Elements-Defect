@@ -212,25 +212,25 @@ const GraphPage = () => {
   };
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen overflow-x-hidden">
       <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
 
       <div className={`transition-all duration-300 pt-14 md:pt-0 ${sidebarOpen ? "md:ml-64" : "md:ml-20"} relative`}>
-        <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6 mt-4">
+        <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto space-y-4 sm:space-y-6 mt-2 sm:mt-4">
           {isLoading && <HeaderSkeleton />}
           {isError && <ErrorBox message={error.message} />}
 
           {/* HEADER CARD */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 lg:mb-0">
 
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 min-w-0">
                 <span
                   style={{ backgroundColor: gradeColor.bg, color: gradeColor.text }}
                   className="font-bold px-3 py-1 rounded-lg text-sm">
                   [{data?.grade}] Spectrum
                 </span>
-                <h1 className="text-xl font-bold text-[#546A81]">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[#546A81] break-words leading-tight">
                   {data?.equipment}
                 </h1>
               </div>
@@ -245,7 +245,7 @@ const GraphPage = () => {
                           { state: { data } }
                         )
                       }
-                      className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700
+                      className="w-full sm:w-auto justify-center flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700
       text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm"
                     >
                       <svg
@@ -296,18 +296,31 @@ const GraphPage = () => {
               </div>
             </div>
 
-
             <div className="flex items-center gap-4 text-sm text-[#A2ADB6] mb-4">
               <span>{data?.site}</span>
               <span>{data?.measPoint}</span>
             </div>
-            <div className="flex flex-wrap items-center gap-6 text-sm text-[#546A81] mb-6">
-              <p>ID <span className="font-bold">{data?.id}</span></p>
-              <p>f0 <span className="font-bold">{data?.f0}</span></p>
-              <p>iBeta <span className="font-bold">{data?.ibeta}</span></p>
-              <p>BPFO <span className="font-bold">{data?.bpfo}</span></p>
-              <p>Point Value <span className="font-bold">{Number(data?.optPointValue || 0).toFixed(2)}
-              </span></p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-sm text-[#546A81] mb-6">
+              <div className="bg-gray-50 rounded-xl px-3 py-2">
+                <p className="text-xs text-gray-400 mb-1">ID</p>
+                <p className="font-bold">{data?.id}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl px-3 py-2">
+                <p className="text-xs text-gray-400 mb-1">f0</p>
+                <p className="font-bold">{data?.f0}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl px-3 py-2">
+                <p className="text-xs text-gray-400 mb-1">ibeta</p>
+                <p className="font-bold">{data?.ibeta}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl px-3 py-2">
+                <p className="text-xs text-gray-400 mb-1">BPFO</p>
+                <p className="font-bold">{data?.bpfo}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl px-3 py-2">
+                <p className="text-xs text-gray-400 mb-1">Point Value</p>
+                <p className="font-bold">{Number(data?.optPointValue || 0).toFixed(2)}</p>
+              </div>
             </div>
             <div className="flex gap-2 text-xs">
               <span
@@ -324,7 +337,7 @@ const GraphPage = () => {
           </div>
 
           {/* ECHARTS GRAPH CARD */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 h-[500px] flex flex-col relative">
+          <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 shadow-sm border border-gray-100 h-[420px] sm:h-[500px] flex flex-col relative overflow-hidden">
             <div className="absolute top-4 right-6 flex items-center gap-4 text-sm z-10">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-[#a855f7]"></span>

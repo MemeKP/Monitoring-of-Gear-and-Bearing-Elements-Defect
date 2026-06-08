@@ -222,7 +222,7 @@ export default function Navbar({
             })}
 
             {/* Logout in mobile menu */}
-            <button
+            {/* <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 handleLogout();
@@ -237,7 +237,7 @@ export default function Navbar({
                 className="relative z-10 w-5 h-5 group-hover:scale-110 transition-all"
               />
               <span className="relative z-10 text-sm font-normal">Logout</span>
-            </button>
+            </button> */}
           </nav>
         )}
       </header>
