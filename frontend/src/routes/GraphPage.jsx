@@ -245,7 +245,7 @@ const GraphPage = () => {
                           { state: { data } }
                         )
                       }
-                      className="w-full sm:w-auto justify-center flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700
+                      className="w-full sm:w-auto justify-center flex items-center gap-2 bg-[#708DA8] hover:bg-[#526b84]
       text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm"
                     >
                       <svg
