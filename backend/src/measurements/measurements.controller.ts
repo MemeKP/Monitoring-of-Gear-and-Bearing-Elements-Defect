@@ -8,12 +8,6 @@ import { QueryMeasurementDto } from './dto/query-measurement.dto';
 export class MeasurementsController {
   constructor(private readonly service: MeasurementsService) { }
 
-  // GET /api/v1/measurements?site=xxx&grade=F,E&page=1&limit=20
-  // @Get()
-  // findAll(@Query() query: QueryMeasurementDto) {
-  //   return this.service.findAll(query);
-  // }
-
   // GET /api/v1/measurements/debug-scores
   @Get('debug-scores')
   debugScores() {

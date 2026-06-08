@@ -1,27 +1,3 @@
-/**
- * Main Responsibility:
- *  This component renders an interactive map using MapLibre.
- * It visualizes site data as markers with clustering support.
- * 
- * Features:
- * - Display site on the map.
- * - Automatically cluster markers when zomm out.
- * - Click cluster to zoom in.
- * - Click marker to focus size.
- * 
- * Props:
- * @param {Array} sites
- * List all site object
- * 
- * @param {Function} onHover
- * Callback triggered when hovering a marker.
- * Returns the site id to the parent component.
- *
- * @param {Function} onSiteClick
- * Callback triggered when clicking a site marker.
- * Returns the site id to the parent component.
- * */
-
 import { useRef, useCallback, useEffect } from 'react';
 import Map, { Source, Layer } from '@vis.gl/react-maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';

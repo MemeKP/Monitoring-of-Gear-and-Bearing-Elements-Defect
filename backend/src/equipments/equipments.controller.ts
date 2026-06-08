@@ -7,18 +7,6 @@ import { QueryEquipmentTreeDto } from './dto/query-equipment-tree.dto';
 export class EquipmentsController {
   constructor(private readonly equipmentsService: EquipmentsService) {}
 
-  // /equipments/search?q=fgd
-  // @Get('search')
-  //  searchEquipments(
-  //   @Query('q') query: string,
-  //   @Query('site') site?: string,
-  // ) {
-  //   if (!query || query.trim() === '') {
-  //     return { success: true, data: [] };
-  //   }
-  //   return this.equipmentsService.searchEquipmentList(query, site);
-  // }
-
   // GET /api/v1/equipments?site=xxx&grade=F,E&sort=days_since_check&order=desc
   @Get()
   findAll(@Query() query: QueryEquipmentDto) {

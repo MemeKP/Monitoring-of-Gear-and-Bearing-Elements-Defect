@@ -56,10 +56,6 @@ const MachineIndexPage = () => {
         });
     }, [machines, sortOrder, activeGrades]);
 
-    // const allRows = useMemo(() => {
-    //     return data?.pages.flatMap((page) => page?.data || []) ?? [];
-    // }, [data]);
-
     const totalCount = hasNextPage ? filtered.length + 1 : filtered.length;
 
     const totalMachines = data?.pages?.[0]?.meta?.total || 0;
@@ -86,12 +82,6 @@ const MachineIndexPage = () => {
 
     const toggleSortOrder = () => {
         setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-    };
-
-    const handleRefresh = () => {
-        setSearchInput('');
-        setSearchQuery('');
-        refetch();
     };
 
     return (

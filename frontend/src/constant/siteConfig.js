@@ -713,7 +713,7 @@ export const SITE_IMAGES = Object.fromEntries(
 
 /**
  * Maps province name → site id.
- * Auto-generated from SITE_CONFIG — no need to maintain separately.
+ * Auto-generated from SITE_CONFIG no need to maintain separately.
  */
 export const PROVINCE_TO_SITE = SITE_CONFIG.reduce((acc, site) => {
   site.provinces.forEach(province => {

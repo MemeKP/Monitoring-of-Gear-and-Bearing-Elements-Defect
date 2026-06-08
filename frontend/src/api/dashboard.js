@@ -97,7 +97,6 @@ export const reportApi = {
     getByFftId: (fftId) =>
     apiClient.get(`/reports/by-fft/${fftId}`, { reqFullData: true }),
 
-
     create: (data) => apiClient.post('/reports', data),
 
     update: (id, data) => apiClient.patch(`/reports/${id}`, data),

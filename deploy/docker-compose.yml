@@ -31,7 +31,7 @@ services:
       - "8108:8108"
     volumes:
       - ./typesense-data:/data 
-    command: '--data-dir /data --api-key=SuperSecretKey123 --enable-cors=true'
+    command: '--data-dir /data --api-key=MairooKidmaiAok123 --enable-cors=true'
     networks:
       - vibration-network
 

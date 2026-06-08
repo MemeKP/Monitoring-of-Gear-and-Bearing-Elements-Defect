@@ -1,36 +1,3 @@
-/**
- * Main Responsibility:
- *  This file contains all MapLibre layer configurations used by RegionMap.
- *
- * Layer Overview:
- * 1. clusterLayer
- *    - Visual style for clustered markers
- * 2. clusterCountLayer
- *    - Displays total count inside clusters
- * 3. unclusteredPointLayer
- *    - Visual style for individual site markers
- * 4. pulseLayer
- *    - Outer glow/pulse effect behind markers
- * 
- */
-
-
-/**
- * 1. clusterLayer
- * Visual layer for clustered site markers.
- * This layer renders circles representing grouped sites
- * when multiple points are close together at lower zoom levels.
- *
- * Cluster Color Logic:
- * - Red    → More F severity sites
- * - Yellow → More E severity sites
- * - Green  → Equal or normal severity
- *
- * Radius Logic:
- * Cluster size increases based on point_count.
- * More sites inside cluster = larger circle.
- */
-
 export const clusterLayer = {
   id: 'clusters',
   type: 'circle',
@@ -41,9 +8,8 @@ export const clusterLayer = {
       'case',
       ['>', ['get', 'sum_f'], ['get', 'sum_e']], '#FF6B6B',  // F = red
       ['>', ['get', 'sum_e'], ['get', 'sum_f']], '#FFD93D',  // E = yellow
-      '#6BCB77',                                              // equal/normal = green
+      '#6BCB77', // equal/normal = green
     ],
-    // circle-radius, opacity, stroke 
     'circle-radius': [
       'step', ['get', 'point_count'], 
       20, 5, 28, 10, 36
@@ -54,17 +20,6 @@ export const clusterLayer = {
   },
 };
 
-/**
- * 2. clusterCountLayer
- *  Displays the number of sites inside each cluster.
- * 
- * Example:
- *  A cluster containing 150 points will show:
- *  "150"
- *
- *  Uses symbol layer because text rendering in MapLibre
- * is handled through symbol layers.
- */
 export const clusterCountLayer = {
   id: 'cluster-count',
   type: 'symbol',
@@ -80,12 +35,6 @@ export const clusterCountLayer = {
   },
 };
 
-/**
- * 3. unclusteredPointLayer
- *  Radius Logic: Marker size scales dynamically
- * based on defect_count.
- * More defects = larger marker.
- */
 export const unclusteredPointLayer = {
   id: 'unclustered-point',
   type: 'circle',
@@ -94,9 +43,9 @@ export const unclusteredPointLayer = {
   paint: {
     'circle-color': [
       'match', ['get', 'severity'],
-      'F', '#FF6B6B',   // F grade = red
-      'E', '#FFD93D',   // E grade = yellow
-      '#6BCB77',        // default = green
+      'F', '#FF6B6B', // F grade = red
+      'E', '#FFD93D', // E grade = yellow
+      '#6BCB77',// default = green
     ],
     'circle-radius': [
       'interpolate', ['linear'], ['get', 'defect_count'],
@@ -110,10 +59,6 @@ export const unclusteredPointLayer = {
   },
 };
 
-/**
- * 4. Pulse ring layer
- *  Outer glow effect for visibility in dark map.
- */
 export const pulseLayer = {
   id: 'unclustered-pulse',
   type: 'circle',
