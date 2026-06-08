@@ -27,7 +27,7 @@ export function AttentionRow({ item, onClick }) {
             {item.site} · {item.meas_point} · {item.meas_date}
           </p>
           <p className="text-[10px] mt-2 font-semibold text-[#546A81] transition-colors">
-            Score
+            {isCompositeScore ? 'Score' : 'Point value'}
           </p>
         </div>
 
