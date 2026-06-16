@@ -12,7 +12,6 @@ export interface EquipmentDocument {
 export class TypesenseService implements OnModuleInit {
   private client: Client;
   private readonly logger = new Logger(TypesenseService.name);
-
   constructor() {
     this.client = new Client({
       nodes: [

@@ -1,6 +1,6 @@
 /**
  * Main Responsibility:
- *  This file will calculate all 5 rules
+ *  This file will calculate all 5 rules (110%)
  * 1. Harmonic Slope Score (35%)
  * 2. Slope Monotonicity (30%)
  * 3. SNR Db (20%)
@@ -12,19 +12,9 @@
  * - harmonicsSlopeScore: A[2x]/A[1x], A[3x]/A[1x] must be reduced
  * - slopeMonotonicity: 1.0 = perfect slope, 0 = chaos
  * - snrDb: peak vs noise floor (dB)
- * - sidebandSymmetry: |left_energy - right_energy| / avg
  * - peakSharpness: peak width at -3dB
  * - noiseFloorRms: RMS of non-harmonic bins
  */
-// interface SpectrumFeatures {
-//     harmonicsSlopeScore: number;
-//     slopeMonotonicity: number;
-//     snrDb: number;
-//     sidebandSymmetry: number;
-//     peakSharpness: number;
-//     noiseFloorRms: number;
-// }
-
 export interface SpectrumFeatures {
     harmonicSlopeScore: number;
     slopeMonotonicity: number;
@@ -41,6 +31,7 @@ interface SpectrumScore {
     rejectReason: string | null;
 }
 
+// total 110%
 const WEIGHTS = {
     harmonicSlopeScore: 0.35,
     slopeMonotonicity: 0.30,
@@ -132,7 +123,7 @@ function calcNoiseFloorRatio(
         .map(b => b[1]);
 
     // use percentile 75 intead of median
-    // found that zeros drag the median down but p75 would be represent หญ้า ได้ดีกว่า
+    // found that zeros drag the median down but p75 would be represent หญ้าได้ดีกว่า
     const sorted = [...localNoise].sort((a, b) => a - b);
     const p75 = sorted[Math.floor(sorted.length * 0.75)];
 

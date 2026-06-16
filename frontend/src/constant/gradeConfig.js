@@ -22,7 +22,7 @@ export const GRADE_FILTERS = [
 
 export const TABLE_COLS = [
   { key: 'id', label: 'Id', width: 'w-16' },
-  { key: 'equipment', label: 'Name', width: 'w-48' },
+  { key: 'equipment', label: 'Name', width: 'flex-1 min-w-[200px]' },
   { key: 'site', label: 'Site', width: 'w-20' },
   { key: 'state', label: 'State', width: 'w-16' },
   { key: 'meas_date', label: 'Date', width: 'w-28' },
@@ -34,6 +34,16 @@ export const TABLE_COLS = [
   { key: 'grade', label: 'Grade', width: 'w-20' },
   { key: 'when_action', label: 'When Actioned', width: 'w-40' },
 ];
+
+export const REPORT_TABLE_COLS = [
+  { key: 'id',            label: 'Id',             width: 'w-16' },
+  { key: 'report',    label: 'Report',    width: 'flex-1 min-w-[200px]' },
+  { key: 'equipment',     label: 'Equipment', width: 'w-64' },
+  { key: 'kks',           label: 'KKS',            width: 'w-28' },
+  { key: 'rpm',           label: 'RPM',            width: 'w-16' },
+  { key: 'date',          label: 'Date',           width: 'w-36' },
+  { key: 'action',        label: '',               width: 'w-24' },
+]
 
 export const GRADE_BADGE_COLORS = {
   F: { bg: '#FDDCDC', text: '#C0392B' },

@@ -12,7 +12,7 @@ export class Measurement {
     site: string;
 
     @Column({ type: 'varchar', length: 150 })
-    equipment: string;
+    equipment: string; 
 
     @Column({ type: 'varchar', length: 50, name: 'meas_point' })
     measPoint: string;

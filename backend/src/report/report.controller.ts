@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
@@ -30,8 +30,12 @@ export class ReportController {
   }
 
   @Get()
-  async findAll(): Promise<ReportEntity[]> {
-    return this.reportService.findAll();
+  async findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 20,
+    @Query('search') search?: string,
+  ) {
+    return this.reportService.findAll({ page: +page, limit: +limit, search });
   }
 
   @Get(':id')

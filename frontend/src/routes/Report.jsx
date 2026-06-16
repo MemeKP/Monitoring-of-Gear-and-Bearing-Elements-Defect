@@ -16,14 +16,14 @@ const Report = () => {
   const detailPeakData = equipment?.detailPeak || [];
   const { report: rawReport, isLoading } = useReportByFftId(equipmentId);
 
- const report = useMemo(() => {
+  const report = useMemo(() => {
     if (!rawReport) return null;
     const dateSource = rawReport.updatedAt ?? rawReport.createdAt;
     return {
       title: rawReport.equipmentName ?? '—',
       kks: rawReport.kks ?? '—',
       rpm: rawReport.rpm ?? '—',
-       date: dateSource
+      date: dateSource
         ? new Date(dateSource).toLocaleString('th-TH', {
           day: '2-digit',
           month: '2-digit',
@@ -117,7 +117,7 @@ const Report = () => {
 
     return {
       xAxis: hz,
-      lineStyle: { color: '#c084fc', type: 'dashed', opacity: 0.6 },
+      lineStyle: { color: '#c084fc', type: 'dashed', opacity: 0 },
       label: {
         show: false,
         formatter: `f:${hz.toFixed(1)}\nA:${amp.toFixed(1)}`,
@@ -126,7 +126,16 @@ const Report = () => {
         backgroundColor: '#1e1e2d',
         padding: [3, 5],
         borderRadius: 4,
+      },
+      emphasis: {
+        label: {
+          show: false
+        },
+        // lineStyle: {
+        //   opacity: 0,
+        // }
       }
+
     };
   }).filter(Boolean);
 

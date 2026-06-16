@@ -58,13 +58,15 @@ export class EquipmentsService {
   private async runAutoSyncInBackground() {
     try {
       const typesenseCount = await this.typesenseService.getEquipmentCount();
-      const mysqlCount = await this.repo.count(); 
+      const mysqlCount = await this.repo.count();
 
       if (typesenseCount !== mysqlCount) {
         console.log(`[Auto-Sync] Data mismatch! MySQL: ${mysqlCount}, Typesense: ${typesenseCount}. Syncing in background...`);
         await this.syncAllToTypesense();
       } else {
-        console.log(`[Auto-Sync] Data is fully in sync (Count: ${mysqlCount}).`);
+        //console.log(`[Auto-Sync] Data is fully in sync (Count: ${mysqlCount}).`);
+        console.log(`[Auto-Sync] Data is fully in sync.`);
+
       }
     } catch (error) {
       console.error('[Auto-Sync] Error checking data:', error);
@@ -291,14 +293,14 @@ export class EquipmentsService {
         return { success: true, data: [], meta: { page, limit, total: 0, totalPages: 0 } };
       }
       equipmentNames = matchedNames.slice((page - 1) * limit, page * limit);
-      
+
     } else {
       const siteKey = dto.site || 'all';
       const listCacheKey = `machine_list:site_${siteKey}`;
       let allEquipmentsForSite: string[] = [];
 
       const cachedList = await this.redisService.get(listCacheKey);
-      
+
       if (cachedList) {
         allEquipmentsForSite = JSON.parse(cachedList);
       } else {
@@ -408,6 +410,6 @@ export class EquipmentsService {
       data: result,
       meta: { page, limit, total: totalMachines, totalPages }
     };
-}
+  }
 
 }

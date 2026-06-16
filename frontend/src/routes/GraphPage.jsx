@@ -23,11 +23,9 @@ const GraphPage = () => {
   // console.log('PEAK', detailPeakData)
 
   const allAmp = envelopedFftData.map(p => p[1]);
-
   const grade = data?.grade || 'F'
   const isGradeF = data?.grade === 'F'
   const gradeColor = GRADE_BADGE_COLORS[grade] ?? GRADE_BADGE_COLORS['F']
-
   const [hasReport, setHasReport] = useState(false);
 
   useEffect(() => {
@@ -97,7 +95,7 @@ const GraphPage = () => {
 
     return {
       xAxis: hz,
-      lineStyle: { color: '#c084fc', type: 'dashed', opacity: 0.6 },
+      lineStyle: { color: '#c084fc', type: 'dashed', opacity: 0 },
       label: {
         show: false,
         formatter: `f:${hz.toFixed(1)}\nA:${amp.toFixed(1)}`,

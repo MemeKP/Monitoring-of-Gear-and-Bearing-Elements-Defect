@@ -3,7 +3,7 @@ import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Report } from './entities/report.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 
 @Injectable()
 export class ReportService {
@@ -35,10 +35,10 @@ export class ReportService {
   }
 
   async findByFftId(fftId: string): Promise<Report | null> {
-  return this.reportRepository.findOne({
-    where: { envelopedFftId: fftId },
-  });
-}
+    return this.reportRepository.findOne({
+      where: { envelopedFftId: fftId },
+    });
+  }
 
   async checkExists(envelopedFftId: string): Promise<boolean> {
     const count = await this.reportRepository.count({
@@ -47,11 +47,23 @@ export class ReportService {
     return count > 0;
   }
 
-  async findAll(): Promise<Report[]> {
-    return this.reportRepository.find({
+  async findAll({ page, limit, search }: { page: number; limit: number; search?: string }) {
+    const where = search
+      ? { equipmentName: Like(`%${search}%`) }
+      : {};
+
+    const [data, total] = await this.reportRepository.findAndCount({
+      where,
       relations: ['measurement'],
       order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return {
+      data,
+      meta: { page, limit, totalItems: total, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(id: number): Promise<Report> {
