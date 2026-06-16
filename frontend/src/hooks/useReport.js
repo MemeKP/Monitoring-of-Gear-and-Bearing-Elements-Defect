@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { reportApi } from '../api/dashboard'
 
 export const reportKeys = {
@@ -14,17 +14,27 @@ export const useReportByFftId = (fftId) => {
     enabled: !!fftId,
   })
   return {
-    hasReport: !!query.data,      
+    hasReport: !!query.data,
     report: query.data ?? null,
     isLoading: query.isLoading,
     isError: query.isError,
   }
 }
 
-export const useReports = () => {
-  return useQuery({
-    queryKey: reportKeys.all,
-    queryFn: () => reportApi.getAll(),
+export const useReports = (filters = {}) => {
+  return useInfiniteQuery({
+    queryKey: [...reportKeys.all, 'infinite', filters],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await reportApi.getAll({ ...filters, page: pageParam, limit: 20 })
+      return { data: res.data, meta: res.meta }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const meta = lastPage?.meta
+      if (!meta) return undefined
+      return meta.page < meta.totalPages ? meta.page + 1 : undefined
+    },
+    placeholderData: (prev) => prev,
   })
 }
 

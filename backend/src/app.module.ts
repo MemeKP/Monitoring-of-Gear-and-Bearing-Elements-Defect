@@ -1,10 +1,8 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GraphQLModule } from '@nestjs/graphql';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MeasurementsModule } from './measurements/measurements.module';
 import { EquipmentsModule } from './equipments/equipments.module';
 import { DashboardModule } from './dashboard/dashboard.module';
@@ -12,7 +10,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { SharedModule } from './shared/typesense.module';
 import { RedisModule } from './redis/redis.module';
-import { SpectrumCacheService } from './helpers/spectrum-cache.service';
 import { ReportModule } from './report/report.module';
 
 @Module({
@@ -30,7 +27,7 @@ import { ReportModule } from './report/report.module';
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false, // if u want to touch this, think again
+        synchronize: false, // if u want to touch this, think again :)
       }),
     }),
     CacheModule.registerAsync({

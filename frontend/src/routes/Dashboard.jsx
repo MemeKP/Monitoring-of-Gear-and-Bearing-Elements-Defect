@@ -118,7 +118,7 @@ const Dashboard = () => {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen} 
       />
 
       {/* MAIN CONTENT */}

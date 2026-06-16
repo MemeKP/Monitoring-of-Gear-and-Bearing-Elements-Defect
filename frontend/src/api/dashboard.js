@@ -90,7 +90,7 @@ export const equipmentApi = {
 }
 
 export const reportApi = {
-    getAll: () => apiClient.get('/reports'),
+    getAll: (params) => apiClient.get('/reports', { params, reqFullData: true }),
 
     getOne: (id) => apiClient.get(`/reports/${id}`),
 

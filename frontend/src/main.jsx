@@ -20,6 +20,7 @@ import {
 import MachineIndexPage from './routes/MachineIndexPage.jsx'
 import ReportModal from './routes/CreateReportPage.jsx'
 import CreateReportPage from './routes/CreateReportPage.jsx'
+import ReportList from './routes/ReportList.jsx'
 
 const queryClient = new QueryClient()
 
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
   {
     path: '/dashboard/:siteId/equipment/:equipmentId/report-view',
     element: <Report />
+  },
+   {
+    path: '/dashboard/:siteId/equipment/report-list',
+    element: <ReportList />
   },
 ])
 

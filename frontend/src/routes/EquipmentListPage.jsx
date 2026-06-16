@@ -25,7 +25,7 @@ export default function EquipmentListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const currentGrade = searchParams.get('grade');
   const LIMIT = 20;
-const activeFilter = useMemo(() => {
+  const activeFilter = useMemo(() => {
     if (!currentGrade) return null;
     return GRADE_FILTERS.find(item => item.value === currentGrade) || null;
   }, [currentGrade]);
@@ -259,7 +259,6 @@ const activeFilter = useMemo(() => {
         {/* TABLE + SIDE PANEL */}
         <div className="flex overflow-hidden">
           {/* SCROLLABLE TABLE */}
-
           {/* TABLE AREA  */}
           <div className="flex-1 flex flex-col overflow-hidden px-4 md:px-6">
             {/* VIRTUALIZED ROWS */}

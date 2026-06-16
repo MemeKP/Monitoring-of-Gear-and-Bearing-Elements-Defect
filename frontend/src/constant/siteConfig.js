@@ -31,7 +31,7 @@ import jnp2 from '../assets/img/jnp2.jpg'
 import jnp3 from '../assets/img/jnp3.jpg'
 
 /**
- * STATIC site configuration — only geography & map dot positions.
+ * STATIC site configuration only geography & map dot positions.
  * Grade counts / percentages come from the API, NOT from here.
  * Site's images should be stall in database propery.
  * If there're site that doesn't have images it will show mmm image by fallback.
@@ -702,7 +702,7 @@ export const SITE_CONFIG = [
   //   imgs: [mmm, mmm2, mmm3]
   // }
 ];
-
+ 
 /**
  * Quick lookup: siteId → images[]
  * Used in Dashboard so don't have to search the array every time

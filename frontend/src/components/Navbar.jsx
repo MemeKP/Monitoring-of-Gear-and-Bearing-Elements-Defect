@@ -7,10 +7,11 @@ import dashboard from "../assets/dashboard.png";
 import dashboardActive from "../assets/dashboard-active.png";
 import equipment from "../assets/equipment.png";
 import equipmentActive from "../assets/equipment-active.png";
-import logout from "../assets/logout.png";
 import leftArrow from "../assets/left-arrow.png";
 import folder from "../assets/folder.png";
 import folderActive from "../assets/folderActive.png"
+import report from '../assets/report.png';
+import reportActive from '../assets/reportActive.png';
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 export default function Navbar({
@@ -30,10 +31,6 @@ export default function Navbar({
   // Auth 
   const handleLogout = async () => {
     try {
-      // TODO: replace with your actual logout API call
-      // await api.post("/auth/logout");
-      // await signOut();
-
       localStorage.removeItem("token");
       sessionStorage.clear();
       navigate("/login");
@@ -66,6 +63,12 @@ export default function Navbar({
       iconActive: folderActive,
       label: "Machine Index",
       path: `/dashboard/${currentSite}/machine-index`,
+    },
+    {
+      icon: report,
+      iconActive: reportActive,
+      label: "Report List",
+      path: `/dashboard/${currentSite}/equipment/report-list`,
     },
   ];
 
