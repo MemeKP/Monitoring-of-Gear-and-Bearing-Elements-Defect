@@ -8,7 +8,6 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useInView } from 'react-intersection-observer';
 import { useReports } from '../hooks/useReport';
 import reportTable from '../assets/reportTable.png'
-
 const ReportList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -59,7 +58,6 @@ const ReportList = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
-
   return (
     <div className="bg-[#F9F9FC] min-h-screen">
       <Navbar
@@ -167,7 +165,7 @@ const ReportList = () => {
                       </div>
                     )
                   }
-                  const isSelected = selectedId === row.id;
+                  const isSelected = selectedId === row.id;    
                   return (
                     <div
                       key={row.id}
@@ -205,8 +203,11 @@ const ReportList = () => {
                         {row.rpm ?? '—'}
                       </div>
                       <div className={`px-4 text-[13px] text-[#484964] ${REPORT_TABLE_COLS[5].width} shrink-0`}>
-                        {row.createdAt ? dayjs(row.createdAt).format('DD/MM/YYYY HH:mm') : '—'}
+                        {row.createdAt
+                          ? dayjs(row.createdAt).format('DD/MM/YYYY')
+                          : '—'}
                       </div>
+
                       <div className={`px-4 ${REPORT_TABLE_COLS[6].width} shrink-0`}>
                         <button onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/${siteId}/equipment/${row.envelopedFftId}/report-view`) }}
                           className="text-xs text-[#546A81] hover:text-[#5DAFFF] duration-300 font-medium">
